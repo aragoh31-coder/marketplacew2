@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Convert Currency - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .conversion-preview {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    .rate-display {
+        font-size: 1.2em;
+        color: #007bff;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-actions {
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>💱 Convert Currency</h1>
+
+<div class="grid grid-2">
+    <div class="card">
+        <h2>Currency Conversion</h2>
+        
+        <form method="post" action="{% url 'wallets:convert' %}" id="conversionForm">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.from_currency.id_for_label }}">From Currency:</label>
+                {{ form.from_currency }}
+                {% if form.from_currency.errors %}
+                    <div class="error">{{ form.from_currency.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.to_currency.id_for_label }}">To Currency:</label>
+                {{ form.to_currency }}
+                {% if form.to_currency.errors %}
+                    <div class="error">{{ form.to_currency.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.amount.id_for_label }}">Amount:</label>
+                {{ form.amount }}
+                <small class="form-text text-muted" id="availableBalance"></small>
+                {% if form.amount.errors %}
+                    <div class="error">{{ form.amount.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div id="conversionPreview" class="conversion-preview" style="display: none;">
+                <h3>Conversion Preview</h3>
+                <p id="previewText"></p>
+                <p class="text-muted small">Final amount may vary slightly due to rate fluctuations</p>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="convertBtn">
+                    Convert Currency
+                </button>
+                <a href="{% url 'wallets:dashboard' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+    
+    <div>
+        <div class="card">
+            <h2>📊 Your Balances</h2>
+            <table>
+                <tr>
+                    <td>BTC Available:</td>
+                    <td class="text-right strong text-btc">{{ btc_available|floatformat:8 }}</td>
+                </tr>
+                <tr>
+                    <td>XMR Available:</td>
+                    <td class="text-right strong text-xmr">{{ xmr_available|floatformat:12 }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>📈 Current Exchange Rates</h2>
+            <table>
+                <tr>
+                    <td>1 BTC =</td>
+                    <td class="text-right rate-display">{{ rates.btc_xmr|default:"N/A" }} XMR</td>
+                </tr>
+                <tr>
+                    <td>1 XMR =</td>
+                    <td class="text-right rate-display">{{ rates.xmr_btc|default:"N/A" }} BTC</td>
+                </tr>
+            </table>
+            <p class="help-text mt-md">
+                ✓ Rates updated every 5 minutes<br>
+                ✓ No conversion fees<br>
+                ✓ Instant conversion
+            </p>
+        </div>
+        
+        <div class="card">
+            <h2>ℹ️ Conversion Information</h2>
+            <ul>
+                <li>Conversions are processed instantly</li>
+                <li>No minimum or maximum limits</li>
+                <li>All conversions are final</li>
+                <li>Rate locked at time of submission</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fromCurrency = document.getElementById('id_from_currency');
+    const toCurrency = document.getElementById('id_to_currency');
+    const amountInput = document.getElementById('id_amount');
+    const availableBalance = document.getElementById('availableBalance');
+    const conversionPreview = document.getElementById('conversionPreview');
+    const previewText = document.getElementById('previewText');
+    const convertBtn = document.getElementById('convertBtn');
+    
+    const balances = {
+        'btc': {{ btc_available|floatformat:8 }},
+        'xmr': {{ xmr_available|floatformat:12 }}
+    };
+    
+    const rates = {
+        'btc_xmr': {{ rates.btc_xmr|default:"0" }},
+        'xmr_btc': {{ rates.xmr_btc|default:"0" }}
+    };
+    
+    function updateDisplay() {
+        const from = fromCurrency.value;
+        const to = toCurrency.value;
+        const amount = parseFloat(amountInput.value) || 0;
+        
+        availableBalance.textContent = `Available: ${balances[from]} ${from.toUpperCase()}`;
+        
+        if (from && to && from !== to && amount > 0) {
+            const rateKey = `${from}_${to}`;
+            const rate = rates[rateKey];
+            
+            if (rate) {
+                const converted = (amount * rate).toFixed(from === 'btc' ? 12 : 8);
+                previewText.innerHTML = `
+                    <strong>${amount} ${from.toUpperCase()}</strong> → 
+                    <strong>${converted} ${to.toUpperCase()}</strong><br>
+                    <small>Rate: 1 ${from.toUpperCase()} = ${rate} ${to.toUpperCase()}</small>
+                `;
+                conversionPreview.style.display = 'block';
+            } else {
+                conversionPreview.style.display = 'none';
+            }
+        } else {
+            conversionPreview.style.display = 'none';
+        }
+    }
+    
+    function validateCurrencies() {
+        if (fromCurrency.value === toCurrency.value) {
+            if (fromCurrency.value === 'btc') {
+                toCurrency.value = 'xmr';
+            } else {
+                toCurrency.value = 'btc';
+            }
+        }
+        updateDisplay();
+    }
+    
+    document.getElementById('conversionForm').addEventListener('submit', function(e) {
+        convertBtn.disabled = true;
+        convertBtn.textContent = 'Processing...';
+    });
+    
+    fromCurrency.addEventListener('change', validateCurrencies);
+    toCurrency.addEventListener('change', validateCurrencies);
+    amountInput.addEventListener('input', updateDisplay);
+    
+    updateDisplay();
+});
+</script>
+
+{% endblock %}

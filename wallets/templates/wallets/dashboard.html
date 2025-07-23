@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Wallet Dashboard - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<meta http-equiv="refresh" content="300">
+<style>
+    .wallet-balance {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+    .balance-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+    }
+    .risk-indicator {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.85em;
+    }
+    .risk-high { background: #f8d7da; color: #721c24; }
+    .risk-medium { background: #fff3cd; color: #856404; }
+    .risk-low { background: #d4edda; color: #155724; }
+    .security-status {
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .action-buttons .btn {
+        flex: 1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>💰 Wallet Dashboard</h1>
+
+{% if show_balance_warning %}
+<div class="balance-warning">
+    <strong>⚠️ Balance Discrepancy Detected</strong>
+    <p>A discrepancy has been detected in your wallet balance. Our team has been notified and is investigating. Your funds are safe.</p>
+</div>
+{% endif %}
+
+<div class="grid grid-2 mb-lg">
+    <div class="card">
+        <h2 class="text-btc">🟠 Bitcoin (BTC)</h2>
+        <div class="wallet-balance">
+            <p class="strong">Total Balance: <span class="text-btc">{{ wallet.balance_btc|floatformat:8 }} BTC</span></p>
+            <p class="text-muted">In Escrow: {{ wallet.escrow_btc|floatformat:8 }} BTC</p>
+            <p class="strong text-success">Available: {{ btc_available|floatformat:8 }} BTC</p>
+            <p class="text-muted small">Daily Limit: {{ wallet.daily_withdrawal_limit_btc|floatformat:8 }} BTC</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'wallets:withdraw' %}" class="btn btn-primary">Withdraw</a>
+            <a href="{% url 'wallets:deposit_info' %}" class="btn btn-secondary">Deposit</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2 class="text-xmr">🔴 Monero (XMR)</h2>
+        <div class="wallet-balance">
+            <p class="strong">Total Balance: <span class="text-xmr">{{ wallet.balance_xmr|floatformat:12 }} XMR</span></p>
+            <p class="text-muted">In Escrow: {{ wallet.escrow_xmr|floatformat:12 }} XMR</p>
+            <p class="strong text-success">Available: {{ xmr_available|floatformat:12 }} XMR</p>
+            <p class="text-muted small">Daily Limit: {{ wallet.daily_withdrawal_limit_xmr|floatformat:12 }} XMR</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'wallets:withdraw' %}" class="btn btn-primary">Withdraw</a>
+            <a href="{% url 'wallets:deposit_info' %}" class="btn btn-secondary">Deposit</a>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <h2>🔄 Quick Actions</h2>
+        <div class="action-buttons" style="flex-direction: column;">
+            <a href="{% url 'wallets:convert' %}" class="btn btn-info">Convert Currency</a>
+            <a href="{% url 'wallets:transaction_history' %}" class="btn btn-outline">Transaction History</a>
+            <a href="{% url 'wallets:security_settings' %}" class="btn btn-outline">Security Settings</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2>🔒 Security Status</h2>
+        <div class="security-status">
+            <p><strong>2FA Status:</strong> 
+                {% if wallet.two_fa_enabled %}
+                    <span class="text-success">✓ Enabled</span>
+                {% else %}
+                    <span class="text-warning">⚠️ Disabled</span>
+                {% endif %}
+            </p>
+            <p><strong>Withdrawal PIN:</strong> 
+                {% if wallet.withdrawal_pin %}
+                    <span class="text-success">✓ Set</span>
+                {% else %}
+                    <span class="text-warning">⚠️ Not Set</span>
+                {% endif %}
+            </p>
+            <p><strong>Last Activity:</strong> {{ wallet.last_activity|date:"Y-m-d H:i" }}</p>
+        </div>
+    </div>
+</div>
+
+{% if recent_transactions %}
+<div class="card mt-lg">
+    <h2>📊 Recent Transactions</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in recent_transactions %}
+            <tr>
+                <td>{{ transaction.created_at|date:"M d, H:i" }}</td>
+                <td>{{ transaction.get_type_display }}</td>
+                <td>{{ transaction.amount|floatformat:8 }}</td>
+                <td class="text-{{ transaction.currency }}">{{ transaction.currency|upper }}</td>
+                <td><span class="badge badge-success">Completed</span></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center mt-md">
+        <a href="{% url 'wallets:transaction_history' %}" class="btn btn-outline">View All Transactions</a>
+    </div>
+</div>
+{% endif %}
+
+{% if pending_withdrawals %}
+<div class="card mt-lg">
+    <h2>⏳ Pending Withdrawals</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Currency</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for withdrawal in pending_withdrawals %}
+            <tr>
+                <td>{{ withdrawal.created_at|date:"M d, H:i" }}</td>
+                <td>{{ withdrawal.amount|floatformat:8 }}</td>
+                <td class="text-{{ withdrawal.currency }}">{{ withdrawal.currency|upper }}</td>
+                <td>
+                    <span class="badge badge-warning">{{ withdrawal.get_status_display }}</span>
+                    {% if withdrawal.manual_review_required %}
+                        <span class="risk-indicator risk-medium">Manual Review</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'wallets:withdrawal_detail' withdrawal.id %}" class="btn btn-sm btn-outline">View</a>
+                    {% if withdrawal.status == 'pending' %}
+                        <a href="{% url 'wallets:cancel_withdrawal' withdrawal.id %}" class="btn btn-sm btn-danger">Cancel</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}
