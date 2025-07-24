@@ -44,7 +44,7 @@
 
             <div class="form-group">
                 <label>{{ captcha_question }}</label><br>
-                <img src="{{ captcha_image }}" alt="CAPTCHA"><br>
+                <img src="{{ captcha_image|safe }}" alt="CAPTCHA challenge"><br>
                 <input type="text" name="captcha" required class="form-control" placeholder="Your answer">
             </div>
 
