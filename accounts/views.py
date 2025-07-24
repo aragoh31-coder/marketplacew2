@@ -324,7 +324,7 @@ def register(request):
 
 
 def login_view(request):
-    if request.method == "GET":
+    if request.method in ["GET", "HEAD"]:
         form = LoginForm()
         
         CaptchaSessionManager.clear_captcha(request)
