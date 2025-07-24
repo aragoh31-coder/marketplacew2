@@ -26,3 +26,5 @@ django-environ==0.11.2
 django-redis==5.4.0
 python-magic==0.4.27
 paramiko==3.4.0
+pyotp==2.8.0
+qrcode==7.4.2
