@@ -43,7 +43,8 @@
             </div>
 
             <div class="form-group">
-                <label>Security Question: {{ captcha_question }} = ?</label>
+                <label>{{ captcha_question }}</label><br>
+                <img src="{{ captcha_image }}" alt="CAPTCHA"><br>
                 <input type="text" name="captcha" required class="form-control" placeholder="Your answer">
             </div>
 

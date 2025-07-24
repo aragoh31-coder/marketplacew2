@@ -13,14 +13,13 @@ from django.views.decorators.csrf import csrf_protect
 import hashlib
 import secrets
 import logging
-import random
+import random, io, base64
+from datetime import timedelta
+from PIL import Image, ImageDraw
+from django.utils import timezone
+from dateutil import parser
 import pyotp
 import qrcode
-import io
-import base64
-from datetime import timedelta
-from dateutil import parser
-from django.utils import timezone
 from django.db import transaction
 from .forms import (
     UserProfileForm, PGPKeyForm, CustomPasswordChangeForm, DeleteAccountForm
@@ -47,6 +46,49 @@ def generate_captcha():
     a = random.randint(1, 9)
     b = random.randint(1, 9)
     return f"{a} + {b}", str(a + b)
+
+def generate_shape_captcha(width=200, height=80, ttl_minutes=2):
+    """
+    Draws N random shapes and returns:
+      - question: str e.g. "How many triangles are in this image?"
+      - answer: str (the integer count)
+      - image_data: base64‐data URI to embed in an <img>
+      - expires: datetime when this challenge should expire
+    """
+    shape = random.choice(['circle', 'square', 'triangle'])
+    count = random.randint(3, 7)
+
+    img = Image.new('RGB', (width, height), color='white')
+    draw = ImageDraw.Draw(img)
+
+    def draw_one(x, y, s):
+        if shape == 'circle':
+            draw.ellipse((x, y, x+s, y+s), outline='black', width=2)
+        elif shape == 'square':
+            draw.rectangle((x, y, x+s, y+s), outline='black', width=2)
+        else:  # triangle
+            draw.polygon(
+                [(x+s/2, y), (x, y+s), (x+s, y+s)],
+                outline='black', width=2
+            )
+
+    margin = 10
+    max_s = min(width, height) // 4
+    for _ in range(count):
+        s = random.randint(20, max_s)
+        x = random.randint(margin, width - margin - s)
+        y = random.randint(margin, height - margin - s)
+        draw_one(x, y, s)
+
+    buf = io.BytesIO()
+    img.save(buf, format='PNG')
+    b64 = base64.b64encode(buf.getvalue()).decode()
+    data_uri = f"data:image/png;base64,{b64}"
+
+    question = f"How many {shape}s do you see?"
+    answer = str(count)
+    expires = timezone.now() + timedelta(minutes=ttl_minutes)
+    return question, answer, data_uri, expires
 
 class CustomUserCreationForm(forms.ModelForm):
     password1 = forms.CharField(label='Password', widget=forms.PasswordInput)
@@ -90,29 +132,50 @@ def home(request):
 def register_view(request):
     if request.method == "GET":
         form = RegisterForm()
-        question, answer = generate_captcha()
-        request.session['captcha_answer'] = answer
+        q, a, img, exp = generate_shape_captcha()
+        request.session['captcha_answer'] = a
+        request.session['captcha_expires'] = exp.isoformat()
+        request.session.save()
         return render(request, 'accounts/register.html', {
             'form': form,
-            'captcha_question': question
+            'captcha_question': q,
+            'captcha_image': img,
         })
     
     if request.method == "POST":
         form = RegisterForm(request.POST)
         
-        user_answer = request.POST.get('captcha', '').strip()
-        correct_answer = request.session.get('captcha_answer')
-        
-        if not correct_answer or user_answer != correct_answer:
-            messages.error(request, "Incorrect CAPTCHA answer. Please try again.")
-            question, answer = generate_captcha()
-            request.session['captcha_answer'] = answer
+        exp = request.session.get('captcha_expires')
+        if not exp or timezone.now() > parser.parse(exp):
+            messages.error(request, "CAPTCHA expired. Please try again.")
+            q, a, img, exp = generate_shape_captcha()
+            request.session['captcha_answer'] = a
+            request.session['captcha_expires'] = exp.isoformat()
+            request.session.save()
             return render(request, 'accounts/register.html', {
                 'form': form,
-                'captcha_question': question
+                'captcha_question': q,
+                'captcha_image': img,
             })
         
-        request.session.pop('captcha_answer', None)
+        user_answer = request.POST.get('captcha', '').strip()
+        correct_answer = request.session.get('captcha_answer', '')
+        
+        if user_answer != correct_answer:
+            messages.error(request, "Incorrect CAPTCHA. Please try again.")
+            q, a, img, exp = generate_shape_captcha()
+            request.session['captcha_answer'] = a
+            request.session['captcha_expires'] = exp.isoformat()
+            request.session.save()
+            return render(request, 'accounts/register.html', {
+                'form': form,
+                'captcha_question': q,
+                'captcha_image': img,
+            })
+        
+        for k in ('captcha_answer', 'captcha_expires'):
+            request.session.pop(k, None)
+        request.session.save()
         
         if form.is_valid():
             username = form.cleaned_data['username']
@@ -122,20 +185,26 @@ def register_view(request):
             
             if password != password2:
                 messages.error(request, "Passwords do not match.")
-                question, answer = generate_captcha()
-                request.session['captcha_answer'] = answer
+                q, a, img, exp = generate_shape_captcha()
+                request.session['captcha_answer'] = a
+                request.session['captcha_expires'] = exp.isoformat()
+                request.session.save()
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': question
+                    'captcha_question': q,
+                    'captcha_image': img,
                 })
             
             if User.objects.filter(username=username).exists():
                 messages.error(request, "Username already taken.")
-                question, answer = generate_captcha()
-                request.session['captcha_answer'] = answer
+                q, a, img, exp = generate_shape_captcha()
+                request.session['captcha_answer'] = a
+                request.session['captcha_expires'] = exp.isoformat()
+                request.session.save()
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': question
+                    'captcha_question': q,
+                    'captcha_image': img,
                 })
             
             user = User.objects.create_user(
@@ -169,6 +238,7 @@ def register_view(request):
         
         question, answer = generate_captcha()
         request.session['captcha_answer'] = answer
+        request.session.save()
         return render(request, 'accounts/register.html', {
             'form': form,
             'captcha_question': question
@@ -178,11 +248,14 @@ def register_view(request):
 def register(request):
     if request.method == "GET":
         form = RegisterForm()
-        question, answer = generate_captcha()
-        request.session['captcha_answer'] = answer
+        q, a, img, exp = generate_shape_captcha()
+        request.session['captcha_answer'] = a
+        request.session['captcha_expires'] = exp.isoformat()
+        request.session.save()
         return render(request, 'accounts/register.html', {
             'form': form,
-            'captcha_question': question
+            'captcha_question': q,
+            'captcha_image': img,
         })
     
     if request.method == "POST":
@@ -255,40 +328,64 @@ def register(request):
             messages.success(request, "Registration successful! Please log in.")
             return redirect('accounts:login')
         
-        question, answer = generate_captcha()
-        request.session['captcha_answer'] = answer
+        q, a, img, exp = generate_shape_captcha()
+        request.session['captcha_answer'] = a
+        request.session['captcha_expires'] = exp.isoformat()
+        request.session.save()
         return render(request, 'accounts/register.html', {
             'form': form,
-            'captcha_question': question
+            'captcha_question': q,
+            'captcha_image': img,
         })
 
 
 def login_view(request):
     if request.method == "GET":
         form = LoginForm()
-        question, answer = generate_captcha()
-        request.session['captcha_answer'] = answer
+        q, a, img, exp = generate_shape_captcha()
+        request.session['captcha_answer'] = a
+        request.session['captcha_expires'] = exp.isoformat()
+        request.session.save()
         return render(request, 'accounts/login.html', {
             'form': form,
-            'captcha_question': question
+            'captcha_question': q,
+            'captcha_image': img,
         })
     
     if request.method == "POST":
         form = LoginForm(request.POST)
         
-        user_answer = request.POST.get('captcha', '').strip()
-        correct_answer = request.session.get('captcha_answer')
-        
-        if not correct_answer or user_answer != correct_answer:
-            messages.error(request, "Incorrect CAPTCHA answer. Please try again.")
-            question, answer = generate_captcha()
-            request.session['captcha_answer'] = answer
+        exp = request.session.get('captcha_expires')
+        if not exp or timezone.now() > parser.parse(exp):
+            messages.error(request, "CAPTCHA expired. Please try again.")
+            q, a, img, exp = generate_shape_captcha()
+            request.session['captcha_answer'] = a
+            request.session['captcha_expires'] = exp.isoformat()
+            request.session.save()
             return render(request, 'accounts/login.html', {
                 'form': form,
-                'captcha_question': question
+                'captcha_question': q,
+                'captcha_image': img,
             })
         
-        request.session.pop('captcha_answer', None)
+        user_answer = request.POST.get('captcha', '').strip()
+        correct_answer = request.session.get('captcha_answer', '')
+        
+        if user_answer != correct_answer:
+            messages.error(request, "Incorrect CAPTCHA. Please try again.")
+            q, a, img, exp = generate_shape_captcha()
+            request.session['captcha_answer'] = a
+            request.session['captcha_expires'] = exp.isoformat()
+            request.session.save()
+            return render(request, 'accounts/login.html', {
+                'form': form,
+                'captcha_question': q,
+                'captcha_image': img,
+            })
+        
+        for k in ('captcha_answer', 'captcha_expires'):
+            request.session.pop(k, None)
+        request.session.save()
         
         if form.is_valid():
             username = form.cleaned_data['username']
@@ -348,6 +445,7 @@ def login_view(request):
                         messages.error(request, 'Failed to generate PGP challenge. Please try again.')
                         question, answer = generate_captcha()
                         request.session['captcha_answer'] = answer
+                        request.session.save()
                         return render(request, 'accounts/login.html', {
                             'form': form,
                             'captcha_question': question
@@ -400,6 +498,7 @@ def login_view(request):
         
         question, answer = generate_captcha()
         request.session['captcha_answer'] = answer
+        request.session.save()
         return render(request, 'accounts/login.html', {
             'form': form,
             'captcha_question': question
