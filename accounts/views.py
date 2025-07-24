@@ -757,10 +757,107 @@ def test_pgp_encryption(request):
         return redirect('accounts:pgp_settings')
 
 
+def pgp_challenge_view(request):
+    """Handle PGP 2FA challenge verification with enhanced session persistence"""
+    logger = logging.getLogger(__name__)
+    
+    logger.debug(f"DEBUG: pgp_challenge_view called with method: {request.method}")
+    logger.debug(f"DEBUG: Session keys: {list(request.session.keys())}")
+    
+    user_id = request.session.get('pgp_2fa_user_id')
+    timestamp = request.session.get('pgp_2fa_timestamp')
+    encrypted_challenge = request.session.get('pgp_2fa_encrypted_challenge')
+    
+    logger.debug(f"DEBUG: user_id from session: {user_id}")
+    logger.debug(f"DEBUG: timestamp from session: {timestamp}")
+    logger.debug(f"DEBUG: encrypted_challenge present: {bool(encrypted_challenge)}")
+    
+    if not user_id or not timestamp or not encrypted_challenge:
+        logger.debug("DEBUG: Missing session data, redirecting to login")
+        messages.error(request, 'No pending 2FA authentication')
+        return redirect('accounts:login')
+    
+    from dateutil import parser
+    session_time = parser.parse(timestamp)
+    if timezone.now() - session_time > timedelta(minutes=15):
+        messages.error(request, '2FA session expired. Please login again.')
+        request.session.pop('pgp_2fa_user_id', None)
+        request.session.pop('pgp_2fa_timestamp', None)
+        request.session.pop('pgp_2fa_encrypted_challenge', None)
+        return redirect('accounts:login')
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        messages.error(request, 'Invalid session')
+        return redirect('accounts:login')
+    
+    time_remaining = 15 - int((timezone.now() - session_time).total_seconds() / 60)
+    
+    if request.method == 'POST':
+        decrypted_response = request.POST.get('decrypted_response', '').strip()
+        
+        if not decrypted_response:
+            messages.error(request, 'Please provide the decrypted challenge')
+            return render(request, 'accounts/pgp_challenge.html', {
+                'username': user.username,
+                'encrypted_challenge': encrypted_challenge,
+                'challenge_format': 'MARKETPLACE-2FA:XXXXXXXXXXXXX',
+                'time_remaining': time_remaining
+            })
+        
+        challenge_code = None
+        
+        logger.debug(f"DEBUG: Received decrypted_response = {repr(decrypted_response)}")
+        logger.debug(f"DEBUG: Current user.pgp_challenge = {repr(user.pgp_challenge)}")
+        logger.debug(f"DEBUG: Challenge expires at = {user.pgp_challenge_expires}")
+        
+        if decrypted_response.startswith('MARKETPLACE-2FA:'):
+            challenge_code = decrypted_response.replace('MARKETPLACE-2FA:', '').strip()
+        elif len(decrypted_response) >= 32:  # Just the challenge code (allow longer)
+            challenge_code = decrypted_response.strip()
+        else:
+            if 'MARKETPLACE-2FA:' in decrypted_response:
+                parts = decrypted_response.split('MARKETPLACE-2FA:')
+                if len(parts) > 1:
+                    challenge_code = parts[1].strip()
+        
+        logger.debug(f"DEBUG: Extracted challenge_code = {repr(challenge_code)}")
+        
+        if challenge_code and user.verify_pgp_challenge(challenge_code):
+            login(request, user)
+            
+            request.session.pop('pgp_2fa_user_id', None)
+            request.session.pop('pgp_2fa_timestamp', None)
+            request.session.pop('pgp_2fa_encrypted_challenge', None)
+            
+            LoginHistory.objects.create(
+                user=user,
+                ip_hash=hashlib.sha256(
+                    request.META.get('REMOTE_ADDR', '').encode()
+                ).hexdigest(),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
+                success=True
+            )
+            
+            messages.success(request, 'PGP authentication successful!')
+            return redirect('/')
+        else:
+            messages.error(request, 'Invalid challenge code. Please try again.')
+            logger.warning(f"Invalid PGP challenge attempt for user {user.username}")
+    
+    return render(request, 'accounts/pgp_challenge.html', {
+        'username': user.username,
+        'encrypted_challenge': encrypted_challenge,
+        'challenge_format': 'MARKETPLACE-2FA:XXXXXXXXXXXXX',
+        'time_remaining': time_remaining
+    })
+
+
 @login_required
 @never_cache
 def totp_settings(request):
-    """TOTP settings management page"""
+    """TOTP settings management"""
     user = request.user
     
     if request.method == "POST":
@@ -795,7 +892,7 @@ def totp_settings(request):
 @login_required
 @never_cache
 def totp_setup(request):
-    """Setup page showing secret and verification"""
+    """TOTP setup process"""
     user = request.user
     
     if not getattr(user, 'totp_secret', None):
@@ -806,7 +903,7 @@ def totp_setup(request):
         return redirect('accounts:totp_settings')
     
     if request.method == "POST":
-        code = request.POST.get("code")
+        code = request.POST.get("code", "").strip()
         
         if TOTPManager.verify_code(user.totp_secret, code):
             user.totp_enabled = True
@@ -903,100 +1000,3 @@ def verify_totp(request):
     return render(request, "accounts/verify_totp.html", {
         "attempts_remaining": 5 - getattr(user, 'totp_failure_count', 0)
     })
-
-
-def pgp_challenge_view(request):
-    """Handle PGP 2FA challenge verification with enhanced session persistence"""
-    logger = logging.getLogger(__name__)
-    
-    logger.debug(f"DEBUG: pgp_challenge_view called with method: {request.method}")
-    logger.debug(f"DEBUG: Session keys: {list(request.session.keys())}")
-    
-    user_id = request.session.get('pgp_2fa_user_id')
-    timestamp = request.session.get('pgp_2fa_timestamp')
-    encrypted_challenge = request.session.get('pgp_2fa_encrypted_challenge')
-    
-    logger.debug(f"DEBUG: user_id from session: {user_id}")
-    logger.debug(f"DEBUG: timestamp from session: {timestamp}")
-    logger.debug(f"DEBUG: encrypted_challenge present: {bool(encrypted_challenge)}")
-    
-    if not user_id or not timestamp or not encrypted_challenge:
-        logger.debug("DEBUG: Missing session data, redirecting to login")
-        messages.error(request, 'No pending 2FA authentication')
-        return redirect('accounts:login')
-    
-    from dateutil import parser
-    session_time = parser.parse(timestamp)
-    if timezone.now() - session_time > timedelta(minutes=15):
-        messages.error(request, '2FA session expired. Please login again.')
-        request.session.pop('pgp_2fa_user_id', None)
-        request.session.pop('pgp_2fa_timestamp', None)
-        request.session.pop('pgp_2fa_encrypted_challenge', None)
-        return redirect('accounts:login')
-    
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        messages.error(request, 'Invalid session')
-        return redirect('accounts:login')
-    
-    time_remaining = 15 - int((timezone.now() - session_time).total_seconds() / 60)
-    
-    if request.method == 'POST':
-        decrypted_response = request.POST.get('decrypted_response', '').strip()
-        
-        if not decrypted_response:
-            messages.error(request, 'Please provide the decrypted challenge')
-            return render(request, 'accounts/pgp_challenge.html', {
-                'username': user.username,
-                'encrypted_challenge': encrypted_challenge,
-                'challenge_format': 'MARKETPLACE-2FA:XXXXXXXXXXXXX',
-                'time_remaining': time_remaining
-            })
-        
-        challenge_code = None
-        
-        logger.debug(f"DEBUG: Received decrypted_response = {repr(decrypted_response)}")
-        logger.debug(f"DEBUG: Current user.pgp_challenge = {repr(user.pgp_challenge)}")
-        logger.debug(f"DEBUG: Challenge expires at = {user.pgp_challenge_expires}")
-        
-        if decrypted_response.startswith('MARKETPLACE-2FA:'):
-            challenge_code = decrypted_response.replace('MARKETPLACE-2FA:', '').strip()
-        elif len(decrypted_response) >= 32:  # Just the challenge code (allow longer)
-            challenge_code = decrypted_response.strip()
-        else:
-            if 'MARKETPLACE-2FA:' in decrypted_response:
-                parts = decrypted_response.split('MARKETPLACE-2FA:')
-                if len(parts) > 1:
-                    challenge_code = parts[1].strip()
-        
-        logger.debug(f"DEBUG: Extracted challenge_code = {repr(challenge_code)}")
-        
-        if challenge_code and user.verify_pgp_challenge(challenge_code):
-            login(request, user)
-            
-            request.session.pop('pgp_2fa_user_id', None)
-            request.session.pop('pgp_2fa_timestamp', None)
-            request.session.pop('pgp_2fa_encrypted_challenge', None)
-            
-            LoginHistory.objects.create(
-                user=user,
-                ip_hash=hashlib.sha256(
-                    request.META.get('REMOTE_ADDR', '').encode()
-                ).hexdigest(),
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                success=True
-            )
-            
-            messages.success(request, 'PGP authentication successful!')
-            return redirect('/')
-        else:
-            messages.error(request, 'Invalid challenge code. Please try again.')
-            logger.warning(f"Invalid PGP challenge attempt for user {user.username}")
-        
-        return render(request, 'accounts/pgp_challenge.html', {
-            'username': user.username,
-            'encrypted_challenge': encrypted_challenge,
-            'challenge_format': 'MARKETPLACE-2FA:XXXXXXXXXXXXX',
-            'time_remaining': time_remaining
-        })
