@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Challenge - Verify Human</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 40px;
+            border: 2px solid #ffaa00;
+            background-color: #000;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #ffaa00;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .challenge-section {
+            background-color: #2a2a2a;
+            border: 1px solid #ffaa00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .challenge-question {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffaa00;
+            margin-bottom: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ff00;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #00ff00;
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 16px;
+        }
+        .form-input:focus {
+            border-color: #ffaa00;
+            outline: none;
+        }
+        .btn {
+            background-color: #333;
+            color: #ffaa00;
+            border: 2px solid #ffaa00;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 16px;
+            margin: 10px;
+        }
+        .btn:hover {
+            background-color: #ffaa00;
+            color: #000;
+        }
+        .info-text {
+            color: #888;
+            font-size: 14px;
+            margin: 20px 0;
+            line-height: 1.6;
+        }
+        .honeypot {
+            display: none;
+        }
+        .error-message {
+            color: #ff6666;
+            background-color: #330000;
+            border: 1px solid #ff6666;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Security Verification</h1>
+        
+        <div class="info-text">
+            Our security system has detected automated behavior. Please complete this challenge to verify you are human.
+        </div>
+
+        <form method="post" action="">
+            {% csrf_token %}
+            
+            <!-- Honeypot fields -->
+            <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+            <input type="email" name="email_address" class="honeypot" tabindex="-1" autocomplete="off">
+            
+            <div class="challenge-section">
+                <div class="challenge-question">
+                    Security Question: {{ challenge_question|default:"What is 5 + 3?" }}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="challenge_answer">Your Answer:</label>
+                    <input type="number" name="challenge_answer" id="challenge_answer" 
+                           class="form-input" required placeholder="Enter the answer">
+                </div>
+            </div>
+
+            <!-- Timing and validation fields -->
+            <input type="hidden" name="challenge_id" value="{{ challenge_id|default:'bot_challenge' }}">
+            <input type="hidden" name="timestamp" value="{{ timestamp|default:'' }}">
+            <input type="hidden" name="form_hash" value="{{ form_hash|default:'' }}">
+            
+            <div class="form-group">
+                <button type="submit" class="btn">✓ Verify I'm Human</button>
+                <a href="/" class="btn">← Go Back</a>
+            </div>
+        </form>
+
+        <div class="info-text">
+            <strong>Privacy Notice:</strong> This challenge helps protect our service from automated abuse while maintaining your anonymity. No personal information is collected.
+        </div>
+
+        {% if error_message %}
+        <div class="error-message">
+            {{ error_message }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

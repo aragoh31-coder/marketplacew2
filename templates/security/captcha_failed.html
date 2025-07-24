@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Challenge Failed - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .security-alert {
+        background: #f8d7da;
+        border: 1px solid #f5c6cb;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    .security-icon {
+        font-size: 3em;
+        margin-bottom: 15px;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        margin: 10px;
+    }
+    .btn:hover {
+        background: #0056b3;
+    }
+    .help-section {
+        margin-top: 20px;
+        text-align: left;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="security-alert">
+    <div class="security-icon">🚫</div>
+    <h1>Security Challenge Failed</h1>
+    <p>The security challenge was not completed correctly. This helps protect our marketplace from automated attacks.</p>
+    
+    <div class="help-section">
+        <h3>Common Issues:</h3>
+        <ul>
+            <li><strong>Math Challenge:</strong> Make sure you calculated the math problem correctly</li>
+            <li><strong>Timing:</strong> Don't submit the form too quickly (minimum 3 seconds)</li>
+            <li><strong>Hidden Fields:</strong> Make sure JavaScript is disabled and you're using a clean browser</li>
+            <li><strong>Multiple Attempts:</strong> Wait a few seconds between attempts</li>
+        </ul>
+        
+        <h3>For Tor Users:</h3>
+        <p>This marketplace is fully compatible with Tor Browser. Make sure you:</p>
+        <ul>
+            <li>Are using the official Tor Browser</li>
+            <li>Have JavaScript disabled (default in Tor Browser)</li>
+            <li>Are not using any automation tools or extensions</li>
+            <li>Take your time to complete the form properly</li>
+        </ul>
+        
+        <h3>Security Features:</h3>
+        <p>Our security system includes:</p>
+        <ul>
+            <li>Math challenges to prevent bots</li>
+            <li>Honeypot fields to catch automated submissions</li>
+            <li>Timing analysis to detect suspicious behavior</li>
+            <li>Rate limiting to prevent spam</li>
+        </ul>
+    </div>
+    
+    <div class="actions">
+        <a href="javascript:history.back()" class="btn">🔙 Try Again</a>
+        <a href="/" class="btn">🏠 Return to Homepage</a>
+        <a href="/support/" class="btn">📞 Contact Support</a>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <h2>🛡️ Privacy & Security</h2>
+    <p>Our marketplace prioritizes your privacy and security:</p>
+    <ul>
+        <li><strong>No IP Logging:</strong> We don't log IP addresses for privacy protection</li>
+        <li><strong>Session-Based Security:</strong> Security measures use session data only</li>
+        <li><strong>Tor Compatible:</strong> Fully functional without JavaScript</li>
+        <li><strong>Privacy First:</strong> Designed for anonymous browsing</li>
+    </ul>
+    
+    <p>If you continue to experience issues, please contact our support team. We're here to help while maintaining the highest security standards.</p>
+</div>
+{% endblock %}

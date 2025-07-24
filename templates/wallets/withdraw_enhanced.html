@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block title %}Withdraw Funds - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        font-family: 'Courier New', monospace;
+        background-color: #1a1a1a;
+        color: #00ff00;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 0;
+    }
+    .card {
+        background-color: #000;
+        border: 2px solid #ffaa00;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .card h2 {
+        color: #ffaa00;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .grid {
+        display: grid;
+        gap: 20px;
+    }
+    .grid-2 {
+        grid-template-columns: 2fr 1fr;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #00ff00;
+        font-weight: bold;
+    }
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        background-color: #333;
+        border: 1px solid #555;
+        color: #00ff00;
+        border-radius: 3px;
+        font-family: inherit;
+        font-size: 14px;
+    }
+    .form-control:focus {
+        border-color: #ffaa00;
+        outline: none;
+    }
+    .btn {
+        background-color: #333;
+        color: #ffaa00;
+        border: 2px solid #ffaa00;
+        padding: 12px 25px;
+        text-decoration: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-family: inherit;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    .btn:hover {
+        background-color: #ffaa00;
+        color: #000;
+    }
+    .btn-secondary {
+        border-color: #666;
+        color: #666;
+    }
+    .btn-secondary:hover {
+        background-color: #666;
+        color: #000;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 3px;
+    }
+    .alert-danger {
+        background-color: #330000;
+        border: 1px solid #ff6666;
+        color: #ff9999;
+    }
+    .alert-warning {
+        background-color: #332200;
+        border: 1px solid #ffaa00;
+        color: #ffcc66;
+    }
+    .alert-info {
+        background-color: #003333;
+        border: 1px solid #00ffff;
+        color: #66ffff;
+    }
+    .withdrawal-limits {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border: 1px solid #555;
+    }
+    .address-validator {
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .validation-success { color: #00ff00; }
+    .validation-error { color: #ff6666; }
+    .security-section {
+        background-color: #2a2a2a;
+        border: 1px solid #ffaa00;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+    }
+    .security-section h3 {
+        color: #ffaa00;
+        margin-top: 0;
+    }
+    .honeypot {
+        display: none !important;
+    }
+    .math-challenge {
+        background-color: #003300;
+        border: 1px solid #00ff00;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 5px;
+    }
+    .math-challenge h3 {
+        color: #00ff00;
+        margin-top: 0;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+    }
+    table td {
+        padding: 8px;
+        border-bottom: 1px solid #333;
+    }
+    .text-right { text-align: right; }
+    .text-success { color: #00ff00; }
+    .text-warning { color: #ffaa00; }
+    .text-danger { color: #ff6666; }
+    .text-muted { color: #888; }
+    .strong { font-weight: bold; }
+    .help-text {
+        font-size: 0.9em;
+        color: #888;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="color: #ffaa00; text-align: center;">📤 Withdraw Funds</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="grid grid-2">
+        <div class="card">
+            <h2>📤 New Withdrawal Request</h2>
+            
+            <div class="alert alert-info">
+                <strong>🔒 Security Notice:</strong> All withdrawals are manually reviewed for security. 
+                High-risk withdrawals may require additional verification and take up to 24 hours to process.
+            </div>
+            
+            <form method="post" action="{% url 'wallets:withdraw' %}" id="withdrawalForm">
+                {% csrf_token %}
+                
+                <!-- Honeypot fields for bot detection -->
+                <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+                <input type="email" name="email_address" class="honeypot" tabindex="-1" autocomplete="off">
+                
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.currency.id_for_label }}">Currency:</label>
+                    {{ form.currency }}
+                    {% if form.currency.errors %}
+                        <div class="validation-error">{{ form.currency.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.amount.id_for_label }}">Amount:</label>
+                    {{ form.amount }}
+                    <div class="help-text" id="availableBalance"></div>
+                    {% if form.amount.errors %}
+                        <div class="validation-error">{{ form.amount.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.address.id_for_label }}">Withdrawal Address:</label>
+                    {{ form.address }}
+                    <div id="addressValidator" class="address-validator"></div>
+                    <div class="help-text">
+                        Enter the cryptocurrency address where you want to receive your funds. 
+                        Double-check this address as transactions cannot be reversed.
+                    </div>
+                    {% if form.address.errors %}
+                        <div class="validation-error">{{ form.address.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                {% if wallet.two_fa_enabled %}
+                <div class="security-section">
+                    <h3>🔐 Two-Factor Authentication</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.two_fa_code.id_for_label }}">2FA Code:</label>
+                        {{ form.two_fa_code }}
+                        <div class="help-text">Enter the 6-digit code from your authenticator app</div>
+                        {% if form.two_fa_code.errors %}
+                            <div class="validation-error">{{ form.two_fa_code.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if wallet.withdrawal_pin %}
+                <div class="security-section">
+                    <h3>🔑 Withdrawal PIN</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.pin.id_for_label }}">Withdrawal PIN:</label>
+                        {{ form.pin }}
+                        <div class="help-text">Enter your withdrawal PIN for additional security</div>
+                        {% if form.pin.errors %}
+                            <div class="validation-error">{{ form.pin.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Math challenge for bot detection -->
+                <div class="math-challenge">
+                    <h3>🤖 Security Verification</h3>
+                    <div class="form-group">
+                        <label class="form-label" for="math_challenge">What is {{ math_num1 }} + {{ math_num2 }}?</label>
+                        <input type="number" name="math_challenge" id="math_challenge" 
+                               class="form-control" required 
+                               placeholder="Enter the answer">
+                        <div class="help-text">This helps us verify you're not a bot</div>
+                    </div>
+                    <input type="hidden" name="math_answer" value="{{ math_answer }}">
+                    <input type="hidden" name="form_timestamp" value="{{ form_timestamp }}">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.note.id_for_label }}">Note (optional):</label>
+                    {{ form.note }}
+                    <div class="help-text">Optional note for your records</div>
+                    {% if form.note.errors %}
+                        <div class="validation-error">{{ form.note.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group" style="margin-top: 30px;">
+                    <button type="submit" class="btn" id="submitBtn">
+                        📤 Submit Withdrawal Request
+                    </button>
+                    <a href="{% url 'wallets:dashboard' %}" class="btn btn-secondary">← Cancel</a>
+                </div>
+            </form>
+        </div>
+        
+        <div>
+            <div class="card">
+                <h2>💰 Available Balances</h2>
+                <table>
+                    <tr>
+                        <td>BTC Available:</td>
+                        <td class="text-right strong text-success">{{ btc_available|floatformat:8 }}</td>
+                    </tr>
+                    <tr>
+                        <td>XMR Available:</td>
+                        <td class="text-right strong text-success">{{ xmr_available|floatformat:12 }}</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>📊 Daily Withdrawal Limits</h2>
+                <table>
+                    <tr>
+                        <td>BTC Remaining Today:</td>
+                        <td class="text-right strong">{{ btc_daily_remaining|floatformat:8 }} BTC</td>
+                    </tr>
+                    <tr>
+                        <td>XMR Remaining Today:</td>
+                        <td class="text-right strong">{{ xmr_daily_remaining|floatformat:12 }} XMR</td>
+                    </tr>
+                </table>
+                <div class="help-text">
+                    Daily limits reset at midnight UTC. Contact support to increase limits.
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🔒 Security Requirements</h2>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>2FA: {% if wallet.two_fa_enabled %}<span class="text-success">✓ Enabled</span>{% else %}<span class="text-warning">⚠️ Disabled</span>{% endif %}</li>
+                    <li>Withdrawal PIN: {% if wallet.withdrawal_pin %}<span class="text-success">✓ Set</span>{% else %}<span class="text-warning">⚠️ Not Set</span>{% endif %}</li>
+                    <li>IP Verification: <span class="text-success">✓ Active</span></li>
+                    <li>Risk Assessment: <span class="text-success">✓ Enabled</span></li>
+                </ul>
+                <div class="help-text">
+                    <a href="{% url 'wallets:security_settings' %}">Manage Security Settings →</a>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>ℹ️ Withdrawal Information</h2>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>All withdrawals are manually reviewed</li>
+                    <li>Processing time: 1-24 hours</li>
+                    <li>High-risk withdrawals require additional verification</li>
+                    <li>Minimum withdrawal: 0.001 BTC / 0.01 XMR</li>
+                    <li>Network fees are deducted from withdrawal amount</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No JavaScript - Pure HTML form validation -->
+<noscript>
+    <style>
+        .js-only { display: none !important; }
+    </style>
+</noscript>
+
+{% endblock %}

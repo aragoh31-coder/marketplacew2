@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="premium">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Secure Marketplace{% endblock %}</title>
+    <style>
+        /* Premium Theme Variables */
+        :root {
+            --primary: #00ff88;
+            --primary-dim: #00cc6a;
+            --secondary: #7c3aed;
+            --accent: #06b6d4;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            
+            --bg-primary: #0a0f1b;
+            --bg-secondary: #0f172a;
+            --bg-tertiary: #1e293b;
+            --bg-card: rgba(15, 23, 42, 0.6);
+            
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            
+            --border: rgba(148, 163, 184, 0.1);
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --glow: 0 0 40px rgba(0, 255, 136, 0.3);
+            
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 136, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(-20px, -20px) rotate(1deg); }
+            66% { transform: translate(20px, -10px) rotate(-1deg); }
+        }
+        
+        /* Mobile Navigation Checkbox (hidden) */
+        .mobile-nav-checkbox {
+            display: none;
+        }
+        
+        /* Glassmorphism Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(10, 15, 27, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Animated Logo */
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+            animation: glow 3s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2) drop-shadow(0 0 20px var(--primary)); }
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Mobile Navigation Toggle */
+        .mobile-nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            min-height: 44px;
+            min-width: 44px;
+            transition: var(--transition);
+        }
+        
+        .mobile-nav-toggle:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        /* Navigation Links */
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            position: relative;
+            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+        
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: var(--transition);
+            transform: translateX(-50%);
+        }
+        
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(0, 255, 136, 0.1);
+        }
+        
+        .nav-link:hover::before {
+            width: 80%;
+        }
+        
+        /* Premium Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.875rem;
+            min-height: 44px;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dim) 100%);
+            color: var(--bg-primary);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.6);
+        }
+        
+        .btn-secondary {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(148, 163, 184, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+        
+        /* Mobile Navigation */
+        .mobile-nav {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 280px;
+            height: 100vh;
+            background: rgba(10, 15, 27, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            transition: left 0.3s ease;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 2rem 0;
+        }
+        
+        /* Show mobile nav when checkbox is checked */
+        .mobile-nav-checkbox:checked ~ .mobile-nav {
+            left: 0;
+        }
+        
+        .mobile-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        /* Show overlay when checkbox is checked */
+        .mobile-nav-checkbox:checked ~ .mobile-nav-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .mobile-nav-header {
+            padding: 0 2rem 2rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            float: right;
+            padding: 8px;
+            min-height: 44px;
+            min-width: 44px;
+            transition: var(--transition);
+        }
+        
+        .mobile-nav-close:hover {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        .mobile-nav-links {
+            padding: 0 2rem;
+        }
+        
+        .mobile-nav-link {
+            display: block;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+            transition: var(--transition);
+            font-weight: 500;
+        }
+        
+        .mobile-nav-link:hover {
+            color: var(--primary);
+            padding-left: 1rem;
+        }
+        
+        /* Main Content */
+        main {
+            padding-top: 5rem;
+            min-height: 100vh;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Premium Cards */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: rgba(0, 255, 136, 0.3);
+        }
+        
+        .card:hover::before {
+            transform: translateX(0);
+        }
+        
+        /* Premium Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.6s ease-out;
+            animation-fill-mode: both;
+        }
+        
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(148, 163, 184, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+            min-height: 44px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+        }
+        
+        /* CSS-Only Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .dropdown-toggle {
+            display: none;
+        }
+        
+        .dropdown-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+            text-decoration: none;
+            min-height: 44px;
+        }
+        
+        .dropdown-label:hover {
+            background: rgba(148, 163, 184, 0.2);
+            border-color: var(--primary);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: var(--transition);
+            min-width: 200px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+        
+        .dropdown-toggle:checked ~ .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .dropdown-item {
+            display: block;
+            padding: 0.75rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+        }
+        
+        /* Theme Switcher */
+        .theme-switcher {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1001;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .theme-switcher select {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        
+        /* Notification Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border-radius: 10px;
+            animation: pulse 2s infinite;
+            margin-left: 0.5rem;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 27, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: none;
+            z-index: 1000;
+            animation: slideUp 0.5s ease-out;
+        }
+        
+        .bottom-nav-links {
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem 0;
+        }
+        
+        .bottom-nav-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            transition: var(--transition);
+            min-height: 44px;
+            min-width: 44px;
+            justify-content: center;
+        }
+        
+        .bottom-nav-link:hover {
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .bottom-nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .nav {
+                padding: 1rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-nav-toggle {
+                display: block;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .bottom-nav {
+                display: block;
+            }
+            
+            main {
+                padding-bottom: 5rem;
+            }
+            
+            .theme-switcher {
+                top: 0.5rem;
+                right: 0.5rem;
+                padding: 0.25rem;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .header, .bottom-nav, .theme-switcher, .mobile-nav {
+                display: none;
+            }
+            
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .card {
+                border: 1px solid #ccc;
+                background: white;
+            }
+        }
+        
+        /* Accessibility */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+        
+        /* Focus styles for keyboard navigation */
+        .btn:focus,
+        .nav-link:focus,
+        .mobile-nav-link:focus,
+        .dropdown-label:focus,
+        .form-input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Navigation Checkbox -->
+    <input type="checkbox" id="mobile-nav-toggle" class="mobile-nav-checkbox">
+    
+    
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <a href="/" class="logo">
+                <span style="font-size: 1.5rem;">⚡</span>
+                <span>MARKET</span>
+            </a>
+            
+            <label for="mobile-nav-toggle" class="mobile-nav-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                ☰
+            </label>
+            
+            <div class="nav-links">
+                <a href="{% url 'products:list' %}" class="nav-link">Products</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'orders:cart' %}" class="nav-link">
+                        Cart
+                        {% if cart_count %}
+                            <span class="badge">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'wallets:deposit' %}" class="nav-link">Wallet</a>
+                    <a href="{% url 'messaging:list' %}" class="nav-link">
+                        Messages
+                        {% if unread_messages %}
+                            <span class="badge">{{ unread_messages }}</span>
+                        {% endif %}
+                    </a>
+                    
+                    <!-- User Dropdown -->
+                    <div class="dropdown">
+                        <input type="checkbox" id="user-dropdown" class="dropdown-toggle">
+                        <label for="user-dropdown" class="dropdown-label">
+                            {{ user.username }}
+                            <span>▼</span>
+                        </label>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'accounts:profile' %}" class="dropdown-item">Profile</a>
+                            {% if user.vendor %}
+                                <a href="{% url 'vendors:dashboard' %}" class="dropdown-item">Vendor Dashboard</a>
+                            {% endif %}
+                            {% if user.is_staff %}
+                                <a href="{% url 'adminpanel:dashboard' %}" class="dropdown-item">Admin Panel</a>
+                            {% endif %}
+                            <a href="{% url 'accounts:logout' %}" class="dropdown-item">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="btn btn-primary">Login</a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-secondary">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+    
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <div class="mobile-nav-header">
+            <label for="mobile-nav-toggle" class="mobile-nav-close">
+                <span class="sr-only">Close navigation</span>
+                ✕
+            </label>
+            <div style="clear: both;"></div>
+            <div class="logo" style="margin-top: 1rem;">
+                <span style="font-size: 1.5rem;">⚡</span>
+                <span>MARKET</span>
+            </div>
+        </div>
+        
+        <div class="mobile-nav-links">
+            <a href="{% url 'products:list' %}" class="mobile-nav-link">🛍️ Products</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'orders:cart' %}" class="mobile-nav-link">
+                    🛒 Cart
+                    {% if cart_count %}
+                        <span class="badge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'wallets:deposit' %}" class="mobile-nav-link">💰 Wallet</a>
+                <a href="{% url 'messaging:list' %}" class="mobile-nav-link">
+                    💬 Messages
+                    {% if unread_messages %}
+                        <span class="badge">{{ unread_messages }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="mobile-nav-link">👤 Profile</a>
+                {% if user.vendor %}
+                    <a href="{% url 'vendors:dashboard' %}" class="mobile-nav-link">🏪 Vendor Dashboard</a>
+                {% endif %}
+                {% if user.is_staff %}
+                    <a href="{% url 'adminpanel:dashboard' %}" class="mobile-nav-link">⚙️ Admin Panel</a>
+                {% endif %}
+                <a href="{% url 'accounts:logout' %}" class="mobile-nav-link">🚪 Logout</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="mobile-nav-link">🔑 Login</a>
+                <a href="{% url 'accounts:register' %}" class="mobile-nav-link">📝 Register</a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <!-- Mobile Navigation Overlay -->
+    <label for="mobile-nav-toggle" class="mobile-nav-overlay">
+        <span class="sr-only">Close navigation</span>
+    </label>
+    
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="card" style="animation: slideDown 0.5s ease-out; background: {% if message.tags == 'error' %}rgba(239, 68, 68, 0.1){% elif message.tags == 'success' %}rgba(0, 255, 136, 0.1){% else %}var(--bg-card){% endif %}; border-color: {% if message.tags == 'error' %}var(--danger){% elif message.tags == 'success' %}var(--primary){% else %}var(--border){% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-links">
+            <a href="/" class="bottom-nav-link">
+                <span class="bottom-nav-icon">🏠</span>
+                <span>Home</span>
+            </a>
+            <a href="{% url 'products:list' %}" class="bottom-nav-link">
+                <span class="bottom-nav-icon">🛍️</span>
+                <span>Products</span>
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'orders:cart' %}" class="bottom-nav-link">
+                    <span class="bottom-nav-icon">🛒</span>
+                    <span>Cart</span>
+                    {% if cart_count %}
+                        <span class="badge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'wallets:deposit' %}" class="bottom-nav-link">
+                    <span class="bottom-nav-icon">💰</span>
+                    <span>Wallet</span>
+                </a>
+                <a href="{% url 'accounts:profile' %}" class="bottom-nav-link">
+                    <span class="bottom-nav-icon">👤</span>
+                    <span>Profile</span>
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="bottom-nav-link">
+                    <span class="bottom-nav-icon">🔑</span>
+                    <span>Login</span>
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+</body>
+</html>

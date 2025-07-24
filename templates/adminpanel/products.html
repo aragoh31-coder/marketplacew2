@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Products - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Products</h2>
+    <table>
+        <thead><tr><th>Title</th><th>Vendor</th><th>Price</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.title }}</td>
+                <td>{{ product.vendor.user.username }}</td>
+                <td>{{ product.price }}</td>
+                <td>
+                    <form method="post" action="{% url 'adminpanel:delete_product' product.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

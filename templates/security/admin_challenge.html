@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Security Challenge{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-shield"></i>
+                        Admin Security Challenge
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong>Admin Access Detected:</strong>
+                        Additional security verification required for administrative functions.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="form-group mb-3">
+                            <label for="admin_password">Admin Password:</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="admin_password" 
+                                   name="admin_password" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <label for="secondary_password">Secondary Password:</label>
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="secondary_password" 
+                                   name="secondary_password" 
+                                   required>
+                        </div>
+                        
+                        <!-- NoJS CAPTCHA -->
+                        <div class="form-group mb-3">
+                            <label for="captcha_answer">Security Question:</label>
+                            <p class="text-muted">What is {{ captcha_data.math_challenge }}?</p>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="captcha_answer" 
+                                   name="captcha_answer" 
+                                   required>
+                            <input type="hidden" name="captcha_hash" value="{{ captcha_data.form_hash }}">
+                        </div>
+                        
+                        <!-- Honeypot -->
+                        <input type="text" name="website" style="display:none;" tabindex="-1">
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-unlock"></i>
+                                Verify Admin Access
+                            </button>
+                            <a href="{% url 'core:home' %}" class="btn btn-secondary ms-2">
+                                <i class="fas fa-home"></i>
+                                Return Home
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

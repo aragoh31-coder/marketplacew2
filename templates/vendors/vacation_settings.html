@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Vacation Mode Settings{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>🏖️ Vacation Mode Settings</h1>
+    
+    <div class="vacation-status">
+        {% if vendor.is_on_vacation %}
+        <div class="alert alert-warning">
+            <h3>Vacation Mode is ACTIVE</h3>
+            <p>All your products are currently hidden from customers.</p>
+            {% if vendor.vacation_started %}
+                <p>Started: {{ vendor.vacation_started|date:"Y-m-d H:i" }}</p>
+            {% endif %}
+            {% if vendor.vacation_ends %}
+                <p>Scheduled to end: {{ vendor.vacation_ends|date:"Y-m-d H:i" }}</p>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <h3>Vacation Mode is INACTIVE</h3>
+            <p>Your store is operating normally.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <form method="post" class="vacation-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.vacation_message.label_tag }}
+            {{ form.vacation_message }}
+            <small>This message will be shown on your vendor profile and to customers who try to order.</small>
+        </div>
+        
+        <div class="form-group">
+            {{ form.vacation_ends.label_tag }}
+            {{ form.vacation_ends }}
+            <small>Leave empty for indefinite vacation. Vacation mode will automatically end at this time.</small>
+        </div>
+        
+        <div class="form-actions">
+            {% if vendor.is_on_vacation %}
+                <button type="submit" name="action" value="deactivate" class="btn btn-primary">
+                    🏪 End Vacation Mode
+                </button>
+                <p class="warning-text">
+                    ⚠️ Ending vacation mode will reactivate all products that were active before.
+                </p>
+            {% else %}
+                <button type="submit" name="action" value="activate" class="btn btn-warning">
+                    🏖️ Start Vacation Mode
+                </button>
+                <p class="warning-text">
+                    ⚠️ Starting vacation mode will immediately hide all your products from customers.
+                </p>
+            {% endif %}
+            
+            <a href="{% url 'vendors:dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    
+    <div class="vacation-info">
+        <h3>What happens in Vacation Mode?</h3>
+        <ul>
+            <li>✅ All products are automatically hidden</li>
+            <li>✅ Customers see your vacation message</li>
+            <li>✅ No new orders can be placed</li>
+            <li>✅ Existing orders still need to be fulfilled</li>
+            <li>✅ Messages can still be received and answered</li>
+            <li>✅ Products are restored when vacation ends</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.vacation-status {
+    margin-bottom: 30px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.alert-info {
+    background-color: #d1ecf1;
+    border: 1px solid #bee5eb;
+    color: #0c5460;
+}
+
+.vacation-form {
+    background: #2a2a2a;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.form-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    margin: 0 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-warning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.warning-text {
+    color: #ffc107;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.vacation-info {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.vacation-info h3 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.vacation-info ul {
+    list-style: none;
+    padding: 0;
+}
+
+.vacation-info li {
+    color: #ccc;
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+small {
+    color: #999;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+</style>
+{% endblock %}

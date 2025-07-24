@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Security Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fas fa-shield-alt"></i> Security Dashboard</h2>
+            <p class="text-muted">Monitor your account security and recent activity</p>
+        </div>
+    </div>
+
+    <!-- Security Score -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title">Security Score</h3>
+                    <div class="display-4 {% if security_score >= 80 %}text-success{% elif security_score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ security_score }}%
+                    </div>
+                    <p class="card-text">
+                        {% if security_score >= 80 %}
+                            <span class="badge badge-success">Excellent</span>
+                        {% elif security_score >= 60 %}
+                            <span class="badge badge-warning">Good</span>
+                        {% else %}
+                            <span class="badge badge-danger">Needs Improvement</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Security Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    {% if login_analysis.risk_score > 20 %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Security Alert:</strong> Unusual login patterns detected.
+                        </div>
+                    {% endif %}
+                    
+                    <ul class="list-unstyled">
+                        {% if not user.pgp_public_key %}
+                            <li><i class="fas fa-times text-danger"></i> Set up PGP encryption for secure communications</li>
+                        {% else %}
+                            <li><i class="fas fa-check text-success"></i> PGP encryption configured</li>
+                        {% endif %}
+                        
+                        <li><i class="fas fa-check text-success"></i> Two-factor authentication available</li>
+                        <li><i class="fas fa-check text-success"></i> Regular security monitoring active</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Security Events -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Security Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_logs %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Event</th>
+                                        <th>Details</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in recent_logs %}
+                                        <tr>
+                                            <td>{{ log.created_at|date:"M d, H:i" }}</td>
+                                            <td>
+                                                {% if log.action == 'login' %}
+                                                    <i class="fas fa-sign-in-alt text-success"></i> Login
+                                                {% elif log.action == 'withdrawal_request' %}
+                                                    <i class="fas fa-money-bill-wave text-warning"></i> Withdrawal
+                                                {% elif log.action == 'security_alert' %}
+                                                    <i class="fas fa-exclamation-triangle text-danger"></i> Security Alert
+                                                {% else %}
+                                                    <i class="fas fa-info-circle"></i> {{ log.action|title }}
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if log.details %}
+                                                    {{ log.details.event_type|default:"Standard operation" }}
+                                                {% else %}
+                                                    Standard operation
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if log.risk_score >= 50 %}
+                                                    <span class="badge badge-danger">High</span>
+                                                {% elif log.risk_score >= 25 %}
+                                                    <span class="badge badge-warning">Medium</span>
+                                                {% else %}
+                                                    <span class="badge badge-success">Low</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent security events to display.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Quick Security Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-key"></i> PGP Settings
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-block">
+                                <i class="fas fa-lock"></i> Change Password
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'wallets:security_settings' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-shield-alt"></i> Wallet Security
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'accounts:logout' %}" class="btn btn-outline-danger btn-block">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.display-4 {
+    font-weight: bold;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: none;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+}
+
+.btn-block {
+    margin-bottom: 0.5rem;
+}
+
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+</style>
+{% endblock %}

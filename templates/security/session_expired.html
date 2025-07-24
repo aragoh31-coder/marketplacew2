@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Session Expired - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">🔒 Session Expired</h4>
+                </div>
+                <div class="card-body">
+                    <p>Your session has expired for security reasons. This helps protect your account from unauthorized access.</p>
+                    
+                    <h5>Why did this happen?</h5>
+                    <ul>
+                        <li>Your session was inactive for too long</li>
+                        <li>Security inconsistencies were detected</li>
+                        <li>Your session exceeded the maximum allowed time</li>
+                    </ul>
+                    
+                    <h5>What to do next:</h5>
+                    <ol>
+                        <li>Click the login button below</li>
+                        <li>Enter your credentials again</li>
+                        <li>Complete any required security challenges</li>
+                    </ol>
+                    
+                    <div class="mt-4">
+                        <a href="{% url 'accounts:login' %}" class="btn btn-primary">
+                            🔑 Login Again
+                        </a>
+                        <a href="{% url 'core:home' %}" class="btn btn-secondary">
+                            🏠 Go Home
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <small class="text-muted">
+                    This security measure helps protect your privacy and funds on the Tor network.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,633 @@
+{% extends 'base_premium.html' %}
+
+{% block content %}
+<div class="premium-messaging-container">
+    <div class="messaging-header">
+        <h1 class="messaging-title">Premium Messages</h1>
+        <div class="messaging-subtitle">Secure encrypted communications</div>
+    </div>
+    
+    <!-- Message Actions -->
+    <div class="message-actions">
+        <a href="{% url 'messaging:compose' %}" class="premium-btn premium-btn-primary">
+            <span class="btn-icon">✉️</span>
+            <span>Compose Message</span>
+        </a>
+        
+        <div class="message-filters">
+            <input type="checkbox" id="filter-toggle" class="filter-checkbox">
+            <label for="filter-toggle" class="filter-toggle-btn">
+                <span>Filters</span>
+                <span class="filter-icon">🔍</span>
+            </label>
+            
+            <div class="filter-panel">
+                <form method="get" class="filter-form">
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <select name="status" class="premium-select">
+                            <option value="">All Messages</option>
+                            <option value="unread">Unread</option>
+                            <option value="read">Read</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Type</label>
+                        <select name="type" class="premium-select">
+                            <option value="">All Types</option>
+                            <option value="order">Order Related</option>
+                            <option value="support">Support</option>
+                            <option value="general">General</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="premium-btn premium-btn-secondary">Apply</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Message Conversations -->
+    <div class="conversations-container">
+        {% for conversation_id, messages in conversations.items %}
+        <div class="premium-conversation-card">
+            <div class="conversation-header">
+                <div class="conversation-participants">
+                    {% for participant in messages.0.participants %}
+                        <div class="participant-avatar">
+                            <span>{{ participant.username|first|upper }}</span>
+                        </div>
+                    {% endfor %}
+                    <div class="conversation-info">
+                        <h3 class="conversation-title">
+                            {% for participant in messages.0.participants %}
+                                {% if participant != user %}{{ participant.username }}{% endif %}
+                            {% endfor %}
+                        </h3>
+                        <div class="conversation-meta">
+                            <span class="message-count">{{ messages|length }} message{{ messages|length|pluralize }}</span>
+                            <span class="last-activity">{{ messages.0.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="conversation-actions">
+                    {% if messages.0.sender != user %}
+                        <span class="unread-indicator"></span>
+                    {% endif %}
+                    
+                    <input type="checkbox" id="conv-{{ conversation_id }}" class="conversation-toggle">
+                    <label for="conv-{{ conversation_id }}" class="expand-btn">
+                        <span class="expand-icon">▼</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="conversation-content">
+                <div class="messages-list">
+                    {% for message in messages %}
+                    <div class="premium-message {% if message.sender == user %}sent{% else %}received{% endif %}">
+                        <div class="message-avatar">
+                            <span>{{ message.sender.username|first|upper }}</span>
+                        </div>
+                        
+                        <div class="message-content">
+                            <div class="message-header">
+                                <span class="message-sender">{{ message.sender.username }}</span>
+                                <span class="message-time">{{ message.created_at|date:"M d, H:i" }}</span>
+                            </div>
+                            
+                            <div class="message-body">
+                                {{ message.content|linebreaks }}
+                            </div>
+                            
+                            {% if message.encrypted %}
+                            <div class="message-encryption">
+                                <span class="encryption-icon">🔒</span>
+                                <span>End-to-end encrypted</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="reply-section">
+                    <form method="post" action="{% url 'messaging:send_message' %}" class="reply-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="recipient" value="{% for participant in messages.0.participants %}{% if participant != user %}{{ participant.id }}{% endif %}{% endfor %}">
+                        
+                        <div class="reply-input-group">
+                            <textarea name="content" placeholder="Type your reply..." class="reply-textarea" rows="3"></textarea>
+                            <button type="submit" class="premium-btn premium-btn-primary">
+                                <span class="btn-icon">📤</span>
+                                <span>Send</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="premium-empty-state">
+            <div class="empty-icon">💬</div>
+            <h3>No messages yet</h3>
+            <p>Start a conversation by composing a new message.</p>
+            <a href="{% url 'messaging:compose' %}" class="premium-btn premium-btn-primary">Compose Message</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.premium-messaging-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.messaging-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.messaging-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.messaging-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.message-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.message-filters {
+    position: relative;
+}
+
+.filter-checkbox {
+    display: none;
+}
+
+.filter-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.filter-toggle-btn:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2);
+}
+
+.filter-panel {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 100;
+    min-width: 300px;
+}
+
+.filter-checkbox:checked + .filter-toggle-btn + .filter-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.premium-select {
+    padding: 0.75rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.premium-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.conversations-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.premium-conversation-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+}
+
+.premium-conversation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1);
+    border-color: var(--primary);
+}
+
+.conversation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.conversation-participants {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.participant-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--bg-primary);
+    font-size: 1.25rem;
+}
+
+.conversation-info {
+    flex: 1;
+}
+
+.conversation-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.conversation-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.conversation-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.unread-indicator {
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.conversation-toggle {
+    display: none;
+}
+
+.expand-btn {
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.expand-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.expand-icon {
+    transition: transform 0.3s ease;
+}
+
+.conversation-toggle:checked + .expand-btn .expand-icon {
+    transform: rotate(180deg);
+}
+
+.conversation-content {
+    display: none;
+    padding: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.conversation-toggle:checked ~ .conversation-content {
+    display: block;
+    animation: slideDown 0.3s ease-out;
+}
+
+.messages-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1.5rem;
+    padding-right: 0.5rem;
+}
+
+.premium-message {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.premium-message.sent {
+    flex-direction: row-reverse;
+}
+
+.premium-message.sent .message-content {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-primary);
+}
+
+.premium-message.sent .message-header .message-sender {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.premium-message.sent .message-header .message-time {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: var(--bg-primary);
+    flex-shrink: 0;
+}
+
+.message-content {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1rem;
+    max-width: 70%;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.message-sender {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.message-body {
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+
+.message-encryption {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--primary);
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reply-section {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+}
+
+.reply-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.reply-input-group {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.reply-textarea {
+    flex: 1;
+    padding: 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.reply-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.reply-textarea::placeholder {
+    color: var(--text-secondary);
+}
+
+.premium-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.premium-btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-primary);
+}
+
+.premium-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+}
+
+.btn-icon {
+    font-size: 1rem;
+}
+
+.premium-empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.premium-empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.premium-empty-state p {
+    margin-bottom: 2rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 600px;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+    .premium-messaging-container {
+        padding: 1rem;
+    }
+    
+    .messaging-title {
+        font-size: 2rem;
+    }
+    
+    .message-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-panel {
+        right: auto;
+        left: 0;
+    }
+    
+    .conversation-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .conversation-participants {
+        width: 100%;
+    }
+    
+    .reply-input-group {
+        flex-direction: column;
+    }
+    
+    .message-content {
+        max-width: 85%;
+    }
+}
+</style>
+{% endblock %}

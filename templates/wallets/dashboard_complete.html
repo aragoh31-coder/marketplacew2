@@ -1,0 +1,553 @@
+{% extends 'base.html' %}
+
+{% block title %}Wallet Dashboard - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .wallet-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+    }
+    
+    .balance-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .balance-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .balance-card.btc {
+        background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%);
+    }
+    
+    .balance-card.xmr {
+        background: linear-gradient(135deg, #ff6600 0%, #ff4500 100%);
+    }
+    
+    .balance-amount {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+    
+    .balance-label {
+        opacity: 0.9;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .escrow-amount {
+        font-size: 0.9rem;
+        opacity: 0.8;
+        margin-top: 0.5rem;
+    }
+    
+    .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .action-card {
+        background: white;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .action-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+    
+    .action-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    
+    .action-desc {
+        color: #666;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+    
+    .btn:hover {
+        background: #0056b3;
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-success {
+        background: #28a745;
+    }
+    
+    .btn-success:hover {
+        background: #1e7e34;
+    }
+    
+    .btn-warning {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    .btn-warning:hover {
+        background: #e0a800;
+    }
+    
+    .security-status {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .security-score {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .score-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: white;
+    }
+    
+    .score-high {
+        background: #28a745;
+    }
+    
+    .score-medium {
+        background: #ffc107;
+        color: #212529;
+    }
+    
+    .score-low {
+        background: #dc3545;
+    }
+    
+    .security-features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .security-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 4px;
+    }
+    
+    .feature-enabled {
+        color: #28a745;
+    }
+    
+    .feature-disabled {
+        color: #dc3545;
+    }
+    
+    .recent-activity {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .activity-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        font-weight: bold;
+    }
+    
+    .activity-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        padding: 1rem;
+        border-bottom: 1px solid #f1f3f4;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-details {
+        flex: 1;
+    }
+    
+    .activity-type {
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .activity-desc {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 0.25rem;
+    }
+    
+    .activity-time {
+        color: #999;
+        font-size: 0.8rem;
+    }
+    
+    .activity-status {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .status-pending {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .status-rejected {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-warning {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
+    
+    .alert-info {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+    }
+    
+    .limits-info {
+        background: #e9ecef;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-top: 1rem;
+    }
+    
+    .limits-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .limit-item {
+        text-align: center;
+    }
+    
+    .limit-label {
+        font-size: 0.8rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .limit-value {
+        font-weight: bold;
+        color: #333;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wallet-dashboard">
+    <h1>💰 Wallet Dashboard</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Balance Cards -->
+    <div class="balance-cards">
+        <div class="balance-card btc">
+            <div class="balance-label">Bitcoin (BTC)</div>
+            <div class="balance-amount">{{ wallet.balance_btc|floatformat:8 }}</div>
+            <div class="escrow-amount">
+                🔒 Escrow: {{ wallet.escrow_btc|floatformat:8 }} BTC
+            </div>
+            <div class="escrow-amount">
+                ✅ Available: {{ btc_available|floatformat:8 }} BTC
+            </div>
+        </div>
+        
+        <div class="balance-card xmr">
+            <div class="balance-label">Monero (XMR)</div>
+            <div class="balance-amount">{{ wallet.balance_xmr|floatformat:12 }}</div>
+            <div class="escrow-amount">
+                🔒 Escrow: {{ wallet.escrow_xmr|floatformat:12 }} XMR
+            </div>
+            <div class="escrow-amount">
+                ✅ Available: {{ xmr_available|floatformat:12 }} XMR
+            </div>
+        </div>
+    </div>
+    
+    <!-- Security Status -->
+    <div class="security-status">
+        <h2>🔐 Security Status</h2>
+        <div class="security-score">
+            <div class="score-circle {% if security_score >= 80 %}score-high{% elif security_score >= 50 %}score-medium{% else %}score-low{% endif %}">
+                {{ security_score|default:0 }}%
+            </div>
+            <div>
+                <div style="font-weight: bold; font-size: 1.1rem;">
+                    {% if security_score >= 80 %}
+                        Excellent Security
+                    {% elif security_score >= 50 %}
+                        Good Security
+                    {% else %}
+                        Needs Improvement
+                    {% endif %}
+                </div>
+                <div style="color: #666; font-size: 0.9rem;">
+                    Your wallet security score
+                </div>
+            </div>
+        </div>
+        
+        <div class="security-features">
+            <div class="security-feature">
+                <span class="{% if wallet.two_fa_enabled %}feature-enabled{% else %}feature-disabled{% endif %}">
+                    {% if wallet.two_fa_enabled %}✅{% else %}❌{% endif %}
+                </span>
+                <span>Two-Factor Authentication</span>
+            </div>
+            
+            <div class="security-feature">
+                <span class="{% if wallet.withdrawal_pin %}feature-enabled{% else %}feature-disabled{% endif %}">
+                    {% if wallet.withdrawal_pin %}✅{% else %}❌{% endif %}
+                </span>
+                <span>Withdrawal PIN</span>
+            </div>
+            
+            <div class="security-feature">
+                <span class="{% if user.pgp_public_key %}feature-enabled{% else %}feature-disabled{% endif %}">
+                    {% if user.pgp_public_key %}✅{% else %}❌{% endif %}
+                </span>
+                <span>PGP Key Set</span>
+            </div>
+            
+            <div class="security-feature">
+                <span class="feature-enabled">✅</span>
+                <span>Secure Connection</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Cards -->
+    <div class="action-grid">
+        <div class="action-card">
+            <span class="action-icon">📥</span>
+            <div class="action-title">Deposit Funds</div>
+            <div class="action-desc">Add BTC or XMR to your wallet</div>
+            <a href="{% url 'wallets:deposit' %}" class="btn btn-success">Deposit</a>
+        </div>
+        
+        <div class="action-card">
+            <span class="action-icon">📤</span>
+            <div class="action-title">Withdraw Funds</div>
+            <div class="action-desc">Send funds to external wallet</div>
+            <a href="{% url 'wallets:withdraw' %}" class="btn">Withdraw</a>
+        </div>
+        
+        <div class="action-card">
+            <span class="action-icon">🔄</span>
+            <div class="action-title">Convert Currency</div>
+            <div class="action-desc">Exchange between BTC and XMR</div>
+            <a href="{% url 'wallets:convert' %}" class="btn btn-warning">Convert</a>
+        </div>
+        
+        <div class="action-card">
+            <span class="action-icon">🔧</span>
+            <div class="action-title">Security Settings</div>
+            <div class="action-desc">Manage 2FA, PIN, and security</div>
+            <a href="{% url 'wallets:security_settings' %}" class="btn">Settings</a>
+        </div>
+    </div>
+    
+    <!-- Withdrawal Limits -->
+    <div class="limits-info">
+        <h3>📊 Daily Withdrawal Limits</h3>
+        <div class="limits-grid">
+            <div class="limit-item">
+                <div class="limit-label">BTC Daily Limit</div>
+                <div class="limit-value">{{ wallet.daily_withdrawal_limit_btc|floatformat:8 }} BTC</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">XMR Daily Limit</div>
+                <div class="limit-value">{{ wallet.daily_withdrawal_limit_xmr|floatformat:12 }} XMR</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">BTC Used Today</div>
+                <div class="limit-value">{{ daily_btc_used|floatformat:8 }} BTC</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">XMR Used Today</div>
+                <div class="limit-value">{{ daily_xmr_used|floatformat:12 }} XMR</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <div class="activity-header">
+            📋 Recent Activity
+        </div>
+        <div class="activity-list">
+            {% if recent_transactions %}
+                {% for transaction in recent_transactions %}
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <div class="activity-type">
+                            {% if transaction.type == 'deposit' %}📥 Deposit
+                            {% elif transaction.type == 'withdrawal' %}📤 Withdrawal
+                            {% elif transaction.type == 'conversion' %}🔄 Conversion
+                            {% elif transaction.type == 'escrow_lock' %}🔒 Escrow Lock
+                            {% elif transaction.type == 'escrow_release' %}🔓 Escrow Release
+                            {% else %}💰 {{ transaction.get_type_display }}
+                            {% endif %}
+                        </div>
+                        <div class="activity-desc">
+                            {{ transaction.amount|floatformat:8 }} {{ transaction.currency|upper }}
+                            {% if transaction.reference %}
+                                - {{ transaction.reference }}
+                            {% endif %}
+                        </div>
+                        <div class="activity-time">
+                            {{ transaction.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="activity-item">
+                    <div class="activity-details">
+                        <div class="activity-desc">No recent transactions</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Pending Withdrawals -->
+    {% if pending_withdrawals %}
+    <div class="recent-activity" style="margin-top: 1rem;">
+        <div class="activity-header">
+            ⏳ Pending Withdrawals
+        </div>
+        <div class="activity-list">
+            {% for withdrawal in pending_withdrawals %}
+            <div class="activity-item">
+                <div class="activity-details">
+                    <div class="activity-type">
+                        Withdrawal #{{ withdrawal.id }}
+                    </div>
+                    <div class="activity-desc">
+                        {{ withdrawal.amount|floatformat:8 }} {{ withdrawal.currency|upper }}
+                        to {{ withdrawal.address|truncatechars:20 }}
+                    </div>
+                    <div class="activity-time">
+                        {{ withdrawal.created_at|timesince }} ago
+                    </div>
+                </div>
+                <div class="activity-status status-{{ withdrawal.status }}">
+                    {{ withdrawal.get_status_display }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Balance Warning -->
+    {% if show_balance_warning %}
+    <div class="alert alert-warning">
+        ⚠️ <strong>Balance Discrepancy Detected:</strong>
+        A recent balance check found discrepancies in your wallet. 
+        Our administrators have been notified and will investigate.
+        Your funds are safe and this is likely a temporary synchronization issue.
+    </div>
+    {% endif %}
+    
+    <!-- Help Information -->
+    <div class="alert alert-info">
+        <strong>💡 Security Tips:</strong>
+        <ul style="margin: 0.5rem 0 0 1rem;">
+            <li>Enable Two-Factor Authentication for enhanced security</li>
+            <li>Set a withdrawal PIN for additional protection</li>
+            <li>Always verify withdrawal addresses before confirming</li>
+            <li>Keep your PGP key secure and backed up</li>
+            <li>Report any suspicious activity immediately</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

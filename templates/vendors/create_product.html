@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Create Product{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Create New Product</h1>
+    
+    <form method="post" enctype="multipart/form-data" class="product-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="{{ form.name.id_for_label }}">Product Name</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="error">{{ form.name.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.description.id_for_label }}">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="error">{{ form.description.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.category.id_for_label }}">Category</label>
+            {{ form.category }}
+            {% if form.category.errors %}
+                <div class="error">{{ form.category.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="price-group">
+            <div class="form-group">
+                <label for="{{ form.price_btc.id_for_label }}">Price (BTC)</label>
+                {{ form.price_btc }}
+                {% if form.price_btc.errors %}
+                    <div class="error">{{ form.price_btc.errors.0 }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.price_xmr.id_for_label }}">Price (XMR)</label>
+                {{ form.price_xmr }}
+                {% if form.price_xmr.errors %}
+                    <div class="error">{{ form.price_xmr.errors.0 }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.stock_quantity.id_for_label }}">Stock Quantity</label>
+            {{ form.stock_quantity }}
+            {% if form.stock_quantity.errors %}
+                <div class="error">{{ form.stock_quantity.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="shipping-group">
+            <div class="form-group">
+                <label for="{{ form.ships_from.id_for_label }}">Ships From</label>
+                {{ form.ships_from }}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.ships_to.id_for_label }}">Ships To</label>
+                {{ form.ships_to }}
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="{{ form.image.id_for_label }}">Product Image (Optional)</label>
+            {{ form.image }}
+            <small>{{ form.image.help_text }}</small>
+            {% if form.image.errors %}
+                <div class="error">{{ form.image.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="image-requirements">
+            <h4>Image Requirements:</h4>
+            <ul>
+                <li>Maximum file size: <strong>2MB</strong></li>
+                <li>Accepted formats: JPEG, PNG, GIF, BMP, WebP</li>
+                <li>All images will be converted to JPEG format</li>
+                <li>Large images will be automatically resized</li>
+                <li>All metadata will be removed for security</li>
+            </ul>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Product</button>
+            <a href="{% url 'vendors:products' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+    .product-form {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .price-group,
+    .shipping-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .error {
+        color: #f44336;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .image-requirements {
+        background: #2a2a2a;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        font-size: 14px;
+    }
+    
+    .image-requirements ul {
+        margin: 10px 0 0 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .price-group,
+        .shipping-group {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

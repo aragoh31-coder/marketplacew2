@@ -1,0 +1,418 @@
+{% extends 'base_premium.html' %}
+
+{% block content %}
+<div class="premium-container">
+    <div class="premium-header">
+        <h1 class="premium-title">Premium Products</h1>
+        <div class="premium-subtitle">Discover our curated collection</div>
+    </div>
+    
+    <!-- Premium Filter Section -->
+    <div class="premium-filters">
+        <input type="checkbox" id="filter-toggle" class="filter-checkbox">
+        <label for="filter-toggle" class="filter-toggle-btn">
+            <span>Filters</span>
+            <span class="filter-icon">⚙️</span>
+        </label>
+        
+        <div class="filter-panel">
+            <form method="get" class="filter-form">
+                <div class="filter-group">
+                    <label class="filter-label">Category</label>
+                    <select name="category" class="premium-select">
+                        <option value="">All Categories</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="books">Books</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Price Range</label>
+                    <select name="price" class="premium-select">
+                        <option value="">Any Price</option>
+                        <option value="0-50">$0 - $50</option>
+                        <option value="50-100">$50 - $100</option>
+                        <option value="100+">$100+</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="premium-btn premium-btn-primary">Apply Filters</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Premium Product Grid -->
+    <div class="premium-product-grid">
+        {% for product in products %}
+        <div class="premium-product-card">
+            <div class="product-image-container">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                {% else %}
+                    <div class="product-placeholder">📦</div>
+                {% endif %}
+                <div class="product-overlay">
+                    <a href="{% url 'products:detail' product.id %}" class="premium-btn premium-btn-secondary">View Details</a>
+                </div>
+            </div>
+            
+            <div class="product-info">
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p class="product-description">{{ product.description|truncatewords:15 }}</p>
+                
+                <div class="product-meta">
+                    <div class="product-price">
+                        <span class="price-currency">{{ product.currency }}</span>
+                        <span class="price-amount">{{ product.price }}</span>
+                    </div>
+                    
+                    <div class="product-vendor">
+                        <span class="vendor-icon">🏪</span>
+                        <span>{{ product.vendor.user.username }}</span>
+                    </div>
+                </div>
+                
+                <div class="product-stats">
+                    <div class="stat-item">
+                        <span class="stat-icon">⭐</span>
+                        <span>{{ product.vendor.trust_level }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">📦</span>
+                        <span>{{ product.stock }} left</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="premium-empty-state">
+            <div class="empty-icon">🛍️</div>
+            <h3>No products found</h3>
+            <p>Try adjusting your filters or check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.premium-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.premium-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.premium-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.premium-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.premium-filters {
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.filter-checkbox {
+    display: none;
+}
+
+.filter-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.filter-toggle-btn:hover {
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.2);
+}
+
+.filter-panel {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-top: 0.5rem;
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 100;
+}
+
+.filter-checkbox:checked + .filter-toggle-btn + .filter-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.premium-select {
+    padding: 0.75rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 0.375rem;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.premium-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 255, 136, 0.1);
+}
+
+.premium-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    animation: fadeIn 1s ease-out;
+}
+
+.premium-product-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    backdrop-filter: blur(20px);
+    position: relative;
+}
+
+.premium-product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 255, 136, 0.15);
+    border-color: var(--primary);
+}
+
+.product-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.product-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card));
+}
+
+.product-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.premium-product-card:hover .product-overlay {
+    opacity: 1;
+}
+
+.premium-product-card:hover .product-image {
+    transform: scale(1.1);
+}
+
+.product-info {
+    padding: 1.5rem;
+}
+
+.product-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.product-description {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.product-price {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.price-currency {
+    font-size: 0.875rem;
+    opacity: 0.8;
+}
+
+.price-amount {
+    font-size: 1.25rem;
+}
+
+.product-vendor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.product-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.premium-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.premium-btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-primary);
+}
+
+.premium-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+}
+
+.premium-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .premium-container {
+        padding: 1rem;
+    }
+    
+    .premium-title {
+        font-size: 2rem;
+    }
+    
+    .premium-product-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filter-form {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,18 @@
+Subject: New Withdrawal Request #{{ withdrawal.id }}
+
+A new withdrawal request has been submitted and requires admin review.
+
+User: {{ withdrawal.user.username }}
+Amount: {{ withdrawal.amount }} {{ withdrawal.currency|upper }}
+Address: {{ withdrawal.address }}
+Risk Score: {{ withdrawal.risk_score }}
+Manual Review Required: {{ withdrawal.manual_review_required|yesno:"Yes,No" }}
+
+Risk Factors:
+{% for factor in withdrawal.risk_factors %}
+- {{ factor }}
+{% endfor %}
+
+Please review this withdrawal in the admin panel.
+
+Admin Panel: /admin/wallets/withdrawalrequest/{{ withdrawal.id }}/change/

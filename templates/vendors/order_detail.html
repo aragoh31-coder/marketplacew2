@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="order-header">
+        <h1>Order #{{ order.id }}</h1>
+        <span class="status-badge status-{{ order.status }}">
+            {{ order.get_status_display }}
+        </span>
+    </div>
+    
+    <div class="order-details">
+        <div class="order-info">
+            <h3>Order Information</h3>
+            <p><strong>Date:</strong> {{ order.created_at|date:"Y-m-d H:i" }}</p>
+            <p><strong>Buyer:</strong> {{ order.user.username }}</p>
+            <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+            {% if order.shipped_at %}
+                <p><strong>Shipped:</strong> {{ order.shipped_at|date:"Y-m-d H:i" }}</p>
+            {% endif %}
+        </div>
+        
+        <div class="order-items">
+            <h3>Your Items in this Order</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in vendor_items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>
+                            {% if item.price_btc > 0 %}
+                                ₿ {{ item.price_btc|floatformat:8 }}
+                            {% else %}
+                                ɱ {{ item.price_xmr|floatformat:4 }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.total_btc > 0 %}
+                                ₿ {{ item.total_btc|floatformat:8 }}
+                            {% else %}
+                                ɱ {{ item.total_xmr|floatformat:4 }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="order-actions">
+            {% if order.status == 'paid' %}
+                <form method="post" action="{% url 'vendors:ship_order' order.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Mark as Shipped</button>
+                </form>
+            {% endif %}
+            
+            {% if order.status in 'created,paid' %}
+                <form method="post" action="{% url 'vendors:cancel_order' order.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Cancel Order</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .order-details {
+        display: grid;
+        gap: 30px;
+    }
+    
+    .order-info,
+    .order-items {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .order-actions {
+        display: flex;
+        gap: 15px;
+    }
+</style>
+{% endblock %}

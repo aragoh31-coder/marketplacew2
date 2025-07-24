@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Manage Products{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Manage Products</h1>
+        <a href="{% url 'vendors:create_product' %}" class="btn btn-primary">
+            ➕ Add New Product
+        </a>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters">
+        <form method="get" class="filter-form">
+            <input type="text" name="q" placeholder="Search products..." 
+                   value="{{ request.GET.q }}" class="form-input">
+            
+            <select name="status" class="form-input">
+                <option value="">All Status</option>
+                <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+            
+            <button type="submit" class="btn">Filter</button>
+            <a href="{% url 'vendors:products' %}" class="btn btn-secondary">Clear</a>
+        </form>
+    </div>
+    
+    <!-- Products Table -->
+    <div class="products-table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in page_obj %}
+                <tr>
+                    <td>
+                        <strong>{{ product.name }}</strong>
+                        <br>
+                        <small>ID: #{{ product.id }}</small>
+                    </td>
+                    <td>{{ product.get_category_display }}</td>
+                    <td>
+                        ₿ {{ product.price_btc|floatformat:8 }}<br>
+                        ɱ {{ product.price_xmr|floatformat:4 }}
+                    </td>
+                    <td>
+                        <span class="{% if product.stock_quantity <= 5 %}text-danger{% endif %}">
+                            {{ product.stock_quantity }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if product.is_active %}
+                            <span class="badge active">Active</span>
+                        {% else %}
+                            <span class="badge inactive">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'vendors:edit_product' product.id %}" 
+                               class="btn btn-sm">Edit</a>
+                            
+                            <form method="post" action="{% url 'vendors:toggle_product' product.id %}" 
+                                  style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm">
+                                    {% if product.is_active %}Deactivate{% else %}Activate{% endif %}
+                                </button>
+                            </form>
+                            
+                            <a href="{% url 'vendors:delete_product' product.id %}" 
+                               class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">
+                        No products found. 
+                        <a href="{% url 'vendors:create_product' %}">Create your first product</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">Previous</a>
+        {% endif %}
+        
+        <span class="page-info">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    
+    .filters {
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .filter-form {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .badge.active {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .badge.inactive {
+        background: #666;
+        color: white;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .text-danger {
+        color: #f44336;
+        font-weight: bold;
+    }
+    
+    @media (max-width: 768px) {
+        .filter-form {
+            flex-direction: column;
+        }
+        
+        .filter-form input,
+        .filter-form select {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}

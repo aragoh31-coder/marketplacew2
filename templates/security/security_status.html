@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Status - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .security-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .security-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+    .security-score {
+        font-size: 2em;
+        font-weight: bold;
+        text-align: center;
+        padding: 20px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    .score-excellent { background: #d4edda; color: #155724; }
+    .score-good { background: #d1ecf1; color: #0c5460; }
+    .score-fair { background: #fff3cd; color: #856404; }
+    .score-poor { background: #f8d7da; color: #721c24; }
+    .security-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #333;
+    }
+    .security-item:last-child { border-bottom: none; }
+    .status-good { color: #28a745; }
+    .status-warning { color: #ffc107; }
+    .status-danger { color: #dc3545; }
+    .event-row {
+        padding: 8px 0;
+        border-bottom: 1px solid #333;
+        font-size: 0.9em;
+    }
+    .event-row:last-child { border-bottom: none; }
+    .event-time { color: #888; }
+    .recommendations {
+        background: #2d2d2d;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .recommendation-item {
+        margin: 8px 0;
+        padding-left: 20px;
+        position: relative;
+    }
+    .recommendation-item:before {
+        content: "💡";
+        position: absolute;
+        left: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="security-container">
+    <h1>🛡️ Security Status Dashboard</h1>
+    
+    <!-- Overall Security Score -->
+    <div class="security-card">
+        <h2>Overall Security Score</h2>
+        <div class="security-score {% if security_info.security_score >= 80 %}score-excellent{% elif security_info.security_score >= 60 %}score-good{% elif security_info.security_score >= 40 %}score-fair{% else %}score-poor{% endif %}">
+            {{ security_info.security_score }}/100
+        </div>
+        <p style="text-align: center;">
+            {% if security_info.security_score >= 80 %}
+                🟢 Excellent Security - Your account is well protected
+            {% elif security_info.security_score >= 60 %}
+                🔵 Good Security - Consider enabling additional features
+            {% elif security_info.security_score >= 40 %}
+                🟡 Fair Security - Several improvements recommended
+            {% else %}
+                🔴 Poor Security - Immediate action required
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Security Features Status -->
+    <div class="security-card">
+        <h2>🔒 Security Features</h2>
+        
+        <div class="security-item">
+            <span>Two-Factor Authentication (2FA)</span>
+            <span class="{% if security_info.two_fa_enabled %}status-good{% else %}status-danger{% endif %}">
+                {% if security_info.two_fa_enabled %}✓ Enabled{% else %}✗ Disabled{% endif %}
+            </span>
+        </div>
+        
+        <div class="security-item">
+            <span>PGP Public Key</span>
+            <span class="{% if security_info.pgp_key_set %}status-good{% else %}status-warning{% endif %}">
+                {% if security_info.pgp_key_set %}✓ Configured{% else %}⚠ Not Set{% endif %}
+            </span>
+        </div>
+        
+        <div class="security-item">
+            <span>Account Age</span>
+            <span class="{% if security_info.account_age >= 90 %}status-good{% elif security_info.account_age >= 30 %}status-warning{% else %}status-danger{% endif %}">
+                {{ security_info.account_age }} days
+            </span>
+        </div>
+        
+        <div class="security-item">
+            <span>Last Login</span>
+            <span class="{% if security_info.last_login %}status-good{% else %}status-warning{% endif %}">
+                {% if security_info.last_login %}{{ security_info.last_login|timesince }} ago{% else %}Never{% endif %}
+            </span>
+        </div>
+        
+        <div class="security-item">
+            <span>Session Security</span>
+            <span class="status-good">✓ Tor Compatible</span>
+        </div>
+        
+        <div class="security-item">
+            <span>Privacy Protection</span>
+            <span class="status-good">✓ No IP Logging</span>
+        </div>
+    </div>
+
+    <!-- Security Recommendations -->
+    {% if security_info.security_score < 80 %}
+    <div class="security-card">
+        <h2>🎯 Security Recommendations</h2>
+        <div class="recommendations">
+            {% if not security_info.two_fa_enabled %}
+            <div class="recommendation-item">
+                <strong>Enable Two-Factor Authentication</strong> - Add an extra layer of security to your account
+                <br><a href="{% url 'wallets:security_settings' %}">Configure 2FA →</a>
+            </div>
+            {% endif %}
+            
+            {% if not security_info.pgp_key_set %}
+            <div class="recommendation-item">
+                <strong>Set up PGP Encryption</strong> - Secure your communications with PGP
+                <br><a href="{% url 'accounts:pgp_settings' %}">Configure PGP →</a>
+            </div>
+            {% endif %}
+            
+            {% if security_info.account_age < 30 %}
+            <div class="recommendation-item">
+                <strong>Account Maturity</strong> - Your account will become more trusted over time
+            </div>
+            {% endif %}
+            
+            <div class="recommendation-item">
+                <strong>Regular Security Review</strong> - Check this page weekly to monitor your security status
+            </div>
+            
+            <div class="recommendation-item">
+                <strong>Strong Passwords</strong> - Use unique, complex passwords for your account
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Security Events -->
+    {% if recent_events %}
+    <div class="security-card">
+        <h2>📊 Recent Security Events</h2>
+        {% for event in recent_events %}
+        <div class="event-row">
+            <div style="display: flex; justify-content: space-between;">
+                <span>
+                    {% if event.action == 'login' %}🔑
+                    {% elif event.action == 'logout' %}🚪
+                    {% elif event.action == 'withdrawal_request' %}💸
+                    {% elif event.action == 'settings_change' %}⚙️
+                    {% elif event.action == 'security_alert' %}⚠️
+                    {% else %}📋
+                    {% endif %}
+                    {{ event.get_action_display }}
+                    {% if event.flagged %}<span class="status-danger"> (Flagged)</span>{% endif %}
+                </span>
+                <span class="event-time">{{ event.created_at|timesince }} ago</span>
+            </div>
+            {% if event.details %}
+            <div style="font-size: 0.8em; color: #888; margin-top: 4px;">
+                {% for key, value in event.details.items %}
+                    {{ key }}: {{ value }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        {% if recent_events|length >= 20 %}
+        <p style="text-align: center; margin-top: 15px;">
+            <a href="{% url 'security:security_status' %}?full=1">View All Events →</a>
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Security Tips -->
+    <div class="security-card">
+        <h2>💡 Security Tips</h2>
+        <ul>
+            <li>Always access the marketplace through Tor for maximum privacy</li>
+            <li>Never share your login credentials with anyone</li>
+            <li>Use a dedicated device for marketplace activities if possible</li>
+            <li>Regularly check your account for unauthorized activity</li>
+            <li>Keep your PGP keys secure and backed up</li>
+            <li>Enable all available security features</li>
+            <li>Be cautious of phishing attempts and fake marketplace sites</li>
+        </ul>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="security-card">
+        <h2>⚡ Quick Security Actions</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+            <a href="{% url 'wallets:security_settings' %}" class="btn btn-primary">
+                🔒 Wallet Security
+            </a>
+            <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-secondary">
+                🔐 PGP Settings
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                👤 Account Settings
+            </a>
+            <a href="{% url 'wallets:transactions' %}" class="btn btn-secondary">
+                📊 Transaction History
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

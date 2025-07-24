@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Wallet Dashboard - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<meta http-equiv="refresh" content="300">
+<style>
+    .wallet-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .balance-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+    .balance-amount {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+    .btc-color { color: #f7931a; }
+    .xmr-color { color: #ff6600; }
+    .security-status {
+        background: #2d2d2d;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+    .status-good { color: #28a745; }
+    .status-warning { color: #ffc107; }
+    .status-danger { color: #dc3545; }
+    .transaction-row {
+        border-bottom: 1px solid #333;
+        padding: 10px 0;
+    }
+    .risk-score {
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .risk-low { background: #d4edda; color: #155724; }
+    .risk-medium { background: #fff3cd; color: #856404; }
+    .risk-high { background: #f8d7da; color: #721c24; }
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        cursor: pointer;
+    }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn-success { background: #28a745; color: white; }
+    .btn-warning { background: #ffc107; color: #212529; }
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    @media (max-width: 768px) {
+        .grid-2 { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wallet-container">
+    <h1>🔐 Secure Wallet Dashboard</h1>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Security Status Overview -->
+    <div class="security-status">
+        <h3>🛡️ Security Status</h3>
+        <div class="grid-2">
+            <div>
+                <p>Two-Factor Authentication: 
+                    {% if wallet.two_fa_enabled %}
+                        <span class="status-good">✓ Enabled</span>
+                    {% else %}
+                        <span class="status-warning">⚠ Disabled</span>
+                    {% endif %}
+                </p>
+                <p>Withdrawal PIN: 
+                    {% if wallet.withdrawal_pin %}
+                        <span class="status-good">✓ Set</span>
+                    {% else %}
+                        <span class="status-warning">⚠ Not Set</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <p>Account Age: {{ user.date_joined|timesince }}</p>
+                <p>Last Activity: {{ wallet.last_activity|timesince }} ago</p>
+            </div>
+        </div>
+        {% if not wallet.two_fa_enabled or not wallet.withdrawal_pin %}
+            <p class="status-warning">
+                ⚠️ Enhance your security by enabling all protection features.
+                <a href="{% url 'wallets:security_settings' %}">Configure Security →</a>
+            </p>
+        {% endif %}
+    </div>
+
+    <!-- Balance Overview -->
+    <div class="grid-2">
+        <div class="balance-card">
+            <h2 class="btc-color">₿ Bitcoin (BTC)</h2>
+            <div class="balance-amount btc-color">
+                {{ wallet.balance_btc|floatformat:8 }} BTC
+            </div>
+            <p>Available: <strong>{{ btc_available|floatformat:8 }} BTC</strong></p>
+            <p>In Escrow: {{ wallet.escrow_btc|floatformat:8 }} BTC</p>
+            <p>Daily Limit: {{ wallet.daily_withdrawal_limit_btc|floatformat:8 }} BTC</p>
+            
+            <div class="action-buttons">
+                <a href="{% url 'wallets:deposit_info' 'btc' %}" class="btn btn-success">
+                    📥 Deposit
+                </a>
+                <a href="{% url 'wallets:withdraw' %}?currency=btc" class="btn btn-warning">
+                    📤 Withdraw
+                </a>
+            </div>
+        </div>
+
+        <div class="balance-card">
+            <h2 class="xmr-color">Ɱ Monero (XMR)</h2>
+            <div class="balance-amount xmr-color">
+                {{ wallet.balance_xmr|floatformat:12 }} XMR
+            </div>
+            <p>Available: <strong>{{ xmr_available|floatformat:12 }} XMR</strong></p>
+            <p>In Escrow: {{ wallet.escrow_xmr|floatformat:12 }} XMR</p>
+            <p>Daily Limit: {{ wallet.daily_withdrawal_limit_xmr|floatformat:12 }} XMR</p>
+            
+            <div class="action-buttons">
+                <a href="{% url 'wallets:deposit_info' 'xmr' %}" class="btn btn-success">
+                    📥 Deposit
+                </a>
+                <a href="{% url 'wallets:withdraw' %}?currency=xmr" class="btn btn-warning">
+                    📤 Withdraw
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="balance-card">
+        <h3>⚡ Quick Actions</h3>
+        <div class="action-buttons">
+            <a href="{% url 'wallets:convert' %}" class="btn btn-primary">
+                💱 Convert Currency
+            </a>
+            <a href="{% url 'wallets:transactions' %}" class="btn btn-secondary">
+                📊 Transaction History
+            </a>
+            <a href="{% url 'wallets:security_settings' %}" class="btn btn-secondary">
+                🔒 Security Settings
+            </a>
+        </div>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    {% if pending_withdrawals %}
+    <div class="balance-card">
+        <h3>⏳ Pending Withdrawals</h3>
+        {% for wr in pending_withdrawals %}
+        <div class="transaction-row">
+            <div class="grid-2">
+                <div>
+                    <strong>#{{ wr.id }}</strong> - {{ wr.amount|floatformat:8 }} {{ wr.currency|upper }}
+                    <br>
+                    <small>{{ wr.address|truncatechars:20 }}...</small>
+                </div>
+                <div style="text-align: right;">
+                    <span class="badge badge-{{ wr.status }}">{{ wr.get_status_display }}</span>
+                    <br>
+                    {% if wr.risk_score >= 60 %}
+                        <span class="risk-score risk-high">High Risk ({{ wr.risk_score }})</span>
+                    {% elif wr.risk_score >= 40 %}
+                        <span class="risk-score risk-medium">Medium Risk ({{ wr.risk_score }})</span>
+                    {% else %}
+                        <span class="risk-score risk-low">Low Risk ({{ wr.risk_score }})</span>
+                    {% endif %}
+                    <br>
+                    <small>{{ wr.created_at|date:"M d, H:i" }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <p style="margin-top: 15px;">
+            <small>💡 Withdrawals are processed manually for security. High-risk transactions may require additional verification.</small>
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Recent Transactions -->
+    {% if recent_transactions %}
+    <div class="balance-card">
+        <h3>📈 Recent Transactions</h3>
+        {% for tx in recent_transactions|slice:":5" %}
+        <div class="transaction-row">
+            <div class="grid-2">
+                <div>
+                    {% if tx.type == 'deposit' %}📥
+                    {% elif tx.type == 'withdrawal' %}📤
+                    {% elif tx.type == 'conversion' %}💱
+                    {% elif tx.type == 'escrow_lock' %}🔒
+                    {% elif tx.type == 'escrow_release' %}🔓
+                    {% else %}📋
+                    {% endif %}
+                    {{ tx.get_type_display }}
+                    <br>
+                    <small><code>{{ tx.reference }}</code></small>
+                </div>
+                <div style="text-align: right;">
+                    <strong>
+                        {% if tx.type == 'withdrawal' or tx.type == 'fee' %}-{% endif %}
+                        {{ tx.amount|floatformat:8 }} {{ tx.currency|upper }}
+                    </strong>
+                    <br>
+                    <small>{{ tx.created_at|date:"M d, H:i" }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <p style="text-align: center; margin-top: 15px;">
+            <a href="{% url 'wallets:transactions' %}">View All Transactions →</a>
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Security Notices -->
+    <div class="balance-card">
+        <h3>🔔 Security Notices</h3>
+        <ul>
+            <li>✓ All withdrawals are processed manually by our security team</li>
+            <li>✓ Your wallet balances are checked for integrity every hour</li>
+            <li>✓ Suspicious activity is automatically flagged for review</li>
+            <li>✓ No JavaScript is used to protect your privacy on Tor</li>
+            {% if show_balance_warning %}
+            <li class="status-danger">⚠️ Balance discrepancy detected - our team is investigating</li>
+            {% endif %}
+        </ul>
+        <p>
+            <small>
+                💡 For maximum security, enable 2FA and set a withdrawal PIN. 
+                Never share your login credentials with anyone.
+            </small>
+        </p>
+    </div>
+</div>
+{% endblock %}

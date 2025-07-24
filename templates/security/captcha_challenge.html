@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Verification - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .captcha-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        text-align: center;
+    }
+    .math-challenge {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 20px 0;
+        padding: 20px;
+        background: white;
+        border-radius: 5px;
+        border: 2px solid #dee2e6;
+    }
+    .captcha-input {
+        font-size: 18px;
+        padding: 10px;
+        width: 100px;
+        text-align: center;
+        border: 2px solid #007bff;
+        border-radius: 5px;
+        margin: 10px;
+    }
+    .security-info {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 20px 0;
+        text-align: left;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="captcha-container">
+    <h1>🔒 Security Verification</h1>
+    
+    <div class="security-info">
+        <h3>Why am I seeing this?</h3>
+        <p>This security check helps protect our marketplace from automated attacks and ensures a safe environment for all users.</p>
+    </div>
+    
+    <form method="post" action="">
+        {% csrf_token %}
+        
+        <div class="math-challenge">
+            {{ challenge_question }}
+        </div>
+        
+        <div>
+            <label for="answer">Enter your answer:</label><br>
+            <input type="number" id="answer" name="answer" class="captcha-input" required autocomplete="off">
+        </div>
+        
+        {% if error %}
+        <div class="alert alert-danger mt-3">
+            {{ error }}
+        </div>
+        {% endif %}
+        
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Verify & Continue</button>
+        </div>
+        
+        <input type="hidden" name="challenge_id" value="{{ challenge_id }}">
+        <input type="hidden" name="timestamp" value="{{ timestamp }}">
+    </form>
+    
+    <div class="security-info mt-4">
+        <h3>🛡️ Privacy & Security</h3>
+        <ul>
+            <li>No JavaScript required - works with all privacy browsers</li>
+            <li>No tracking or fingerprinting</li>
+            <li>Tor-friendly design</li>
+            <li>Your privacy is protected</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

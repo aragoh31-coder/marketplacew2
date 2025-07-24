@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Vendors - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Vendors</h2>
+    <table>
+        <thead><tr><th>Username</th><th>Trust Level</th><th>Approved</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for vendor in vendors %}
+            <tr>
+                <td>{{ vendor.user.username }}</td>
+                <td>{{ vendor.trust_level }}</td>
+                <td>{{ vendor.is_approved }}</td>
+                <td>
+                    {% if not vendor.is_approved %}
+                    <a href="{% url 'adminpanel:approve_vendor' vendor.id %}" class="btn">Approve</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

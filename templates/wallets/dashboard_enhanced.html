@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Dashboard - Secure Marketplace</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #00ff00;
+            padding-bottom: 20px;
+        }
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .wallet-card {
+            background-color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .currency-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffaa00;
+        }
+        .balance-info {
+            margin-bottom: 10px;
+        }
+        .balance-label {
+            color: #888;
+            display: inline-block;
+            width: 120px;
+        }
+        .balance-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .security-status {
+            background-color: #2a2a2a;
+            border: 1px solid #555;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .security-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .status-enabled {
+            color: #00ff00;
+        }
+        .status-disabled {
+            color: #ff6666;
+        }
+        .status-warning {
+            color: #ffaa00;
+        }
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background-color: #333;
+            color: #00ff00;
+            border: 2px solid #00ff00;
+            padding: 12px 20px;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 3px;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .btn:hover {
+            background-color: #00ff00;
+            color: #000;
+        }
+        .btn-warning {
+            border-color: #ffaa00;
+            color: #ffaa00;
+        }
+        .btn-warning:hover {
+            background-color: #ffaa00;
+            color: #000;
+        }
+        .btn-danger {
+            border-color: #ff6666;
+            color: #ff6666;
+        }
+        .btn-danger:hover {
+            background-color: #ff6666;
+            color: #000;
+        }
+        .transactions-section {
+            background-color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .transaction-item {
+            display: grid;
+            grid-template-columns: 120px 80px 150px 1fr 120px;
+            gap: 15px;
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            align-items: center;
+        }
+        .transaction-header {
+            font-weight: bold;
+            color: #ffaa00;
+            border-bottom: 2px solid #ffaa00;
+            margin-bottom: 10px;
+        }
+        .tx-type {
+            font-weight: bold;
+        }
+        .tx-deposit {
+            color: #00ff00;
+        }
+        .tx-withdrawal {
+            color: #ff6666;
+        }
+        .tx-conversion {
+            color: #ffaa00;
+        }
+        .tx-escrow {
+            color: #66aaff;
+        }
+        .risk-indicator {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .risk-low {
+            background-color: #004400;
+            color: #00ff00;
+        }
+        .risk-medium {
+            background-color: #444400;
+            color: #ffaa00;
+        }
+        .risk-high {
+            background-color: #440000;
+            color: #ff6666;
+        }
+        .withdrawal-limits {
+            background-color: #2a2a2a;
+            border: 1px solid #555;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .limit-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #00ff00;
+            transition: width 0.3s;
+        }
+        .progress-warning {
+            background-color: #ffaa00;
+        }
+        .progress-danger {
+            background-color: #ff6666;
+        }
+        .form-section {
+            background-color: #1a1a1a;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffaa00;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #00ff00;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+        .form-input:focus {
+            border-color: #00ff00;
+            outline: none;
+        }
+        .form-select {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #00ff00;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+        .honeypot {
+            display: none;
+        }
+        .captcha-section {
+            background-color: #2a2a2a;
+            border: 1px solid #ffaa00;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .captcha-question {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffaa00;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            color: #ff6666;
+            background-color: #330000;
+            border: 1px solid #ff6666;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .success-message {
+            color: #00ff00;
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .info-message {
+            color: #ffaa00;
+            background-color: #333300;
+            border: 1px solid #ffaa00;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        @media (max-width: 768px) {
+            .wallet-grid {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            .transaction-item {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Secure Wallet Dashboard</h1>
+            <p>Privacy-First Cryptocurrency Management</p>
+        </div>
+
+        <!-- Security Status -->
+        <div class="security-status">
+            <h3>🛡️ Security Status</h3>
+            <div class="security-item">
+                <span>Two-Factor Authentication:</span>
+                <span class="{% if wallet.two_fa_enabled %}status-enabled{% else %}status-disabled{% endif %}">
+                    {% if wallet.two_fa_enabled %}✅ Enabled{% else %}❌ Disabled{% endif %}
+                </span>
+            </div>
+            <div class="security-item">
+                <span>Withdrawal PIN:</span>
+                <span class="{% if wallet.withdrawal_pin %}status-enabled{% else %}status-disabled{% endif %}">
+                    {% if wallet.withdrawal_pin %}✅ Set{% else %}❌ Not Set{% endif %}
+                </span>
+            </div>
+            <div class="security-item">
+                <span>Session Security:</span>
+                <span class="status-enabled">✅ Active</span>
+            </div>
+            <div class="security-item">
+                <span>IP Protection:</span>
+                <span class="status-enabled">✅ Privacy Protected</span>
+            </div>
+        </div>
+
+        <!-- Wallet Balances -->
+        <div class="wallet-grid">
+            <div class="wallet-card">
+                <div class="currency-header">₿ Bitcoin (BTC)</div>
+                <div class="balance-info">
+                    <span class="balance-label">Available:</span>
+                    <span class="balance-value">{{ wallet.balance_btc|floatformat:8 }} BTC</span>
+                </div>
+                <div class="balance-info">
+                    <span class="balance-label">In Escrow:</span>
+                    <span class="balance-value">{{ wallet.escrow_btc|floatformat:8 }} BTC</span>
+                </div>
+                <div class="balance-info">
+                    <span class="balance-label">Total:</span>
+                    <span class="balance-value">{{ wallet.balance_btc|add:wallet.escrow_btc|floatformat:8 }} BTC</span>
+                </div>
+            </div>
+
+            <div class="wallet-card">
+                <div class="currency-header">🔒 Monero (XMR)</div>
+                <div class="balance-info">
+                    <span class="balance-label">Available:</span>
+                    <span class="balance-value">{{ wallet.balance_xmr|floatformat:12 }} XMR</span>
+                </div>
+                <div class="balance-info">
+                    <span class="balance-label">In Escrow:</span>
+                    <span class="balance-value">{{ wallet.escrow_xmr|floatformat:12 }} XMR</span>
+                </div>
+                <div class="balance-info">
+                    <span class="balance-label">Total:</span>
+                    <span class="balance-value">{{ wallet.balance_xmr|add:wallet.escrow_xmr|floatformat:12 }} XMR</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Daily Withdrawal Limits -->
+        <div class="withdrawal-limits">
+            <h3>📊 Daily Withdrawal Limits</h3>
+            <div class="limit-item">
+                <span>Bitcoin (BTC):</span>
+                <span>{{ daily_btc_used|floatformat:8 }} / {{ wallet.daily_withdrawal_limit_btc|floatformat:8 }} BTC</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill {% if btc_usage_percent > 80 %}progress-danger{% elif btc_usage_percent > 60 %}progress-warning{% endif %}" 
+                     style="width: {{ btc_usage_percent }}%"></div>
+            </div>
+            
+            <div class="limit-item">
+                <span>Monero (XMR):</span>
+                <span>{{ daily_xmr_used|floatformat:12 }} / {{ wallet.daily_withdrawal_limit_xmr|floatformat:12 }} XMR</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill {% if xmr_usage_percent > 80 %}progress-danger{% elif xmr_usage_percent > 60 %}progress-warning{% endif %}" 
+                     style="width: {{ xmr_usage_percent }}%"></div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'wallets:deposit' %}" class="btn">💰 Deposit Funds</a>
+            <a href="{% url 'wallets:withdraw' %}" class="btn btn-warning">📤 Withdraw</a>
+            <a href="{% url 'wallets:convert' %}" class="btn">🔄 Convert Currency</a>
+            <a href="{% url 'wallets:transactions' %}" class="btn">📋 Transaction History</a>
+            <a href="{% url 'wallets:security_settings' %}" class="btn btn-danger">🔐 Security Settings</a>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="transactions-section">
+            <h3>📈 Recent Transactions</h3>
+            <div class="transaction-item transaction-header">
+                <div>Type</div>
+                <div>Currency</div>
+                <div>Amount</div>
+                <div>Reference</div>
+                <div>Date</div>
+            </div>
+            {% for transaction in recent_transactions %}
+            <div class="transaction-item">
+                <div class="tx-type tx-{{ transaction.type }}">
+                    {% if transaction.type == 'deposit' %}💰 Deposit
+                    {% elif transaction.type == 'withdrawal' %}📤 Withdrawal
+                    {% elif transaction.type == 'conversion' %}🔄 Conversion
+                    {% elif transaction.type == 'escrow_lock' %}🔒 Escrow Lock
+                    {% elif transaction.type == 'escrow_release' %}🔓 Escrow Release
+                    {% else %}{{ transaction.get_type_display }}
+                    {% endif %}
+                </div>
+                <div>{{ transaction.currency|upper }}</div>
+                <div>{{ transaction.amount|floatformat:8 }}</div>
+                <div>{{ transaction.reference|truncatechars:20 }}</div>
+                <div>{{ transaction.created_at|date:"M d, H:i" }}</div>
+            </div>
+            {% empty %}
+            <div class="transaction-item">
+                <div colspan="5" style="text-align: center; color: #888;">No recent transactions</div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Withdrawal Form -->
+        <div class="form-section">
+            <h3>⚡ Quick Withdrawal</h3>
+            <form method="post" action="{% url 'wallets:withdraw' %}">
+                {% csrf_token %}
+                
+                <!-- Honeypot fields -->
+                <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off">
+                <input type="email" name="email_address" class="honeypot" tabindex="-1" autocomplete="off">
+                
+                <div class="form-group">
+                    <label class="form-label" for="currency">Currency:</label>
+                    <select name="currency" id="currency" class="form-select" required>
+                        <option value="">Select Currency</option>
+                        <option value="btc">Bitcoin (BTC)</option>
+                        <option value="xmr">Monero (XMR)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="amount">Amount:</label>
+                    <input type="number" name="amount" id="amount" class="form-input" 
+                           step="0.00000001" min="0.00000001" required 
+                           placeholder="Enter amount">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="address">Withdrawal Address:</label>
+                    <input type="text" name="address" id="address" class="form-input" 
+                           required placeholder="Enter destination address">
+                </div>
+
+                <!-- Security Challenge -->
+                <div class="captcha-section">
+                    <div class="captcha-question">Security Question: What is 7 + 3?</div>
+                    <input type="number" name="math_challenge" class="form-input" 
+                           required placeholder="Enter answer" style="width: 100px;">
+                    <input type="hidden" name="form_timestamp" value="{{ timestamp }}">
+                    <input type="hidden" name="form_hash" value="{{ form_hash }}">
+                </div>
+
+                <button type="submit" class="btn btn-warning">Submit Withdrawal Request</button>
+            </form>
+        </div>
+
+        <!-- Risk Assessment -->
+        {% if risk_factors %}
+        <div class="form-section">
+            <h3>⚠️ Risk Assessment</h3>
+            {% for factor in risk_factors %}
+            <div class="risk-indicator risk-{{ factor.level }}">
+                {{ factor.description }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Messages -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="{% if message.tags == 'error' %}error-message{% elif message.tags == 'success' %}success-message{% else %}info-message{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+</body>
+</html>

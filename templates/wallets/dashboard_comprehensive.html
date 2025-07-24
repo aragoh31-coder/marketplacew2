@@ -1,0 +1,581 @@
+{% extends 'base.html' %}
+
+{% block title %}Wallet Dashboard - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        font-family: 'Courier New', monospace;
+        background-color: #1a1a1a;
+        color: #00ff00;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 20px auto;
+        padding: 0;
+    }
+    .card {
+        background-color: #000;
+        border: 2px solid #ffaa00;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .card h2 {
+        color: #ffaa00;
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .grid {
+        display: grid;
+        gap: 20px;
+    }
+    .grid-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    .grid-2 {
+        grid-template-columns: 2fr 1fr;
+    }
+    .balance-card {
+        background: linear-gradient(135deg, #003300, #004400);
+        border: 2px solid #00ff00;
+    }
+    .security-card {
+        background: linear-gradient(135deg, #330000, #440000);
+        border: 2px solid #ff6666;
+    }
+    .activity-card {
+        background: linear-gradient(135deg, #000033, #000044);
+        border: 2px solid #6666ff;
+    }
+    .btn {
+        background-color: #333;
+        color: #ffaa00;
+        border: 2px solid #ffaa00;
+        padding: 12px 25px;
+        text-decoration: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-family: inherit;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        display: inline-block;
+        font-size: 16px;
+    }
+    .btn:hover {
+        background-color: #ffaa00;
+        color: #000;
+    }
+    .btn-primary {
+        border-color: #00ff00;
+        color: #00ff00;
+    }
+    .btn-primary:hover {
+        background-color: #00ff00;
+        color: #000;
+    }
+    .btn-danger {
+        border-color: #ff6666;
+        color: #ff6666;
+    }
+    .btn-danger:hover {
+        background-color: #ff6666;
+        color: #000;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 3px;
+    }
+    .alert-danger {
+        background-color: #330000;
+        border: 1px solid #ff6666;
+        color: #ff9999;
+    }
+    .alert-warning {
+        background-color: #332200;
+        border: 1px solid #ffaa00;
+        color: #ffcc66;
+    }
+    .alert-info {
+        background-color: #003333;
+        border: 1px solid #00ffff;
+        color: #66ffff;
+    }
+    .alert-success {
+        background-color: #003300;
+        border: 1px solid #00ff00;
+        color: #66ff66;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 10px 0;
+    }
+    table th, table td {
+        padding: 8px;
+        border-bottom: 1px solid #333;
+        text-align: left;
+    }
+    table th {
+        color: #ffaa00;
+        font-weight: bold;
+    }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .text-success { color: #00ff00; }
+    .text-warning { color: #ffaa00; }
+    .text-danger { color: #ff6666; }
+    .text-muted { color: #888; }
+    .strong { font-weight: bold; }
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    .status-active { background-color: #00ff00; }
+    .status-warning { background-color: #ffaa00; }
+    .status-danger { background-color: #ff6666; }
+    .progress-bar {
+        background-color: #333;
+        border: 1px solid #555;
+        height: 20px;
+        border-radius: 3px;
+        overflow: hidden;
+        margin: 5px 0;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #ffaa00);
+        transition: width 0.3s ease;
+    }
+    .security-score {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+    }
+    .score-excellent { color: #00ff00; }
+    .score-good { color: #66ff66; }
+    .score-fair { color: #ffaa00; }
+    .score-poor { color: #ff6666; }
+    .transaction-row {
+        border-left: 4px solid #333;
+        padding-left: 10px;
+        margin: 5px 0;
+    }
+    .tx-deposit { border-left-color: #00ff00; }
+    .tx-withdrawal { border-left-color: #ff6666; }
+    .tx-conversion { border-left-color: #ffaa00; }
+    .tx-escrow { border-left-color: #6666ff; }
+    .quick-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+    }
+    .risk-indicator {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .risk-low {
+        background-color: #003300;
+        color: #00ff00;
+        border: 1px solid #00ff00;
+    }
+    .risk-medium {
+        background-color: #332200;
+        color: #ffaa00;
+        border: 1px solid #ffaa00;
+    }
+    .risk-high {
+        background-color: #330000;
+        color: #ff6666;
+        border: 1px solid #ff6666;
+    }
+    .limit-usage {
+        margin: 10px 0;
+    }
+    .limit-bar {
+        background-color: #333;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 5px 0;
+    }
+    .limit-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ff00, #ffaa00, #ff6666);
+    }
+    @media (max-width: 768px) {
+        .grid-3, .grid-2 {
+            grid-template-columns: 1fr;
+        }
+        .quick-actions {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 style="color: #ffaa00; text-align: center;">💰 Comprehensive Wallet Dashboard</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Security Status Alert -->
+    {% if security_warnings %}
+    <div class="alert alert-warning">
+        <strong>⚠️ Security Warnings:</strong>
+        <ul style="margin: 10px 0; padding-left: 20px;">
+            {% for warning in security_warnings %}
+            <li>{{ warning }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <a href="{% url 'wallets:deposit' %}" class="btn btn-primary">📥 Deposit Funds</a>
+        <a href="{% url 'wallets:withdraw' %}" class="btn">📤 Withdraw Funds</a>
+        <a href="{% url 'wallets:convert' %}" class="btn">🔄 Convert Currency</a>
+        <a href="{% url 'wallets:transactions' %}" class="btn">📊 View Transactions</a>
+        <a href="{% url 'wallets:security_settings' %}" class="btn">🔒 Security Settings</a>
+    </div>
+
+    <div class="grid grid-3">
+        <!-- Balance Overview -->
+        <div class="card balance-card">
+            <h2>💰 Current Balances</h2>
+            <table>
+                <tr>
+                    <td><strong>Bitcoin (BTC):</strong></td>
+                    <td class="text-right strong text-success">{{ wallet.balance_btc|floatformat:8 }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Monero (XMR):</strong></td>
+                    <td class="text-right strong text-success">{{ wallet.balance_xmr|floatformat:12 }}</td>
+                </tr>
+                <tr style="border-top: 2px solid #ffaa00;">
+                    <td><strong>Escrow BTC:</strong></td>
+                    <td class="text-right text-warning">{{ wallet.escrow_btc|floatformat:8 }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Escrow XMR:</strong></td>
+                    <td class="text-right text-warning">{{ wallet.escrow_xmr|floatformat:12 }}</td>
+                </tr>
+            </table>
+            
+            <div style="margin-top: 15px;">
+                <strong>Total Portfolio Value (USD):</strong>
+                <div class="text-success strong" style="font-size: 18px;">
+                    ${{ total_usd_value|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Status -->
+        <div class="card security-card">
+            <h2>🔒 Security Status</h2>
+            
+            <div class="security-score score-{{ security_score_class }}">
+                {{ security_score }}/100
+            </div>
+            <div class="text-center text-muted">Security Score</div>
+            
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ security_score }}%;"></div>
+            </div>
+            
+            <table style="margin-top: 15px;">
+                <tr>
+                    <td>
+                        <span class="status-indicator {% if wallet.two_fa_enabled %}status-active{% else %}status-danger{% endif %}"></span>
+                        2FA Authentication
+                    </td>
+                    <td class="text-right">
+                        {% if wallet.two_fa_enabled %}
+                            <span class="text-success">✓ Enabled</span>
+                        {% else %}
+                            <span class="text-danger">✗ Disabled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="status-indicator {% if wallet.withdrawal_pin %}status-active{% else %}status-warning{% endif %}"></span>
+                        Withdrawal PIN
+                    </td>
+                    <td class="text-right">
+                        {% if wallet.withdrawal_pin %}
+                            <span class="text-success">✓ Set</span>
+                        {% else %}
+                            <span class="text-warning">⚠️ Not Set</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="status-indicator status-active"></span>
+                        IP Verification
+                    </td>
+                    <td class="text-right">
+                        <span class="text-success">✓ Active</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="status-indicator status-active"></span>
+                        Risk Monitoring
+                    </td>
+                    <td class="text-right">
+                        <span class="text-success">✓ Enabled</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Daily Limits -->
+        <div class="card">
+            <h2>📊 Daily Withdrawal Limits</h2>
+            
+            <div class="limit-usage">
+                <strong>BTC Limit Usage:</strong>
+                <div class="text-muted">{{ btc_used_today|floatformat:8 }} / {{ wallet.daily_withdrawal_limit_btc|floatformat:8 }} BTC</div>
+                <div class="limit-bar">
+                    <div class="limit-fill" style="width: {{ btc_limit_percentage }}%;"></div>
+                </div>
+            </div>
+            
+            <div class="limit-usage">
+                <strong>XMR Limit Usage:</strong>
+                <div class="text-muted">{{ xmr_used_today|floatformat:12 }} / {{ wallet.daily_withdrawal_limit_xmr|floatformat:12 }} XMR</div>
+                <div class="limit-bar">
+                    <div class="limit-fill" style="width: {{ xmr_limit_percentage }}%;"></div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <strong>Remaining Today:</strong>
+                <table>
+                    <tr>
+                        <td>BTC:</td>
+                        <td class="text-right text-success">{{ btc_remaining_today|floatformat:8 }}</td>
+                    </tr>
+                    <tr>
+                        <td>XMR:</td>
+                        <td class="text-right text-success">{{ xmr_remaining_today|floatformat:12 }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-2">
+        <!-- Recent Activity -->
+        <div class="card activity-card">
+            <h2>📈 Recent Activity</h2>
+            
+            {% if recent_transactions %}
+            <div style="max-height: 400px; overflow-y: auto;">
+                {% for tx in recent_transactions %}
+                <div class="transaction-row tx-{{ tx.type }}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>
+                                {% if tx.type == 'deposit' %}📥 Deposit
+                                {% elif tx.type == 'withdrawal' %}📤 Withdrawal
+                                {% elif tx.type == 'conversion' %}🔄 Conversion
+                                {% elif tx.type == 'escrow_lock' %}🔒 Escrow Lock
+                                {% elif tx.type == 'escrow_release' %}🔓 Escrow Release
+                                {% else %}{{ tx.type|title }}
+                                {% endif %}
+                            </strong>
+                            <div class="text-muted" style="font-size: 12px;">
+                                {{ tx.created_at|date:"M d, H:i" }}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="strong">
+                                {% if tx.type == 'withdrawal' %}-{% endif %}{{ tx.amount|floatformat:8 }} {{ tx.currency|upper }}
+                            </div>
+                            {% if tx.converted_amount %}
+                            <div class="text-muted" style="font-size: 12px;">
+                                → {{ tx.converted_amount|floatformat:8 }} {{ tx.converted_currency|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted" style="padding: 40px;">
+                No recent transactions
+            </div>
+            {% endif %}
+            
+            <div style="text-align: center; margin-top: 15px;">
+                <a href="{% url 'wallets:transactions' %}" class="btn">View All Transactions →</a>
+            </div>
+        </div>
+
+        <!-- Risk Assessment & Pending Actions -->
+        <div>
+            <!-- Current Risk Level -->
+            <div class="card">
+                <h2>⚠️ Risk Assessment</h2>
+                
+                <div class="text-center">
+                    <div class="risk-indicator risk-{{ risk_level }}">
+                        {{ risk_level|upper }} RISK
+                    </div>
+                </div>
+                
+                {% if risk_factors %}
+                <div style="margin-top: 15px;">
+                    <strong>Risk Factors:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        {% for factor in risk_factors %}
+                        <li class="text-warning">{{ factor }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                <div style="margin-top: 15px;">
+                    <strong>Last Risk Check:</strong>
+                    <div class="text-muted">{{ last_risk_check|date:"M d, Y H:i" }}</div>
+                </div>
+            </div>
+
+            <!-- Pending Withdrawals -->
+            {% if pending_withdrawals %}
+            <div class="card">
+                <h2>⏳ Pending Withdrawals</h2>
+                
+                {% for withdrawal in pending_withdrawals %}
+                <div style="border: 1px solid #555; padding: 10px; margin: 10px 0; border-radius: 3px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div>
+                            <strong>{{ withdrawal.amount|floatformat:8 }} {{ withdrawal.currency|upper }}</strong>
+                            <div class="text-muted" style="font-size: 12px;">
+                                {{ withdrawal.created_at|date:"M d, H:i" }}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="risk-indicator risk-{{ withdrawal.risk_level }}">
+                                {{ withdrawal.status|upper }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-muted" style="font-size: 12px; margin-top: 5px;">
+                        To: {{ withdrawal.address|truncatechars:20 }}...
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Account Statistics -->
+            <div class="card">
+                <h2>📊 Account Statistics</h2>
+                
+                <table>
+                    <tr>
+                        <td>Account Age:</td>
+                        <td class="text-right">{{ account_age_days }} days</td>
+                    </tr>
+                    <tr>
+                        <td>Total Deposits:</td>
+                        <td class="text-right text-success">{{ total_deposits_count }}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Withdrawals:</td>
+                        <td class="text-right text-warning">{{ total_withdrawals_count }}</td>
+                    </tr>
+                    <tr>
+                        <td>Successful Trades:</td>
+                        <td class="text-right text-success">{{ successful_trades_count }}</td>
+                    </tr>
+                    <tr>
+                        <td>Dispute Rate:</td>
+                        <td class="text-right {% if dispute_rate < 5 %}text-success{% elif dispute_rate < 15 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ dispute_rate|floatformat:1 }}%
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Recommendations -->
+    {% if security_recommendations %}
+    <div class="card">
+        <h2>🛡️ Security Recommendations</h2>
+        <div class="grid grid-2">
+            {% for recommendation in security_recommendations %}
+            <div style="border: 1px solid #555; padding: 15px; border-radius: 3px;">
+                <strong>{{ recommendation.title }}</strong>
+                <div class="text-muted" style="margin: 5px 0;">{{ recommendation.description }}</div>
+                {% if recommendation.action_url %}
+                <a href="{{ recommendation.action_url }}" class="btn" style="margin-top: 10px;">
+                    {{ recommendation.action_text }}
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer Information -->
+    <div class="card">
+        <h2>ℹ️ Important Information</h2>
+        <div class="grid grid-2">
+            <div>
+                <h3 style="color: #ffaa00;">Security Features:</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>All withdrawals are manually reviewed by administrators</li>
+                    <li>High-risk transactions require additional verification</li>
+                    <li>Real-time fraud detection and risk scoring</li>
+                    <li>Comprehensive audit logging of all activities</li>
+                    <li>IP consistency checks and session management</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #ffaa00;">Processing Times:</h3>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Low-risk withdrawals: 1-6 hours</li>
+                    <li>Medium-risk withdrawals: 6-12 hours</li>
+                    <li>High-risk withdrawals: 12-24 hours</li>
+                    <li>Deposits: 1-3 network confirmations</li>
+                    <li>Currency conversions: Instant</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- No JavaScript - Pure HTML functionality -->
+<noscript>
+    <style>
+        .js-only { display: none !important; }
+    </style>
+</noscript>
+
+{% endblock %}

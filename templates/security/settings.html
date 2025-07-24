@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Settings - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .security-settings {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .settings-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+    .setting-label {
+        font-weight: 500;
+    }
+    .setting-description {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+    }
+    .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 25px;
+        background: #ccc;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .toggle-switch.active {
+        background: #4CAF50;
+    }
+    .toggle-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 21px;
+        height: 21px;
+        background: white;
+        border-radius: 50%;
+        transition: left 0.3s;
+    }
+    .toggle-switch.active::after {
+        left: 27px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="security-settings">
+    <h1>🔒 Security Settings</h1>
+    
+    <form method="post" action="{% url 'security:settings' %}">
+        {% csrf_token %}
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="settings-card">
+            <h2>Notification Preferences</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Security Notifications</div>
+                    <div class="setting-description">
+                        Receive notifications about security events and suspicious activity
+                    </div>
+                </div>
+                <div>
+                    {{ form.security_notifications }}
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Login Notifications</div>
+                    <div class="setting-description">
+                        Get notified when someone logs into your account
+                    </div>
+                </div>
+                <div>
+                    {{ form.login_notifications }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-card">
+            <h2>Account Security</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Two-Factor Authentication</div>
+                    <div class="setting-description">
+                        {% if user.wallet.two_fa_enabled %}
+                            <span style="color: green;">✅ Enabled</span> - Your account is protected with 2FA
+                        {% else %}
+                            <span style="color: red;">❌ Disabled</span> - Enable 2FA for better security
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    {% if user.wallet.two_fa_enabled %}
+                        <a href="{% url 'wallets:security_settings' %}" class="btn btn-secondary btn-sm">Manage 2FA</a>
+                    {% else %}
+                        <a href="{% url 'wallets:security_settings' %}" class="btn btn-primary btn-sm">Enable 2FA</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">PGP Key</div>
+                    <div class="setting-description">
+                        {% if user.pgp_public_key %}
+                            <span style="color: green;">✅ Configured</span> - PGP key is set up
+                        {% else %}
+                            <span style="color: orange;">⚠️ Not Set</span> - Add PGP key for enhanced security
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-secondary btn-sm">Manage PGP</a>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Withdrawal PIN</div>
+                    <div class="setting-description">
+                        {% if user.wallet.withdrawal_pin %}
+                            <span style="color: green;">✅ Set</span> - Withdrawal PIN is configured
+                        {% else %}
+                            <span style="color: orange;">⚠️ Not Set</span> - Set a PIN for withdrawal protection
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <a href="{% url 'wallets:security_settings' %}" class="btn btn-secondary btn-sm">Manage PIN</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-card">
+            <h2>Privacy & Security</h2>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">Tor Network Protection</div>
+                    <div class="setting-description">
+                        <span style="color: green;">✅ Active</span> - Your connection is protected via Tor
+                    </div>
+                </div>
+                <div>
+                    <span class="badge badge-success">Protected</span>
+                </div>
+            </div>
+            
+            <div class="setting-item">
+                <div>
+                    <div class="setting-label">IP Address Logging</div>
+                    <div class="setting-description">
+                        <span style="color: green;">✅ Disabled</span> - No IP addresses are logged for privacy
+                    </div>
+                </div>
+                <div>
+                    <span class="badge badge-success">Private</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <a href="{% url 'security:user_dashboard' %}" class="btn btn-secondary">Back to Security Dashboard</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

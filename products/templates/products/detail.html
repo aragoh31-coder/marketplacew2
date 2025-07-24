@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="breadcrumb">
+        <a href="{% url 'products:list' %}">← Back to Products</a>
+    </div>
+    
+    <div class="product-detail">
+        <div class="product-header">
+            <h1>{{ product.name }}</h1>
+            <span class="product-type">{{ product.get_product_type_display }}</span>
+        </div>
+        
+        <div class="product-content">
+            <div class="product-main">
+                <div class="product-description">
+                    <h3>Description</h3>
+                    <p>{{ product.description|linebreaks }}</p>
+                </div>
+                
+                <div class="product-details">
+                    <h3>Product Details</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <strong>Category:</strong> {{ product.category.name }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Type:</strong> {{ product.get_product_type_display }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>Stock:</strong> 
+                            {% if product.stock_quantity > 0 %}
+                                <span class="in-stock">{{ product.stock_quantity }} available</span>
+                            {% else %}
+                                <span class="out-of-stock">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-sidebar">
+                <div class="vendor-card">
+                    <h3>Vendor Information</h3>
+                    <div class="vendor-info">
+                        <div class="vendor-name">
+                            <a href="{% url 'vendors:profile' product.vendor.id %}">{{ product.vendor.vendor_name }}</a>
+                        </div>
+                        <div class="vendor-trust">Trust Level: {{ product.vendor.trust_level }}</div>
+                        {% if product.vendor.is_approved %}
+                            <div class="vendor-status approved">✓ Verified Vendor</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="purchase-card">
+                    <h3>Purchase</h3>
+                    <div class="pricing">
+                        <div class="price-btc">₿ {{ product.price_btc }}</div>
+                        <div class="price-xmr">ɱ {{ product.price_xmr }}</div>
+                    </div>
+                    
+                    {% if product.stock_quantity > 0 and product.is_available %}
+                        <form method="post" action="{% url 'orders:add_to_cart' product.id %}">
+                            {% csrf_token %}
+                            <div class="quantity-selector">
+                                <label for="quantity">Quantity:</label>
+                                <select name="quantity" id="quantity">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= product.stock_quantity %}
+                                            <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn-purchase">Add to Cart</button>
+                        </form>
+                    {% else %}
+                        <button disabled class="btn-disabled">Unavailable</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .breadcrumb {
+        margin-bottom: 20px;
+    }
+    
+    .breadcrumb a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    
+    .product-detail {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+    }
+    
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .product-content {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 40px;
+    }
+    
+    .vendor-card, .purchase-card {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .vendor-name a {
+        color: #4CAF50;
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    
+    .vendor-trust {
+        color: #888;
+        margin: 5px 0;
+    }
+    
+    .vendor-status.approved {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .pricing {
+        margin: 15px 0;
+    }
+    
+    .price-btc, .price-xmr {
+        font-size: 20px;
+        font-weight: bold;
+        margin: 5px 0;
+    }
+    
+    .price-btc {
+        color: #f7931a;
+    }
+    
+    .price-xmr {
+        color: #ff6600;
+    }
+    
+    .quantity-selector {
+        margin: 15px 0;
+    }
+    
+    .quantity-selector select {
+        background: #1a1a1a;
+        border: 1px solid #444;
+        color: #e0e0e0;
+        padding: 8px;
+        border-radius: 4px;
+        margin-left: 10px;
+    }
+    
+    .btn-purchase {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        width: 100%;
+    }
+    
+    .btn-purchase:hover {
+        background: #45a049;
+    }
+    
+    .btn-disabled {
+        background: #666;
+        color: #999;
+        padding: 12px 24px;
+        border-radius: 5px;
+        border: none;
+        cursor: not-allowed;
+        width: 100%;
+        font-size: 16px;
+    }
+    
+    .detail-grid {
+        display: grid;
+        gap: 10px;
+    }
+    
+    .detail-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #333;
+    }
+    
+    .in-stock {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .out-of-stock {
+        color: #f44336;
+        font-weight: bold;
+    }
+    
+    .product-type {
+        background: #2a2a2a;
+        color: #888;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+        .product-content {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+    }
+</style>
+{% endblock %}

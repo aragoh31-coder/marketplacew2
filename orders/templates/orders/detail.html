@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Order #{{ order.id|truncatechars:8 }}</h1>
+    
+    <div class="order-status-bar">
+        <div class="status-item {% if order.status == 'pending' %}active{% endif %}">Pending</div>
+        <div class="status-item {% if order.status == 'paid' %}active{% endif %}">Paid</div>
+        <div class="status-item {% if order.status == 'shipped' %}active{% endif %}">Shipped</div>
+        <div class="status-item {% if order.status == 'delivered' %}active{% endif %}">Delivered</div>
+    </div>
+    
+    <div class="order-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Order Date:</label>
+                <span>{{ order.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            <div class="info-item">
+                <label>Status:</label>
+                <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+            </div>
+            <div class="info-item">
+                <label>Total (BTC):</label>
+                <span class="price-btc">₿ {{ order.total_btc|default:"0.00" }}</span>
+            </div>
+            <div class="info-item">
+                <label>Total (XMR):</label>
+                <span class="price-xmr">ɱ {{ order.total_xmr|default:"0.00" }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="order-items">
+        <h2>Order Items</h2>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Vendor</th>
+                    <th>Price (BTC)</th>
+                    <th>Price (XMR)</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.vendor.vendor_name }}</td>
+                    <td class="price-btc">₿ {{ item.product.price_btc }}</td>
+                    <td class="price-xmr">ɱ {{ item.product.price_xmr }}</td>
+                    <td>{{ item.quantity }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="order-actions">
+        {% if order.status == 'shipped' and user == order.user %}
+        <form method="post" action="{% url 'orders:finalize' order.id %}" class="inline-form">
+            {% csrf_token %}
+            <input type="hidden" name="honeypot_field" class="honeypot">
+            <button type="submit" class="btn btn-success">Finalize Order</button>
+        </form>
+        {% endif %}
+        
+        {% if order.status in 'paid,shipped' and user == order.user %}
+        <a href="{% url 'disputes:create' order.id %}" class="btn btn-warning">Open Dispute</a>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .order-status-bar {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        background: #1a1a1a;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .status-item {
+        flex: 1;
+        text-align: center;
+        padding: 10px;
+        color: #666;
+        position: relative;
+    }
+    
+    .status-item.active {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .status-item:not(:last-child)::after {
+        content: '→';
+        position: absolute;
+        right: -20px;
+        color: #444;
+    }
+    
+    .order-info {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #333;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .info-item label {
+        display: block;
+        color: #888;
+        margin-bottom: 5px;
+    }
+    
+    .price-btc {
+        color: #f7931a;
+        font-weight: bold;
+    }
+    
+    .price-xmr {
+        color: #ff6600;
+        font-weight: bold;
+    }
+    
+    .order-items {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #333;
+    }
+    
+    .items-table {
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .items-table th {
+        background: #2a2a2a;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #444;
+    }
+    
+    .items-table td {
+        padding: 12px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .order-actions {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+        border: 1px solid #333;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 10px;
+        font-weight: bold;
+    }
+    
+    .btn-success {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-warning {
+        background: #ff9800;
+        color: white;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-pending {
+        background: #f57c00;
+        color: #fff;
+    }
+    
+    .status-paid {
+        background: #2196F3;
+        color: #fff;
+    }
+    
+    .status-shipped {
+        background: #ff9800;
+        color: #fff;
+    }
+    
+    .status-delivered {
+        background: #4CAF50;
+        color: #fff;
+    }
+    
+    .honeypot {
+        position: absolute;
+        left: -9999px;
+    }
+</style>
+{% endblock %}

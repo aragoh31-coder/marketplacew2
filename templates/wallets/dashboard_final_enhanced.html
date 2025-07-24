@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Wallet Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/wallet.css' %}">
+<style>
+.wallet-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.balance-display {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.security-indicator {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.security-high { background-color: #d4edda; color: #155724; }
+.security-medium { background-color: #fff3cd; color: #856404; }
+.security-low { background-color: #f8d7da; color: #721c24; }
+
+.transaction-row {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.transaction-row:last-child {
+    border-bottom: none;
+}
+
+.btn-wallet {
+    margin: 5px;
+    min-width: 120px;
+}
+
+.alert-security {
+    background-color: #fff3cd;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+.form-security {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.honeypot {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2>Wallet Dashboard</h2>
+            
+            <!-- Security Status -->
+            <div class="wallet-card">
+                <h4>Security Status</h4>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Security Score:</strong> 
+                            <span class="security-indicator {% if security_score >= 80 %}security-high{% elif security_score >= 50 %}security-medium{% else %}security-low{% endif %}">
+                                {{ security_score }}/100
+                            </span>
+                        </p>
+                        <p><strong>2FA Status:</strong> 
+                            {% if wallet.two_fa_enabled %}
+                                <span class="text-success">✓ Enabled</span>
+                            {% else %}
+                                <span class="text-warning">⚠ Disabled</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>PGP Key:</strong> 
+                            {% if user.pgp_public_key %}
+                                <span class="text-success">✓ Configured</span>
+                            {% else %}
+                                <span class="text-warning">⚠ Not Set</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Last Activity:</strong> {{ wallet.last_activity|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                {% if security_score < 70 %}
+                <div class="alert alert-security mt-3">
+                    <strong>Security Recommendation:</strong> 
+                    {% if not wallet.two_fa_enabled %}Enable 2FA for better security. {% endif %}
+                    {% if not user.pgp_public_key %}Set up PGP encryption for secure communications. {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Wallet Balances -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="wallet-card">
+                        <h4>Bitcoin (BTC)</h4>
+                        <div class="balance-display">{{ wallet.balance_btc }} BTC</div>
+                        <p class="text-muted">Available: {{ wallet.get_available_balance:'btc' }} BTC</p>
+                        {% if wallet.escrow_btc > 0 %}
+                        <p class="text-info">In Escrow: {{ wallet.escrow_btc }} BTC</p>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'wallets:deposit' %}?currency=btc" class="btn btn-success btn-wallet">Deposit BTC</a>
+                            <a href="{% url 'wallets:withdraw' %}?currency=btc" class="btn btn-primary btn-wallet">Withdraw BTC</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="wallet-card">
+                        <h4>Monero (XMR)</h4>
+                        <div class="balance-display">{{ wallet.balance_xmr }} XMR</div>
+                        <p class="text-muted">Available: {{ wallet.get_available_balance:'xmr' }} XMR</p>
+                        {% if wallet.escrow_xmr > 0 %}
+                        <p class="text-info">In Escrow: {{ wallet.escrow_xmr }} XMR</p>
+                        {% endif %}
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'wallets:deposit' %}?currency=xmr" class="btn btn-success btn-wallet">Deposit XMR</a>
+                            <a href="{% url 'wallets:withdraw' %}?currency=xmr" class="btn btn-primary btn-wallet">Withdraw XMR</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Currency Conversion -->
+            <div class="wallet-card">
+                <h4>Currency Conversion</h4>
+                <p class="text-muted">Convert between BTC and XMR at current market rates</p>
+                
+                <form method="post" action="{% url 'wallets:convert' %}" class="form-security">
+                    {% csrf_token %}
+                    
+                    <!-- Honeypot fields (hidden from users) -->
+                    <div class="honeypot">
+                        <input type="text" name="website" value="" autocomplete="off">
+                        <input type="email" name="email_address" value="" autocomplete="off">
+                    </div>
+                    
+                    <input type="hidden" name="form_timestamp" value="{{ captcha_data.form_timestamp }}">
+                    <input type="hidden" name="form_hash" value="{{ captcha_data.form_hash }}">
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="from_currency">From:</label>
+                            <select name="from_currency" id="from_currency" class="form-control" required>
+                                <option value="btc">Bitcoin (BTC)</option>
+                                <option value="xmr">Monero (XMR)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="amount">Amount:</label>
+                            <input type="number" name="amount" id="amount" class="form-control" 
+                                   step="0.00000001" min="0.00000001" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="to_currency">To:</label>
+                            <select name="to_currency" id="to_currency" class="form-control" required>
+                                <option value="xmr">Monero (XMR)</option>
+                                <option value="btc">Bitcoin (BTC)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="math_captcha">Security: {{ captcha_data.math_challenge }} =</label>
+                            <input type="number" name="math_captcha" id="math_captcha" class="form-control" 
+                                   placeholder="Answer" autocomplete="off" required>
+                            <input type="hidden" name="captcha_hash" value="{{ captcha_data.captcha_hash }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-warning">Convert Currency</button>
+                        <small class="text-muted ml-3">Current rate will be applied at time of conversion</small>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Recent Transactions -->
+            <div class="wallet-card">
+                <h4>Recent Transactions</h4>
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="transaction-row">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <strong>{{ transaction.get_transaction_type_display }}</strong>
+                            </div>
+                            <div class="col-md-2">
+                                {{ transaction.amount }} {{ transaction.currency|upper }}
+                            </div>
+                            <div class="col-md-2">
+                                <span class="badge badge-{% if transaction.status == 'completed' %}success{% elif transaction.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                {{ transaction.created_at|date:"M d, Y H:i" }}
+                            </div>
+                            <div class="col-md-3">
+                                {% if transaction.tx_hash %}
+                                <small class="text-muted">{{ transaction.tx_hash|truncatechars:16 }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="mt-3">
+                        <a href="{% url 'wallets:transactions' %}" class="btn btn-outline-primary">View All Transactions</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No transactions yet.</p>
+                {% endif %}
+            </div>
+            
+            <!-- Pending Withdrawals -->
+            {% if pending_withdrawals %}
+            <div class="wallet-card">
+                <h4>Pending Withdrawals</h4>
+                {% for withdrawal in pending_withdrawals %}
+                <div class="transaction-row">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>{{ withdrawal.amount }} {{ withdrawal.currency|upper }}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span class="badge badge-warning">{{ withdrawal.get_status_display }}</span>
+                        </div>
+                        <div class="col-md-3">
+                            {{ withdrawal.created_at|date:"M d, Y H:i" }}
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{% url 'wallets:withdrawal_detail' withdrawal.id %}" class="btn btn-sm btn-outline-info">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Quick Actions -->
+            <div class="wallet-card">
+                <h4>Quick Actions</h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="{% url 'wallets:security_settings' %}" class="btn btn-outline-secondary btn-block">Security Settings</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'wallets:transactions' %}" class="btn btn-outline-info btn-block">Transaction History</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-outline-warning btn-block">PGP Settings</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{% url 'security:user_dashboard' %}" class="btn btn-outline-primary btn-block">Security Dashboard</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Pure JavaScript for form validation (no external dependencies)
+document.addEventListener('DOMContentLoaded', function() {
+    const fromCurrency = document.getElementById('from_currency');
+    const toCurrency = document.getElementById('to_currency');
+    
+    if (fromCurrency && toCurrency) {
+        fromCurrency.addEventListener('change', function() {
+            if (this.value === 'btc') {
+                toCurrency.value = 'xmr';
+            } else {
+                toCurrency.value = 'btc';
+            }
+        });
+        
+        toCurrency.addEventListener('change', function() {
+            if (this.value === 'btc') {
+                fromCurrency.value = 'xmr';
+            } else {
+                fromCurrency.value = 'btc';
+            }
+        });
+    }
+    
+    // Form submission timing check
+    const forms = document.querySelectorAll('form');
+    forms.forEach(function(form) {
+        const timestamp = form.querySelector('input[name="form_timestamp"]');
+        if (timestamp) {
+            timestamp.value = Date.now() / 1000;
+        }
+    });
+});
+</script>
+{% endblock %}

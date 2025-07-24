@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Rate Limited - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card mt-5">
+        <div class="card-body text-center">
+            <h1 class="text-warning">⚠️ Rate Limited</h1>
+            <p class="lead">You have exceeded the allowed number of requests.</p>
+            <p>Please wait a few minutes before trying again.</p>
+            <p class="text-muted">
+                This protection helps keep our marketplace secure for all users.
+            </p>
+            <a href="{% url 'home' %}" class="btn btn-primary mt-3">
+                Return to Homepage
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

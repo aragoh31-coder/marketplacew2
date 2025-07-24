@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Withdrawals - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Pending Withdrawals</h2>
+    <table>
+        <thead><tr><th>User</th><th>Amount</th><th>Currency</th><th>Transaction ID</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for withdrawal in withdrawals %}
+            <tr>
+                <td>{{ withdrawal.wallet.user.username }}</td>
+                <td>{{ withdrawal.amount }}</td>
+                <td>{{ withdrawal.wallet.currency }}</td>
+                <td>{{ withdrawal.txid|truncatechars:20|default:"Pending" }}</td>
+                <td>
+                    <a href="{% url 'adminpanel:approve_withdrawal' withdrawal.id %}" class="btn">Approve</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

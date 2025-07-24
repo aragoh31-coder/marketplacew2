@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Vendor Settings{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Vendor Settings</h1>
+    
+    <form method="post" class="settings-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.description.label_tag }}
+            {{ form.description }}
+            {% if form.description.errors %}
+                <div class="error">{{ form.description.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.response_time.label_tag }}
+            {{ form.response_time }}
+            <small>Expected response time for customer messages</small>
+            {% if form.response_time.errors %}
+                <div class="error">{{ form.response_time.errors.0 }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <a href="{% url 'vendors:dashboard' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+    
+    <div class="vacation-mode">
+        <h3>Vacation Mode</h3>
+        <p>Temporarily disable all your products</p>
+        <form method="post" action="{% url 'vendors:vacation_mode' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-warning">Toggle Vacation Mode</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .settings-form {
+        max-width: 600px;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .vacation-mode {
+        max-width: 600px;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
