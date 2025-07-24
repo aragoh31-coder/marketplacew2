@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}PGP Test - Secure Marketplace{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="pgp-test-container">
+        <h1>🔐 PGP Encryption Test</h1>
+        
+        <div class="info-box">
+            <p>This page tests PGP encryption with your configured public key.</p>
+            <p><strong>Fingerprint:</strong> <code>{{ fingerprint }}</code></p>
+        </div>
+        
+        <div class="test-section">
+            <h2>Original Message</h2>
+            <div class="message-display">
+                <pre>{{ original_message }}</pre>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Encrypted Message</h2>
+            <p class="help-text">This message was encrypted with your PGP public key:</p>
+            <div class="pgp-message-container">
+                <textarea class="pgp-textarea" readonly>{{ encrypted_message }}</textarea>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>Test Instructions</h3>
+            <ol>
+                <li>Copy the encrypted message above</li>
+                <li>Decrypt it with your private key using: <code>gpg --decrypt</code></li>
+                <li>Verify the decrypted content matches the original message</li>
+            </ol>
+        </div>
+        
+        <div class="button-group">
+            <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-primary">
+                Back to PGP Settings
+            </a>
+            <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                Back to Profile
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pgp-test-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: rgba(26, 26, 26, 0.95);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    .info-box {
+        background: rgba(42, 42, 42, 0.8);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .test-section {
+        margin-bottom: 30px;
+    }
+    
+    .message-display {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        font-family: 'Courier New', monospace;
+        color: #ccc;
+    }
+    
+    .pgp-textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #4CAF50;
+        border-radius: 8px;
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.4;
+        resize: vertical;
+    }
+    
+    .instructions {
+        background: rgba(42, 42, 42, 0.6);
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .instructions h3 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .instructions ol {
+        margin-left: 20px;
+        color: #ccc;
+    }
+    
+    .instructions code {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 2px 6px;
+        border-radius: 3px;
+        color: #4CAF50;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #45a049, #3d8b40);
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: rgba(108, 117, 125, 0.8);
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(108, 117, 125, 1);
+        transform: translateY(-2px);
+    }
+    
+    .help-text {
+        color: #aaa;
+        margin-bottom: 15px;
+    }
+    
+    code {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 2px 6px;
+        border-radius: 3px;
+        color: #4CAF50;
+        font-family: 'Courier New', monospace;
+    }
+</style>
+{% endblock %}

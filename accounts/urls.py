@@ -17,6 +17,7 @@ urlpatterns = [
     path('profile/delete/', views.delete_account, name='delete_account'),
     path('profile/login-history/', views.login_history_view, name='login_history'),
     path('pgp-challenge/', views.pgp_challenge_view, name='pgp_challenge'),
+    path('pgp-login/', views.pgp_challenge_view, name='pgp_login'),
     path('test-pgp/', views.test_pgp_encryption, name='test_pgp'),
     
     path('settings/totp/', views.totp_settings, name='totp_settings'),

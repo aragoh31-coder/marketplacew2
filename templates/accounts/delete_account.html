@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Delete Account - Secure Marketplace{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-container danger">
+        <h1>🚨 Delete Account</h1>
+        
+        <div class="warning-box">
+            <h3>⚠️ Warning</h3>
+            <p>This action cannot be undone. Deleting your account will:</p>
+            <ul>
+                <li>Permanently delete your profile and all personal data</li>
+                <li>Remove all your messages and communication history</li>
+                <li>Cancel any pending orders (if no active orders exist)</li>
+                <li>Delete your wallet and transaction history</li>
+                <li>Remove your vendor status and listings (if applicable)</li>
+            </ul>
+            <p><strong>You cannot delete your account if you have active orders.</strong></p>
+        </div>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.confirm_delete.label_tag }}
+                {{ form.confirm_delete }}
+                {% if form.confirm_delete.errors %}
+                    <div class="error">{{ form.confirm_delete.errors.0 }}</div>
+                {% endif %}
+                <small class="text-muted">Type "DELETE" to confirm account deletion</small>
+            </div>
+            
+            <div class="form-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+                <small class="text-muted">Enter your current password to confirm</small>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn btn-danger">Delete My Account</button>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .form-container.danger {
+        border-color: #f44336;
+    }
+    
+    .warning-box {
+        background: #2a1a1a;
+        border: 2px solid #f44336;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 30px;
+    }
+    
+    .warning-box h3 {
+        color: #f44336;
+        margin-bottom: 15px;
+    }
+    
+    .warning-box ul {
+        margin: 10px 0 0 20px;
+        color: #ccc;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #ccc;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 5px;
+    }
+    
+    .form-control:focus {
+        border-color: #f44336;
+        outline: none;
+    }
+    
+    .text-muted {
+        color: #888;
+        font-size: 12px;
+        margin-top: 5px;
+        display: block;
+    }
+    
+    .error {
+        color: #f44336;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-success {
+        background: #1b5e20;
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+    
+    .alert-error {
+        background: #b71c1c;
+        color: #f44336;
+        border: 1px solid #f44336;
+    }
+    
+    .btn-danger {
+        background: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-danger:hover {
+        background: #d32f2f;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+</style>
+{% endblock %}

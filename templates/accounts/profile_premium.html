@@ -1,0 +1,668 @@
+{% extends 'base_premium.html' %}
+
+{% block content %}
+<div class="premium-profile-container">
+    <!-- Profile Header -->
+    <div class="premium-profile-header">
+        <div class="profile-avatar">
+            <div class="avatar-circle">
+                <span class="avatar-text">{{ user.username|first|upper }}</span>
+            </div>
+            <div class="avatar-status"></div>
+        </div>
+        
+        <div class="profile-info">
+            <h1 class="profile-username">{{ user.username }}</h1>
+            <div class="profile-trust">
+                <span class="trust-badge trust-{{ user.get_trust_level|lower }}">{{ user.get_trust_level }}</span>
+                <span class="trust-score">{{ feedback_percentage|floatformat:1 }}% positive</span>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ user.total_trades }}</span>
+                    <span class="stat-label">Total Trades</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ current_orders }}</span>
+                    <span class="stat-label">Active Orders</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ active_disputes }}</span>
+                    <span class="stat-label">Disputes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Premium Tab Navigation -->
+    <div class="premium-tabs">
+        <input type="radio" id="tab-overview" name="profile-tabs" checked>
+        <input type="radio" id="tab-security" name="profile-tabs">
+        <input type="radio" id="tab-wallet" name="profile-tabs">
+        <input type="radio" id="tab-orders" name="profile-tabs">
+        
+        <div class="tab-labels">
+            <label for="tab-overview" class="tab-label">
+                <span class="tab-icon">📊</span>
+                <span>Overview</span>
+            </label>
+            <label for="tab-security" class="tab-label">
+                <span class="tab-icon">🔒</span>
+                <span>Security</span>
+            </label>
+            <label for="tab-wallet" class="tab-label">
+                <span class="tab-icon">💰</span>
+                <span>Wallet</span>
+            </label>
+            <label for="tab-orders" class="tab-label">
+                <span class="tab-icon">📦</span>
+                <span>Orders</span>
+            </label>
+        </div>
+        
+        <!-- Overview Tab -->
+        <div class="tab-content" id="overview-content">
+            <div class="premium-cards-grid">
+                <div class="premium-card">
+                    <div class="card-header">
+                        <h3>Account Settings</h3>
+                        <span class="card-icon">⚙️</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="setting-item">
+                            <span class="setting-label">Username</span>
+                            <span class="setting-value">{{ user.username }}</span>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Email</span>
+                            <span class="setting-value">{{ user.email|default:"Not set" }}</span>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Default Currency</span>
+                            <span class="setting-value">{{ user.default_currency }}</span>
+                        </div>
+                        <div class="setting-item">
+                            <span class="setting-label">Member Since</span>
+                            <span class="setting-value">{{ user.account_created|date:"M Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'accounts:profile_settings' %}" class="premium-btn premium-btn-primary">Edit Settings</a>
+                    </div>
+                </div>
+                
+                <div class="premium-card">
+                    <div class="card-header">
+                        <h3>Recent Activity</h3>
+                        <span class="card-icon">📈</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="activity-list">
+                            {% for login in login_history %}
+                            <div class="activity-item">
+                                <div class="activity-icon">🔑</div>
+                                <div class="activity-details">
+                                    <span class="activity-text">Login</span>
+                                    <span class="activity-time">{{ login.login_time|timesince }} ago</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Tab -->
+        <div class="tab-content" id="security-content">
+            <div class="premium-cards-grid">
+                <div class="premium-card">
+                    <div class="card-header">
+                        <h3>Password Security</h3>
+                        <span class="card-icon">🔐</span>
+                    </div>
+                    <div class="card-content">
+                        <p>Keep your account secure with a strong password.</p>
+                        <div class="security-status">
+                            <span class="status-indicator status-good"></span>
+                            <span>Password last changed: {{ user.last_login|timesince }} ago</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'accounts:change_password' %}" class="premium-btn premium-btn-secondary">Change Password</a>
+                    </div>
+                </div>
+                
+                <div class="premium-card">
+                    <div class="card-header">
+                        <h3>PGP Security</h3>
+                        <span class="card-icon">🔑</span>
+                    </div>
+                    <div class="card-content">
+                        {% if user.pgp_public_key %}
+                            <div class="security-status">
+                                <span class="status-indicator status-good"></span>
+                                <span>PGP key configured</span>
+                            </div>
+                            <div class="pgp-fingerprint">
+                                <strong>Fingerprint:</strong> {{ user.pgp_fingerprint }}
+                            </div>
+                        {% else %}
+                            <div class="security-status">
+                                <span class="status-indicator status-warning"></span>
+                                <span>No PGP key configured</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'accounts:pgp_settings' %}" class="premium-btn premium-btn-secondary">Configure PGP</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wallet Tab -->
+        <div class="tab-content" id="wallet-content">
+            <div class="premium-cards-grid">
+                <div class="premium-card wallet-card">
+                    <div class="card-header">
+                        <h3>Bitcoin Wallet</h3>
+                        <span class="card-icon">₿</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="balance-display">
+                            <span class="balance-amount">{{ btc_balance|floatformat:8 }}</span>
+                            <span class="balance-currency">BTC</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'wallets:deposit' %}" class="premium-btn premium-btn-primary">Deposit</a>
+                        <a href="{% url 'wallets:withdraw' %}" class="premium-btn premium-btn-secondary">Withdraw</a>
+                    </div>
+                </div>
+                
+                <div class="premium-card wallet-card">
+                    <div class="card-header">
+                        <h3>Monero Wallet</h3>
+                        <span class="card-icon">Ɱ</span>
+                    </div>
+                    <div class="card-content">
+                        <div class="balance-display">
+                            <span class="balance-amount">{{ xmr_balance|floatformat:8 }}</span>
+                            <span class="balance-currency">XMR</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <a href="{% url 'wallets:deposit' %}" class="premium-btn premium-btn-primary">Deposit</a>
+                        <a href="{% url 'wallets:withdraw' %}" class="premium-btn premium-btn-secondary">Withdraw</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Orders Tab -->
+        <div class="tab-content" id="orders-content">
+            <div class="premium-card">
+                <div class="card-header">
+                    <h3>Order History</h3>
+                    <span class="card-icon">📋</span>
+                </div>
+                <div class="card-content">
+                    <div class="orders-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Orders</span>
+                            <span class="summary-value">{{ total_orders }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Active Orders</span>
+                            <span class="summary-value">{{ current_orders }}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Completed</span>
+                            <span class="summary-value">{{ total_orders|add:current_orders|add:"-"|add:current_orders }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <a href="{% url 'orders:list' %}" class="premium-btn premium-btn-primary">View All Orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.premium-profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.premium-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    backdrop-filter: blur(20px);
+    animation: slideInUp 0.8s ease-out;
+}
+
+.profile-avatar {
+    position: relative;
+}
+
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--bg-primary);
+    box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+}
+
+.avatar-status {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary);
+    border: 3px solid var(--bg-card);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.profile-username {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--text-primary), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.profile-trust {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.trust-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.trust-legendary { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #1a1a1a; }
+.trust-trusted { background: linear-gradient(135deg, var(--primary), #10b981); color: var(--bg-primary); }
+.trust-established { background: linear-gradient(135deg, #3b82f6, #06b6d4); color: white; }
+.trust-regular { background: linear-gradient(135deg, #8b5cf6, #a855f7); color: white; }
+.trust-beginner { background: linear-gradient(135deg, #6b7280, #9ca3af); color: white; }
+.trust-new { background: linear-gradient(135deg, #374151, #4b5563); color: white; }
+
+.trust-score {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.premium-tabs {
+    position: relative;
+}
+
+.premium-tabs input[type="radio"] {
+    display: none;
+}
+
+.tab-labels {
+    display: flex;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(20px);
+}
+
+.tab-label {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.tab-label:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+#tab-overview:checked ~ .tab-labels .tab-label:nth-child(1),
+#tab-security:checked ~ .tab-labels .tab-label:nth-child(2),
+#tab-wallet:checked ~ .tab-labels .tab-label:nth-child(3),
+#tab-orders:checked ~ .tab-labels .tab-label:nth-child(4) {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-primary);
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+#tab-overview:checked ~ #overview-content,
+#tab-security:checked ~ #security-content,
+#tab-wallet:checked ~ #wallet-content,
+#tab-orders:checked ~ #orders-content {
+    display: block;
+}
+
+.premium-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.premium-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+}
+
+.premium-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0, 255, 136, 0.1);
+    border-color: var(--primary);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-icon {
+    font-size: 1.5rem;
+    opacity: 0.7;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.card-actions {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 1rem;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-label {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.setting-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0.5rem;
+}
+
+.activity-icon {
+    font-size: 1.25rem;
+}
+
+.activity-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.activity-text {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.activity-time {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.security-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+.status-good { background: var(--primary); }
+.status-warning { background: #f59e0b; }
+.status-error { background: #ef4444; }
+
+.pgp-fingerprint {
+    font-family: monospace;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    word-break: break-all;
+}
+
+.wallet-card .card-content {
+    text-align: center;
+}
+
+.balance-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.balance-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.balance-currency {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.orders-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0.5rem;
+}
+
+.summary-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.premium-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    flex: 1;
+}
+
+.premium-btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: var(--bg-primary);
+}
+
+.premium-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+    .premium-profile-container {
+        padding: 1rem;
+    }
+    
+    .premium-profile-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .profile-stats {
+        justify-content: center;
+    }
+    
+    .tab-labels {
+        flex-wrap: wrap;
+    }
+    
+    .premium-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
