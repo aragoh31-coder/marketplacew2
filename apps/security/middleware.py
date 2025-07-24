@@ -46,12 +46,19 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         return self._add_security_headers(response)
     
     def _is_advanced_bot(self, request):
-        """Advanced bot detection with multiple signals"""
+        """Advanced bot detection with multiple signals - Tor friendly"""
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
         
+        tor_friendly_patterns = ['tor browser', 'firefox', 'chrome', 'safari', 'edge']
+        for pattern in tor_friendly_patterns:
+            if pattern in user_agent:
+                return False
+        
+        if request.path in ['/login/', '/register/', '/accounts/login/', '/accounts/register/']:
+            return False
+        
         bot_patterns = [
-            'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget',
-            'python-requests', 'scrapy', 'selenium', 'phantomjs',
+            'bot', 'crawler', 'spider', 'scraper', 'scrapy', 'selenium', 'phantomjs',
             'headless', 'automation', 'test'
         ]
         
@@ -62,7 +69,7 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         essential_headers = ['HTTP_ACCEPT', 'HTTP_ACCEPT_LANGUAGE', 'HTTP_ACCEPT_ENCODING']
         missing_headers = sum(1 for header in essential_headers if not request.META.get(header))
         
-        if missing_headers >= 2:
+        if missing_headers >= 3:
             return True
         
         accept = request.META.get('HTTP_ACCEPT', '')
@@ -169,7 +176,7 @@ class WalletSecurityMiddleware(MiddlewareMixin):
             'X-Frame-Options': 'DENY',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin',
-            'Content-Security-Policy': "default-src 'self'; script-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;",
+            'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self';",
             'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
             'Permissions-Policy': 'geolocation=(), microphone=(), camera=()'
         }
@@ -287,19 +294,24 @@ class EnhancedSecurityMiddleware:
         return response
 
     def _is_bot_request(self, request):
-        """Enhanced bot detection"""
+        """Enhanced bot detection - Tor friendly"""
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+        
+        tor_friendly_patterns = ['tor browser', 'firefox', 'chrome', 'safari', 'edge']
+        for pattern in tor_friendly_patterns:
+            if pattern in user_agent:
+                return False
+        
+        if request.path in ['/login/', '/register/', '/accounts/login/', '/accounts/register/']:
+            return False
         
         for pattern in self.BOT_USER_AGENTS:
             if re.search(pattern, user_agent, re.IGNORECASE):
-                if any(legit in user_agent for legit in ['googlebot', 'bingbot', 'duckduckbot']):
+                if any(legit in user_agent for legit in ['googlebot', 'bingbot', 'duckduckbot', 'tor browser']):
                     return False
                 return True
         
-        if not user_agent or len(user_agent) < 10:
-            return True
-        
-        if not request.META.get('HTTP_ACCEPT_LANGUAGE'):
+        if not user_agent or len(user_agent) < 5:
             return True
         
         return False
@@ -354,7 +366,7 @@ class EnhancedSecurityMiddleware:
         response['X-Frame-Options'] = 'DENY'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Content-Security-Policy'] = "default-src 'self'; script-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+        response['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self';"
         response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
 
