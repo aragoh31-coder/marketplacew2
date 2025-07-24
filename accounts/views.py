@@ -263,11 +263,14 @@ def register(request):
         
         if not correct_answer or user_answer != correct_answer:
             messages.error(request, "Incorrect CAPTCHA answer. Please try again.")
-            question, answer = generate_captcha()
-            request.session['captcha_answer'] = answer
+            q, a, img, exp = generate_shape_captcha()
+            request.session['captcha_answer'] = a
+            request.session['captcha_expires'] = exp.isoformat()
+            request.session.save()
             return render(request, 'accounts/register.html', {
                 'form': form,
-                'captcha_question': question
+                'captcha_question': q,
+                'captcha_image': img,
             })
         
         request.session.pop('captcha_answer', None)
@@ -279,20 +282,26 @@ def register(request):
             
             if password != password2:
                 messages.error(request, "Passwords do not match.")
-                question, answer = generate_captcha()
-                request.session['captcha_answer'] = answer
+                q, a, img, exp = generate_shape_captcha()
+                request.session['captcha_answer'] = a
+                request.session['captcha_expires'] = exp.isoformat()
+                request.session.save()
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': question
+                    'captcha_question': q,
+                    'captcha_image': img,
                 })
             
             if User.objects.filter(username=username).exists():
                 messages.error(request, "Username already taken.")
-                question, answer = generate_captcha()
-                request.session['captcha_answer'] = answer
+                q, a, img, exp = generate_shape_captcha()
+                request.session['captcha_answer'] = a
+                request.session['captcha_expires'] = exp.isoformat()
+                request.session.save()
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': question
+                    'captcha_question': q,
+                    'captcha_image': img,
                 })
             
             user = User.objects.create_user(
