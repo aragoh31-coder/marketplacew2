@@ -37,7 +37,6 @@ class LoginForm(forms.Form):
 
 class RegisterForm(forms.Form):
     username = forms.CharField(max_length=150)
-    email = forms.EmailField()
     password = forms.CharField(widget=forms.PasswordInput)
     password2 = forms.CharField(widget=forms.PasswordInput, label="Confirm Password")
 
@@ -179,7 +178,6 @@ def register_view(request):
         
         if form.is_valid():
             username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             password2 = form.cleaned_data['password2']
             
@@ -209,7 +207,6 @@ def register_view(request):
             
             user = User.objects.create_user(
                 username=username,
-                email=email,
                 password=password
             )
             
@@ -277,7 +274,6 @@ def register(request):
         
         if form.is_valid():
             username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
             password = form.cleaned_data['password']
             password2 = form.cleaned_data['password2']
             
@@ -301,7 +297,6 @@ def register(request):
             
             user = User.objects.create_user(
                 username=username,
-                email=email,
                 password=password
             )
             
