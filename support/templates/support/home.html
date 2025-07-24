@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+
+{% block title %}Support Center - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🛠️ Support Center</h1>
+    
+    <div class="support-grid">
+        <div class="support-card">
+            <h2>📚 Help & Documentation</h2>
+            <p>Find answers to common questions and learn how to use the marketplace safely and effectively.</p>
+            <a href="{% url 'support:faq' %}" class="btn btn-primary">View FAQ</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>🎫 Submit a Ticket</h2>
+            <p>Need help with an order, payment, or technical issue? Submit a support ticket and we'll assist you.</p>
+            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">Create Ticket</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>💬 Live Support</h2>
+            <p>Chat with a support agent for immediate assistance with urgent matters.</p>
+            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">Start Chat</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>🔐 Security Guide</h2>
+            <p>Learn about PGP encryption, Tor usage, and best practices for secure transactions.</p>
+            <a href="{% url 'support:home' %}#security" class="btn btn-primary">Security Tips</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>₿ Cryptocurrency Help</h2>
+            <p>Get help with Bitcoin and Monero transactions, wallet setup, and payment issues.</p>
+            <a href="{% url 'support:home' %}#crypto" class="btn btn-primary">Crypto Guide</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>🏪 Vendor Support</h2>
+            <p>Resources for vendors including listing guidelines, payment processing, and dispute resolution.</p>
+            <a href="{% url 'vendors:apply' %}" class="btn btn-primary">Vendor Info</a>
+        </div>
+    </div>
+    
+    {% if user.is_authenticated %}
+    <div class="user-support-section">
+        <h2>Your Support History</h2>
+        <div class="support-history">
+            <div class="history-item">
+                <div class="history-icon">📧</div>
+                <div class="history-content">
+                    <h3>Recent Messages</h3>
+                    <p>Check your message inbox for support responses and updates.</p>
+                    <a href="{% url 'messaging:list' %}" class="btn btn-secondary">View Messages</a>
+                </div>
+            </div>
+            
+            <div class="history-item">
+                <div class="history-icon">📋</div>
+                <div class="history-content">
+                    <h3>Order Support</h3>
+                    <p>Need help with a specific order? View your order history for support options.</p>
+                    <a href="{% url 'orders:list' %}" class="btn btn-secondary">View Orders</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="support-info">
+        <h2>📞 Contact Information</h2>
+        <div class="contact-grid">
+            <div class="contact-item">
+                <h3>Response Times</h3>
+                <ul>
+                    <li>🟢 Live Chat: Immediate</li>
+                    <li>🟡 Support Tickets: 2-24 hours</li>
+                    <li>🔴 Complex Issues: 1-3 days</li>
+                </ul>
+            </div>
+            
+            <div class="contact-item">
+                <h3>Support Hours</h3>
+                <ul>
+                    <li>📅 Monday - Friday: 24/7</li>
+                    <li>📅 Weekend: Limited support</li>
+                    <li>🌍 All timezones supported</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="emergency-support">
+        <h2>🚨 Emergency Support</h2>
+        <p>For urgent security issues, compromised accounts, or payment disputes, contact emergency support immediately.</p>
+        <div class="emergency-actions">
+            <a href="{% url 'messaging:compose' %}?subject=URGENT" class="btn btn-danger">Emergency Contact</a>
+            <a href="{% url 'disputes:create' %}" class="btn btn-warning">Report Dispute</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .support-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .support-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 25px;
+        text-align: center;
+        transition: border-color 0.3s;
+    }
+    
+    .support-card:hover {
+        border-color: #4CAF50;
+    }
+    
+    .support-card h2 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+    
+    .support-card p {
+        color: #ccc;
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+    
+    .user-support-section {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .user-support-section h2 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+    }
+    
+    .support-history {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .history-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .history-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    
+    .history-content h3 {
+        color: #4CAF50;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+    
+    .history-content p {
+        color: #ccc;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+    
+    .support-info {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .support-info h2 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+    }
+    
+    .contact-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+    }
+    
+    .contact-item h3 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .contact-item ul {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .contact-item li {
+        color: #ccc;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+    
+    .emergency-support {
+        background: #2a1a1a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+    }
+    
+    .emergency-support h2 {
+        color: #f44336;
+        margin-bottom: 15px;
+    }
+    
+    .emergency-support p {
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .emergency-actions {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 14px;
+        transition: background 0.3s;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+    
+    .btn-danger {
+        background: #f44336;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #d32f2f;
+    }
+    
+    .btn-warning {
+        background: #ff9800;
+        color: white;
+    }
+    
+    .btn-warning:hover {
+        background: #f57c00;
+    }
+    
+    @media (max-width: 768px) {
+        .support-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .contact-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .emergency-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .history-item {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
