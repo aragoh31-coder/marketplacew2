@@ -71,13 +71,23 @@ class CaptchaSessionManager:
         try:
             expires_str = captcha_data.get('expires')
             if expires_str:
-                expires = datetime.fromisoformat(expires_str.replace('Z', '+00:00'))
-                if timezone.now() > expires:
+                if isinstance(expires_str, str):
+                    expires = datetime.fromisoformat(expires_str.replace('Z', '+00:00'))
+                else:
+                    expires = expires_str
+                    if expires.tzinfo is None:
+                        expires = timezone.make_aware(expires)
+                
+                current_time = timezone.now()
+                print(f"DEBUG VALIDATE_CAPTCHA: Current time: {current_time}, Expires: {expires}")
+                if current_time > expires:
                     print("DEBUG VALIDATE_CAPTCHA: CAPTCHA expired")
                     return False
+                else:
+                    print(f"DEBUG VALIDATE_CAPTCHA: CAPTCHA still valid, {(expires - current_time).total_seconds()} seconds remaining")
         except (ValueError, TypeError) as e:
             print(f"DEBUG VALIDATE_CAPTCHA: Error parsing expiration: {e}")
-            return False
+            print("DEBUG VALIDATE_CAPTCHA: Continuing validation despite expiration parsing error")
         
         stored_answer = str(captcha_data.get('answer', ''))
         user_answer_str = str(user_answer).strip()
@@ -122,7 +132,7 @@ def generate_captcha():
     b = random.randint(1, 9)
     return f"{a} + {b}", str(a + b)
 
-def generate_shape_captcha(width=200, height=80, ttl_minutes=15):
+def generate_shape_captcha(width=200, height=80, ttl_minutes=30):
     """
     Draws N random shapes and returns:
       - question: str e.g. "How many triangles are in this image?"
