@@ -5,6 +5,10 @@ from core.base_models import PrivacyModel
 import uuid
 import secrets
 from datetime import timedelta
+import pyotp
+import qrcode
+import io
+import base64
 
 
 class User(AbstractUser, PrivacyModel):
@@ -39,6 +43,11 @@ class User(AbstractUser, PrivacyModel):
     is_vendor = models.BooleanField(default=False)
     account_created = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(default=timezone.now)
+    
+    totp_secret = models.CharField(max_length=32, blank=True)
+    totp_enabled = models.BooleanField(default=False)
+    totp_backup_codes = models.JSONField(default=list, blank=True)
+    totp_last_used_counter = models.IntegerField(default=0)
     
     
     def get_trust_level(self):
@@ -89,6 +98,85 @@ class User(AbstractUser, PrivacyModel):
     def requires_2fa(self):
         """Check if user has any 2FA method enabled"""
         return getattr(self, 'totp_enabled', False) or getattr(self, 'pgp_2fa_enabled', False)
+    
+    def generate_totp_secret(self):
+        """Generate new TOTP secret"""
+        if not self.totp_secret:
+            self.totp_secret = pyotp.random_base32()
+            self.save(update_fields=['totp_secret'])
+        return self.totp_secret
+    
+    def get_totp_uri(self):
+        """Get TOTP URI for QR code generation"""
+        if not self.totp_secret:
+            self.generate_totp_secret()
+        
+        return pyotp.totp.TOTP(self.totp_secret).provisioning_uri(
+            name=self.username,
+            issuer_name="Secure Marketplace"
+        )
+    
+    def generate_qr_code(self):
+        """Generate QR code for TOTP setup"""
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(self.get_totp_uri())
+        qr.make(fit=True)
+        
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        buffer.seek(0)
+        
+        return base64.b64encode(buffer.getvalue()).decode()
+    
+    def verify_totp(self, token):
+        """Verify TOTP token"""
+        if not self.totp_secret or not self.totp_enabled:
+            return False
+        
+        totp = pyotp.TOTP(self.totp_secret)
+        
+        import time
+        current_time = int(time.time())
+        
+        for time_offset in [0, -30, 30]:
+            if totp.verify(token, for_time=current_time + time_offset):
+                return True
+        
+        return False
+    
+    def verify_backup_code(self, code):
+        """Verify and consume backup code"""
+        if code in self.totp_backup_codes:
+            self.totp_backup_codes.remove(code)
+            self.save(update_fields=['totp_backup_codes'])
+            return True
+        return False
+    
+    def generate_backup_codes(self, count=10):
+        """Generate new backup codes"""
+        import secrets
+        import string
+        
+        codes = []
+        for _ in range(count):
+            code = ''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8))
+            codes.append(code)
+        
+        self.totp_backup_codes = codes
+        self.save(update_fields=['totp_backup_codes'])
+        return codes
+    
+    def has_any_2fa(self):
+        """Check if user has any 2FA method enabled"""
+        return self.totp_enabled
+    
+    def disable_totp(self):
+        """Disable TOTP 2FA"""
+        self.totp_enabled = False
+        self.totp_secret = ''
+        self.totp_backup_codes = []
+        self.save(update_fields=['totp_enabled', 'totp_secret', 'totp_backup_codes'])
 
 
 class LoginHistory(models.Model):

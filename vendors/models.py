@@ -38,8 +38,40 @@ class Vendor(PrivacyModel):
     bond_currency = models.CharField(max_length=3, choices=[('BTC', 'Bitcoin'), ('XMR', 'Monero')], default='BTC')
     bond_transaction_id = models.CharField(max_length=255, blank=True, null=True)
     
+    trust_score = models.IntegerField(default=0)
+    trust_level = models.CharField(max_length=20, default='new')
+    trust_factors = models.JSONField(default=dict, blank=True)
+    trust_updated_at = models.DateTimeField(null=True, blank=True)
+    
     def __str__(self):
         return self.vendor_name
+    
+    def update_trust_level_async(self):
+        """Trigger async trust level update"""
+        try:
+            from vendors.tasks import recalculate_single_vendor_trust
+            recalculate_single_vendor_trust.delay(self.id)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to trigger async trust update for vendor {self.id}: {e}")
+    
+    def get_trust_level_display(self):
+        """Get human-readable trust level"""
+        from vendors.trust_calculator import VendorTrustCalculator
+        level_info = VendorTrustCalculator.get_trust_level_info(self.trust_level)
+        return level_info.get('label', 'Unknown')
+    
+    def needs_trust_update(self):
+        """Check if trust level needs updating"""
+        if not hasattr(self, 'trust_updated_at') or not self.trust_updated_at:
+            return True
+        
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        cutoff_time = timezone.now() - timedelta(days=7)
+        return self.trust_updated_at < cutoff_time
     
     @property
     def is_on_vacation(self):

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.logging.config.RequestLoggingMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -48,8 +49,11 @@ MIDDLEWARE = [
     'apps.security.bot_detection.SecurityHeadersMiddleware',
     'apps.security.middleware.WalletSecurityMiddleware',
     'apps.security.middleware.RateLimitMiddleware',
+    'apps.security.middleware.threat_detection.ThreatDetectionMiddleware',
     'wallets.middleware.WalletSecurityMiddleware',
     'wallets.middleware.RateLimitMiddleware',
+    'core.middleware.error_handling.EnhancedErrorHandlingMiddleware',
+    'core.middleware.error_handling.SecurityResponseMiddleware',
 ]
 
 ROOT_URLCONF = 'marketplace.urls'
@@ -187,102 +191,8 @@ MONERO_DAEMON_RPC_PORT = env.int('MONERO_DAEMON_RPC_PORT', default=18081)
 BTC_REQUIRED_CONFIRMATIONS = 1
 XMR_REQUIRED_CONFIRMATIONS = 10
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple'
-        },
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/marketplace.log',
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-        'error_file': {
-            'level': 'ERROR',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/errors.log',
-            'maxBytes': 1024 * 1024 * 15,  # 15MB
-            'backupCount': 10,
-            'formatter': 'verbose',
-        },
-        'pgp_file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'pgp_debug.log',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'vendors': {
-            'handlers': ['file', 'error_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'adminpanel': {
-            'handlers': ['file', 'error_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'accounts': {
-            'handlers': ['pgp_file', 'console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'wallet': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'wallets.security': {
-            'handlers': ['error_file'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        'wallets.admin': {
-            'handlers': ['error_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'wallets.tasks': {
-            'handlers': ['file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'marketplace.security': {
-            'handlers': ['error_file'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-    },
-}
+from core.logging.config import get_logging_config
+LOGGING = get_logging_config()
 
 GPG_BINARY = '/usr/bin/gpg'
 

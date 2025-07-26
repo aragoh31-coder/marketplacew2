@@ -363,6 +363,53 @@ class SecureRegistrationForm(NoJSCaptchaMixin, UserCreationForm):
         return user
 
 
+class EnhancedRegistrationForm(UserCreationForm):
+    captcha_validated = forms.BooleanField(required=False, widget=forms.HiddenInput())
+    
+    class Meta:
+        model = User
+        fields = ("username", "password1", "password2")
+    
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request', None)
+        super().__init__(*args, **kwargs)
+        
+        self.fields['username'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Choose a username'
+        })
+        self.fields['password1'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Create a strong password'
+        })
+        self.fields['password2'].widget.attrs.update({
+            'class': 'form-control',
+            'placeholder': 'Confirm your password'
+        })
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        if self.request:
+            captcha_validated = self.request.session.get('captcha_validated', False)
+            captcha_time = self.request.session.get('captcha_validated_at', 0)
+            
+            import time
+            if not captcha_validated or (time.time() - captcha_time) > 300:
+                raise ValidationError("Please complete the visual CAPTCHA verification.")
+        
+        return cleaned_data
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+            if self.request:
+                self.request.session.pop('captcha_validated', None)
+                self.request.session.pop('captcha_validated_at', None)
+        return user
+
+
 class BotChallengeForm(forms.Form):
     """Form for bot challenge verification"""
     

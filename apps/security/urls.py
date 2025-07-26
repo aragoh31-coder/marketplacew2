@@ -13,4 +13,6 @@ urlpatterns = [
     path('api/status/', views.security_status_api, name='security_status_api'),
     path('ip-change/', views.ip_change_detected, name='ip_change_detected'),
     path('session-expired/', views.session_expired, name='session_expired'),
+    path('captcha/generate/', views.generate_visual_captcha, name='generate_captcha'),
+    path('captcha/validate/', views.validate_visual_captcha, name='validate_captcha'),
 ]

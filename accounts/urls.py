@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import totp_views
 
 app_name = 'accounts'
 
@@ -24,4 +25,11 @@ urlpatterns = [
     path('settings/totp/setup/', views.totp_setup, name='totp_setup'),
     path('settings/totp/backup-codes/', views.totp_backup_codes, name='totp_backup_codes'),
     path('auth/totp/', views.verify_totp, name='verify_totp'),
+    
+    path('2fa/setup/', totp_views.totp_setup, name='totp_setup'),
+    path('2fa/verify/', totp_views.totp_verify, name='totp_verify'),
+    path('2fa/settings/', totp_views.totp_settings, name='totp_settings'),
+    path('2fa/disable/', totp_views.totp_disable, name='totp_disable'),
+    path('2fa/backup-codes/regenerate/', totp_views.regenerate_backup_codes, name='regenerate_backup_codes'),
+    path('2fa/test/', totp_views.test_totp, name='test_totp'),
 ]

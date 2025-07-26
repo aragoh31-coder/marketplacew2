@@ -7,9 +7,11 @@ from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from wallets.models import AuditLog
+from .visual_captcha import VisualCaptcha, CaptchaSessionManager
 import random
 import time
 import hashlib
+import json
 
 
 @login_required
@@ -315,3 +317,61 @@ def calculate_user_security_score(user):
         score += 5
     
     return max(0, min(100, score))
+
+def generate_visual_captcha(request):
+    """Generate new visual CAPTCHA challenge"""
+    try:
+        captcha = VisualCaptcha()
+        captcha_data = captcha.generate_captcha_session()
+        
+        CaptchaSessionManager.store_captcha_data(request, captcha_data)
+        
+        return JsonResponse({
+            'success': True,
+            'main_image': captcha_data['main_image'],
+            'slice_images': captcha_data['slice_images'],
+            'session_id': captcha_data['session_id']
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+def validate_visual_captcha(request):
+    """Validate visual CAPTCHA solution"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'})
+    
+    try:
+        data = json.loads(request.body)
+        session_id = data.get('session_id')
+        selected_slice = int(data.get('selected_slice', -1))
+        drop_x = int(data.get('drop_x', 0))
+        drop_y = int(data.get('drop_y', 0))
+        
+        captcha_data = CaptchaSessionManager.get_captcha_data(request)
+        if not captcha_data or CaptchaSessionManager.is_captcha_expired(captcha_data):
+            return JsonResponse({
+                'success': False,
+                'error': 'CAPTCHA expired or not found'
+            })
+        
+        captcha = VisualCaptcha()
+        is_valid, message = captcha.validate_captcha(session_id, selected_slice, drop_x, drop_y)
+        
+        if is_valid:
+            CaptchaSessionManager.clear_captcha_data(request)
+            request.session['captcha_validated'] = True
+            request.session['captcha_validated_at'] = timezone.now().timestamp()
+        
+        return JsonResponse({
+            'success': is_valid,
+            'message': message
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

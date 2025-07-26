@@ -167,3 +167,109 @@ def refresh_tor_descriptors():
         error_msg = f"Unexpected error during Tor descriptor refresh: {e}"
         logger.error(error_msg)
         return f"Error: {error_msg}"
+
+@shared_task
+def recalculate_vendor_trust_levels():
+    """Recalculate trust levels for all vendors"""
+    try:
+        from vendors.models import Vendor
+        from vendors.trust_calculator import VendorTrustCalculator
+        
+        vendors = Vendor.objects.filter(is_active=True)
+        updated_count = 0
+        
+        for vendor in vendors:
+            try:
+                trust_data = VendorTrustCalculator.update_vendor_trust(vendor)
+                if trust_data:
+                    updated_count += 1
+            except Exception as e:
+                logger.error(f"Failed to update trust for vendor {vendor.id}: {e}")
+        
+        logger.info(f"Trust level recalculation completed: {updated_count}/{vendors.count()} vendors updated")
+        
+        return {
+            'success': True,
+            'total_vendors': vendors.count(),
+            'updated_count': updated_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Trust level recalculation failed: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+@shared_task
+def recalculate_single_vendor_trust(vendor_id):
+    """Recalculate trust level for a single vendor"""
+    try:
+        from vendors.models import Vendor
+        from vendors.trust_calculator import VendorTrustCalculator
+        
+        vendor = Vendor.objects.get(id=vendor_id)
+        trust_data = VendorTrustCalculator.update_vendor_trust(vendor)
+        
+        if trust_data:
+            logger.info(f"Trust updated for vendor {vendor_id}: {trust_data['trust_score']}")
+            return {
+                'success': True,
+                'vendor_id': vendor_id,
+                'trust_data': trust_data
+            }
+        else:
+            return {
+                'success': False,
+                'vendor_id': vendor_id,
+                'error': 'Failed to calculate trust'
+            }
+            
+    except Exception as e:
+        logger.error(f"Failed to update trust for vendor {vendor_id}: {e}")
+        return {
+            'success': False,
+            'vendor_id': vendor_id,
+            'error': str(e)
+        }
+
+@shared_task
+def update_stale_trust_scores():
+    """Update trust scores that haven't been updated recently"""
+    try:
+        from vendors.models import Vendor
+        from vendors.trust_calculator import VendorTrustCalculator
+        from django.db.models import Q
+        from datetime import timedelta
+        
+        cutoff_time = timezone.now() - timedelta(days=7)
+        
+        stale_vendors = Vendor.objects.filter(
+            Q(trust_updated_at__lt=cutoff_time) | Q(trust_updated_at__isnull=True),
+            is_active=True
+        )
+        
+        updated_count = 0
+        
+        for vendor in stale_vendors:
+            try:
+                trust_data = VendorTrustCalculator.update_vendor_trust(vendor)
+                if trust_data:
+                    updated_count += 1
+            except Exception as e:
+                logger.error(f"Failed to update stale trust for vendor {vendor.id}: {e}")
+        
+        logger.info(f"Stale trust update completed: {updated_count}/{stale_vendors.count()} vendors updated")
+        
+        return {
+            'success': True,
+            'stale_vendors': stale_vendors.count(),
+            'updated_count': updated_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Stale trust update failed: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
