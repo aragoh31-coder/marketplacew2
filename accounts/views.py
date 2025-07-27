@@ -268,53 +268,26 @@ def register_view(request):
         'SEGS': SEGS
     })
 
+@ratelimit(key='ip', rate='5/m', block=True)
 def register(request):
-    if request.method == "GET":
-        form = RegisterForm()
-        
-        CaptchaSessionManager.clear_captcha(request)
-        
-        q, a, img, exp = generate_shape_captcha()
-        CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-        
-        print(f"DEBUG REGISTER GET: CAPTCHA question: {q}, answer: {a}")
-        return render(request, 'accounts/register.html', {
-            'form': form,
-            'captcha_question': q,
-            'captcha_image': img,
-        })
-    
     if request.method == "POST":
-        form = RegisterForm(request.POST)
-        
-        user_answer = request.POST.get('captcha', '').strip()
-        
-        captcha_data = CaptchaSessionManager.get_captcha(request)
-        print(f"DEBUG REGISTER CAPTCHA: User answered '{user_answer}' (type: {type(user_answer)})")
-        print(f"DEBUG REGISTER CAPTCHA: CAPTCHA data: {captcha_data}")
-        
-        captcha_valid = CaptchaSessionManager.validate_captcha(request, user_answer)
-        print(f"DEBUG REGISTER CAPTCHA: Validation result: {captcha_valid}")
-        
-        if not captcha_valid:
-            messages.error(request, "Incorrect CAPTCHA answer. Please try again.")
-            
-            captcha_data = CaptchaSessionManager.get_captcha(request)
-            if captcha_data:
-                q = captcha_data.get('question', '')
-                img = captcha_data.get('image_data', '')
-            else:
-                q, a, img, exp = generate_shape_captcha()
-                CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-            
+        picked = int(request.POST.get('segment', -1))
+        exp = request.session.get('captcha_expected', {})
+        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+            form = RegisterForm(request.POST)
+            from apps.security.captcha_oneclick.utils import make_cut_circle
+            missing = random.randrange(SEGS)
+            img_b64, _ = make_cut_circle(missing)
+            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
             return render(request, 'accounts/register.html', {
-                'form': form,
-                'captcha_question': q,
-                'captcha_image': img,
+                'form': form, 
+                'captcha_image': img_b64, 
+                'SEGS': SEGS,
+                'error': 'Invalid selection—try again.'
             })
+        del request.session['captcha_expected']
         
-        CaptchaSessionManager.clear_captcha(request)
-        
+        form = RegisterForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -322,26 +295,26 @@ def register(request):
             
             if password != password2:
                 messages.error(request, "Passwords do not match.")
-                
-                q, a, img, exp = generate_shape_captcha()
-                CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-                
+                from apps.security.captcha_oneclick.utils import make_cut_circle
+                missing = random.randrange(SEGS)
+                img_b64, _ = make_cut_circle(missing)
+                request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': q,
-                    'captcha_image': img,
+                    'captcha_image': img_b64,
+                    'SEGS': SEGS
                 })
             
             if User.objects.filter(username=username).exists():
                 messages.error(request, "Username already taken.")
-                
-                q, a, img, exp = generate_shape_captcha()
-                CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-                
+                from apps.security.captcha_oneclick.utils import make_cut_circle
+                missing = random.randrange(SEGS)
+                img_b64, _ = make_cut_circle(missing)
+                request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
                 return render(request, 'accounts/register.html', {
                     'form': form,
-                    'captcha_question': q,
-                    'captcha_image': img,
+                    'captcha_image': img_b64,
+                    'SEGS': SEGS
                 })
             
             user = User.objects.create_user(
@@ -370,15 +343,18 @@ def register(request):
             return redirect('accounts:login')
         else:
             messages.error(request, "Please correct the errors below.")
-        
-        q, a, img, exp = generate_shape_captcha()
-        CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-        
-        return render(request, 'accounts/register.html', {
-            'form': form,
-            'captcha_question': q,
-            'captcha_image': img,
-        })
+    else:
+        form = RegisterForm()
+    
+    from apps.security.captcha_oneclick.utils import make_cut_circle
+    missing = random.randrange(SEGS)
+    img_b64, _ = make_cut_circle(missing)
+    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+    return render(request, 'accounts/register.html', {
+        'form': form, 
+        'captcha_image': img_b64, 
+        'SEGS': SEGS
+    })
 
 
 from django_ratelimit.decorators import ratelimit
