@@ -17,7 +17,8 @@ python manage.py migrate
 
 echo "Setting up staticfiles directory..."
 mkdir -p /app/staticfiles
-chmod 755 /app/staticfiles
+chmod -R 755 /app/staticfiles
+chown -R app:app /app/staticfiles
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput

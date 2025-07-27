@@ -39,8 +39,9 @@ RUN useradd --create-home --shell /bin/bash app
 RUN chown -R app:app /app
 RUN chown app:app /entrypoint.sh
 
-# Set proper permissions for staticfiles directory
-RUN chmod -R 755 /app/staticfiles && \
+# Create and set proper permissions for staticfiles directory
+RUN mkdir -p /app/staticfiles && \
+    chmod -R 755 /app/staticfiles && \
     chown -R app:app /app/staticfiles
 
 USER app
