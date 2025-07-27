@@ -12,7 +12,7 @@ def security_context(request):
         'rate_limiting_enabled': getattr(settings, 'SECURITY_SETTINGS', {}).get('ENABLE_RATE_LIMITING', True),
     }
     
-    if request.user.is_authenticated:
+    if hasattr(request, 'user') and request.user.is_authenticated:
         context.update({
             'user_security_score': calculate_user_security_score(request.user),
             'has_2fa': hasattr(request.user, 'wallet') and getattr(request.user.wallet, 'two_fa_enabled', False),

@@ -10,7 +10,7 @@
         </div>
 
 
-        <form method="post" class="auth-form">
+        <form method="post" action="{% url 'accounts:login' %}" class="auth-form">
             {% csrf_token %}
             
             <div class="form-group">
