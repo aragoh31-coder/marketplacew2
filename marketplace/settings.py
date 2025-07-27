@@ -194,6 +194,11 @@ TOTP_ENCRYPTION_KEY = b'YourSecretKeyHere-GenerateWithFernet='
 
 POW_DIFFICULTY = 4  # Number of leading zeros required
 
+CAPTCHA_HMAC_SECRET = env('CAPTCHA_HMAC_SECRET', default=b'marketplace-captcha-secret-key-change-in-production')
+POW_DIFFICULTY = env.int('POW_DIFFICULTY', default=4)
+CAPTCHA_EXPIRY_SECONDS = 120  # 2 minutes
+POW_OPTIONAL = env.bool('POW_OPTIONAL', default=True)
+
 GPG_BINARY = '/usr/bin/gpg'
 
 PGP_2FA_TIMEOUT = 15  # minutes

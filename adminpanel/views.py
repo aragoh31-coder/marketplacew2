@@ -699,20 +699,35 @@ def approve_withdrawal(request, withdrawal_id):
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id, status='pending')
 
     if request.method == 'POST':
-        picked = int(request.POST.get('segment', -1))
-        exp = request.session.get('captcha_expected', {})
-        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
-            from apps.security.captcha_oneclick.utils import make_cut_circle
-            missing = random.randrange(12)
-            img_b64, _ = make_cut_circle(missing)
-            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+        user_answer = request.POST.get('segment', '')
+        hmac_token = request.POST.get('captcha_token', '')
+        timestamp = request.POST.get('captcha_timestamp', '')
+        pow_challenge = request.POST.get('pow_challenge', '')
+        pow_nonce = request.POST.get('pow_nonce', '')
+        
+        try:
+            user_answer = int(user_answer)
+            timestamp = int(timestamp)
+        except (ValueError, TypeError):
+            user_answer = -1
+            timestamp = 0
+        
+        from apps.security.captcha_oneclick.utils import validate_captcha_submission, generate_captcha_with_tokens
+        is_valid, error_msg = validate_captcha_submission(
+            user_answer, hmac_token, timestamp, pow_challenge, pow_nonce
+        )
+        
+        if not is_valid:
+            captcha_data = generate_captcha_with_tokens()
             return render(request, 'adminpanel/approve_withdrawal.html', {
                 'withdrawal': withdrawal,
-                'captcha_image': img_b64,
-                'SEGS': 12,
-                'error': 'Invalid selection—try again.'
+                'captcha_image': captcha_data['image'],
+                'captcha_token': captcha_data['hmac_token'],
+                'captcha_timestamp': captcha_data['timestamp'],
+                'pow_challenge': captcha_data['pow_challenge'],
+                'SEGS': captcha_data['segments'],
+                'error': f'CAPTCHA validation failed: {error_msg}'
             })
-        del request.session['captcha_expected']
 
         totp_code = request.POST.get('totp_code')
         if not request.user.verify_totp(totp_code):
@@ -729,14 +744,16 @@ def approve_withdrawal(request, withdrawal_id):
         messages.success(request, "Withdrawal approved successfully")
         return redirect('adminpanel:withdrawals')
 
-    from apps.security.captcha_oneclick.utils import make_cut_circle
-    missing = random.randrange(12)
-    img_b64, _ = make_cut_circle(missing)
-    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+    # Generate fresh CAPTCHA
+    from apps.security.captcha_oneclick.utils import generate_captcha_with_tokens
+    captcha_data = generate_captcha_with_tokens()
     return render(request, 'adminpanel/approve_withdrawal.html', {
         'withdrawal': withdrawal,
-        'captcha_image': img_b64,
-        'SEGS': 12
+        'captcha_image': captcha_data['image'],
+        'captcha_token': captcha_data['hmac_token'],
+        'captcha_timestamp': captcha_data['timestamp'],
+        'pow_challenge': captcha_data['pow_challenge'],
+        'SEGS': captcha_data['segments']
     })
 
 

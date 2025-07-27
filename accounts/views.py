@@ -372,22 +372,37 @@ def validate_captcha(request):
 @ratelimit(key='ip', rate='5/m', block=True)
 def login_view(request):
     if request.method == 'POST':
-        picked = int(request.POST.get('segment', -1))
-        exp = request.session.get('captcha_expected', {})
-        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+        user_answer = request.POST.get('segment', '')
+        hmac_token = request.POST.get('captcha_token', '')
+        timestamp = request.POST.get('captcha_timestamp', '')
+        pow_challenge = request.POST.get('pow_challenge', '')
+        pow_nonce = request.POST.get('pow_nonce', '')
+        
+        try:
+            user_answer = int(user_answer)
+            timestamp = int(timestamp)
+        except (ValueError, TypeError):
+            user_answer = -1
+            timestamp = 0
+        
+        from apps.security.captcha_oneclick.utils import validate_captcha_submission, generate_captcha_with_tokens
+        is_valid, error_msg = validate_captcha_submission(
+            user_answer, hmac_token, timestamp, pow_challenge, pow_nonce
+        )
+        
+        if not is_valid:
             from .forms import LoginForm as AuthLoginForm
             form = AuthLoginForm(request.POST)
-            from apps.security.captcha_oneclick.utils import make_cut_circle
-            missing = random.randrange(SEGS)
-            img_b64, _ = make_cut_circle(missing)
-            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+            captcha_data = generate_captcha_with_tokens()
             return render(request, 'accounts/login.html', {
-                'form': form, 
-                'captcha_image': img_b64, 
-                'SEGS': SEGS,
-                'error': 'Invalid selection—try again.'
+                'form': form,
+                'captcha_image': captcha_data['image'],
+                'captcha_token': captcha_data['hmac_token'],
+                'captcha_timestamp': captcha_data['timestamp'],
+                'pow_challenge': captcha_data['pow_challenge'],
+                'SEGS': captcha_data['segments'],
+                'error': f'CAPTCHA validation failed: {error_msg}'
             })
-        del request.session['captcha_expected']
         
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm(request.POST)
@@ -401,14 +416,15 @@ def login_view(request):
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm()
     
-    from apps.security.captcha_oneclick.utils import make_cut_circle
-    missing = random.randrange(SEGS)
-    img_b64, _ = make_cut_circle(missing)
-    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+    from apps.security.captcha_oneclick.utils import generate_captcha_with_tokens
+    captcha_data = generate_captcha_with_tokens()
     return render(request, 'accounts/login.html', {
-        'form': form, 
-        'captcha_image': img_b64, 
-        'SEGS': SEGS
+        'form': form,
+        'captcha_image': captcha_data['image'],
+        'captcha_token': captcha_data['hmac_token'],
+        'captcha_timestamp': captcha_data['timestamp'],
+        'pow_challenge': captcha_data['pow_challenge'],
+        'SEGS': captcha_data['segments']
     })
 
 def old_login_view(request):
@@ -489,41 +505,41 @@ def old_login_view(request):
                     messages.info(request, 'PGP functionality is currently disabled for security hardening.')
                     return redirect('accounts:login')
                     
-                    import_result = pgp_service.import_public_key(user.pgp_public_key)
+                    # import_result = pgp_service.import_public_key(user.pgp_public_key)
                     
-                    if not import_result['success']:
-                        messages.error(request, 'PGP key error. Please update your PGP key in settings.')
-                        q, a, img, exp = generate_shape_captcha()
-                        CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-                        return render(request, 'accounts/login.html', {
-                            'form': form,
-                            'captcha_question': q,
-                            'captcha_image': img,
-                        })
+                    # if not import_result['success']:
+                    #     messages.error(request, 'PGP key error. Please update your PGP key in settings.')
+                    #     q, a, img, exp = generate_shape_captcha()
+                    #     CaptchaSessionManager.set_captcha(request, a, q, img, exp)
+                    #     return render(request, 'accounts/login.html', {
+                    #         'form': form,
+                    #         'captcha_question': q,
+                    #         'captcha_image': img,
+                    #     })
                     
                     challenge = user.generate_pgp_challenge()
                     challenge_message = f"MARKETPLACE-2FA:{challenge}"
                     
-                    encrypt_result = pgp_service.encrypt_message(
-                        challenge_message,
-                        user.pgp_fingerprint
-                    )
+                    # encrypt_result = pgp_service.encrypt_message(
+                    #     challenge_message,
+                    #     user.pgp_fingerprint
+                    # )
                     
-                    if not encrypt_result['success']:
-                        messages.error(request, 'Failed to generate PGP challenge. Please try again.')
-                        
-                        q, a, img, exp = generate_shape_captcha()
-                        CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-                        
-                        return render(request, 'accounts/login.html', {
-                            'form': form,
-                            'captcha_question': q,
-                            'captcha_image': img,
-                        })
+                    # if not encrypt_result['success']:
+                    #     messages.error(request, 'Failed to generate PGP challenge. Please try again.')
+                    #     
+                    #     q, a, img, exp = generate_shape_captcha()
+                    #     CaptchaSessionManager.set_captcha(request, a, q, img, exp)
+                    #     
+                    #     return render(request, 'accounts/login.html', {
+                    #         'form': form,
+                    #         'captcha_question': q,
+                    #         'captcha_image': img,
+                    #     })
                     
                     request.session['pgp_2fa_user_id'] = str(user.id)
                     request.session['pgp_2fa_timestamp'] = timezone.now().isoformat()
-                    request.session['pgp_2fa_encrypted_challenge'] = encrypt_result['encrypted_message']
+                    # request.session['pgp_2fa_encrypted_challenge'] = encrypt_result['encrypted_message']
                     
                     request.session.save()
                     
@@ -672,80 +688,9 @@ def change_password(request):
 
 @login_required
 def pgp_settings(request):
-    """Handle PGP key upload with verification"""
-    if request.method == 'POST':
-        if 'verify_code' in request.POST:
-            return pgp_verify_key(request)
-        
-        messages.info(request, 'PGP functionality is currently disabled for security hardening.')
-        return redirect('accounts:profile')
-        
-        if form.is_valid():
-            request.session['temp_pgp_key'] = form.cleaned_data['pgp_public_key']
-            request.session['temp_pgp_fingerprint'] = getattr(form, 'fingerprint', None)
-            request.session['temp_pgp_login_enabled'] = form.cleaned_data['enable_pgp_login']
-            
-            verification_code = secrets.token_urlsafe(16)
-            request.session['pgp_verification_code'] = verification_code
-            request.session['pgp_verification_expires'] = (timezone.now() + timedelta(minutes=10)).isoformat()
-            
-            pgp_service = PGPService()
-            
-            import_result = pgp_service.import_public_key(form.cleaned_data['pgp_public_key'])
-            if not import_result['success']:
-                messages.error(request, f'Failed to import key for verification: {import_result["error"]}')
-                form = PGPKeyForm(initial={
-                    'pgp_public_key': request.user.pgp_public_key,
-                    'enable_pgp_login': request.user.pgp_login_enabled
-                })
-                return render(request, 'accounts/pgp_settings.html', {
-                    'form': form,
-                    'has_pgp': bool(request.user.pgp_public_key),
-                    'pgp_fingerprint': request.user.pgp_fingerprint
-                })
-            
-            verification_message = (
-                f"PGP Key Verification\n\n"
-                f"Please decrypt this message to verify your key.\n"
-                f"Verification Code: {verification_code}\n\n"
-                f"Enter only the verification code above."
-            )
-            
-            fingerprint = getattr(form, 'fingerprint', import_result.get('fingerprint'))
-            if not fingerprint:
-                messages.error(request, 'Failed to get key fingerprint for verification.')
-                form = PGPKeyForm(initial={
-                    'pgp_public_key': request.user.pgp_public_key,
-                    'enable_pgp_login': request.user.pgp_login_enabled
-                })
-                return render(request, 'accounts/pgp_settings.html', {
-                    'form': form,
-                    'has_pgp': bool(request.user.pgp_public_key),
-                    'pgp_fingerprint': request.user.pgp_fingerprint
-                })
-            
-            encrypt_result = pgp_service.encrypt_message(
-                verification_message,
-                fingerprint
-            )
-            
-            if encrypt_result['success']:
-                return render(request, 'accounts/pgp_verify.html', {
-                    'encrypted_message': encrypt_result['encrypted_message'],
-                    'fingerprint': fingerprint[:8] + '...' + fingerprint[-8:],
-                    'key_info': getattr(form, 'key_info', {}),
-                })
-            else:
-                messages.error(request, f'Failed to encrypt verification message: {encrypt_result["error"]}')
-                form = PGPKeyForm(initial={
-                    'pgp_public_key': request.user.pgp_public_key,
-                    'enable_pgp_login': request.user.pgp_login_enabled
-                })
-    else:
-        form = PGPKeyForm(initial={
-            'pgp_public_key': request.user.pgp_public_key,
-            'enable_pgp_login': request.user.pgp_login_enabled
-        })
+    """PGP settings view - temporarily disabled for security hardening"""
+    messages.info(request, 'PGP functionality is currently disabled for security hardening.')
+    return redirect('accounts:profile')
     
 
 
@@ -789,12 +734,12 @@ def pgp_verify_key(request):
         else:
             messages.error(request, 'Invalid verification code. Please check your decryption.')
             
-            pgp_service = PGPService()
+            # pgp_service = PGPService()
             
-            import_result = pgp_service.import_public_key(temp_key)
-            if not import_result['success']:
-                messages.error(request, 'Failed to re-encrypt verification message. Please try again.')
-                return redirect('accounts:pgp_settings')
+            # import_result = pgp_service.import_public_key(temp_key)
+            # if not import_result['success']:
+            #     messages.error(request, 'Failed to re-encrypt verification message. Please try again.')
+            #     return redirect('accounts:pgp_settings')
             
             verification_message = (
                 f"PGP Key Verification\n\n"
@@ -803,13 +748,13 @@ def pgp_verify_key(request):
                 f"Enter only the verification code above."
             )
             
-            encrypt_result = pgp_service.encrypt_message(
-                verification_message,
-                temp_fingerprint
-            )
+            # encrypt_result = pgp_service.encrypt_message(
+            #     verification_message,
+            #     temp_fingerprint
+            # )
             
             return render(request, 'accounts/pgp_verify.html', {
-                'encrypted_message': encrypt_result['encrypted_message'],
+                # 'encrypted_message': encrypt_result['encrypted_message'],
                 'fingerprint': temp_fingerprint[:8] + '...' + temp_fingerprint[-8:],
                 'error': True
             })
@@ -840,24 +785,24 @@ def pgp_remove_key(request):
 @login_required
 def delete_account(request):
     if request.method == 'POST':
-        form = DeleteAccountForm(request.POST)
-        if form.is_valid():
-            if not request.user.check_password(form.cleaned_data['password']):
-                messages.error(request, 'Incorrect password')
-                return render(request, 'accounts/delete_account.html', {'form': form})
-            
-            try:
-                from orders.models import Order
-                active_orders = Order.objects.filter(
+        # form = DeleteAccountForm(request.POST)
+        # if form.is_valid():
+        #     if not request.user.check_password(form.cleaned_data['password']):
+        #         messages.error(request, 'Incorrect password')
+        #         return render(request, 'accounts/delete_account.html', {'form': form})
+        
+        try:
+            from orders.models import Order
+            active_orders = Order.objects.filter(
                     buyer=request.user,
                     status__in=['created', 'paid', 'shipped']
                 ).exists()
                 
-                if active_orders:
-                    messages.error(request, 'Cannot delete account with active orders')
-                    return render(request, 'accounts/delete_account.html', {'form': form})
-            except:
-                pass
+            if active_orders:
+                messages.error(request, 'Cannot delete account with active orders')
+                return render(request, 'accounts/delete_account.html', {'form': None})
+        except:
+            pass
             
             with transaction.atomic():
                 user = request.user
@@ -871,9 +816,10 @@ def delete_account(request):
                 messages.success(request, 'Account deleted successfully')
                 return redirect('/')
     else:
-        form = DeleteAccountForm()
+        # form = DeleteAccountForm()
+        pass
     
-    return render(request, 'accounts/delete_account.html', {'form': form})
+    return render(request, 'accounts/delete_account.html', {'form': None})
 
 
 @login_required
@@ -888,23 +834,23 @@ def test_pgp_encryption(request):
     messages.info(request, 'PGP functionality is currently disabled for security hardening.')
     return redirect('accounts:profile')
     
-    import_result = pgp_service.import_public_key(request.user.pgp_public_key)
-    if not import_result['success']:
-        messages.error(request, f'Failed to import key: {import_result["error"]}')
-        return redirect('accounts:pgp_settings')
+    # import_result = pgp_service.import_public_key(request.user.pgp_public_key)
+    # if not import_result['success']:
+    #     messages.error(request, f'Failed to import key: {import_result["error"]}')
+    #     return redirect('accounts:pgp_settings')
     
     test_message = "This is a test message from the marketplace.\nTimestamp: " + timezone.now().strftime('%Y-%m-%d %H:%M:%S UTC')
-    encrypt_result = pgp_service.encrypt_message(test_message, request.user.pgp_fingerprint)
+    # encrypt_result = pgp_service.encrypt_message(test_message, request.user.pgp_fingerprint)
     
-    if encrypt_result['success']:
-        return render(request, 'accounts/pgp_test.html', {
-            'encrypted_message': encrypt_result['encrypted_message'],
-            'original_message': test_message,
-            'fingerprint': request.user.pgp_fingerprint
-        })
-    else:
-        messages.error(request, f'Encryption failed: {encrypt_result["error"]}')
-        return redirect('accounts:pgp_settings')
+    # if encrypt_result['success']:
+    #     return render(request, 'accounts/pgp_test.html', {
+    #         'encrypted_message': encrypt_result['encrypted_message'],
+    #         'original_message': test_message,
+    #         'fingerprint': request.user.pgp_fingerprint
+    #     })
+    # else:
+    #     messages.error(request, f'Encryption failed: {encrypt_result["error"]}')
+    return redirect('accounts:pgp_settings')
 
 
 def pgp_challenge_view(request):

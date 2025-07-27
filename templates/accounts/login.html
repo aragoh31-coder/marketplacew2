@@ -29,27 +29,21 @@ label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
     <input type="hidden" name="honeypot" value="">
     <div class="captcha-section">
         <p>Click the missing slice:</p>
-        <div class="captcha-container">
-            <img src="data:image/png;base64,{{ captcha_image }}" alt="CAPTCHA">
+        <div class="captcha-image-container">
+            <img src="data:image/png;base64,{{ captcha_image }}" alt="CAPTCHA" style="display: block; margin: 0 auto; border-radius: 8px;">
+        </div>
+        <input type="hidden" name="captcha_token" value="{{ captcha_token }}">
+        <input type="hidden" name="captcha_timestamp" value="{{ captcha_timestamp }}">
+        <input type="hidden" name="pow_challenge" value="{{ pow_challenge }}">
+        <div class="captcha-buttons">
             {% for i in "012345678901" %}
-            <button name="segment" value="{{forloop.counter0}}" class="slice-btn slice-{{forloop.counter0}}" aria-label="Slice {{forloop.counter}}"></button>
+            <button type="submit" name="segment" value="{{forloop.counter0}}" class="captcha-btn">Slice {{forloop.counter}}</button>
             {% endfor %}
         </div>
         <style>
-            .captcha-container{ position:relative; width:200px; height:200px; margin: 0 auto; }
-            .slice-btn{ position:absolute; top:50%; left:50%; width:90px; height:90px; background:transparent; border:0; transform-origin:0 0; cursor:pointer; }
-            .slice-0{ transform:rotate(0deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-1{ transform:rotate(30deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-2{ transform:rotate(60deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-3{ transform:rotate(90deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-4{ transform:rotate(120deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-5{ transform:rotate(150deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-6{ transform:rotate(180deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-7{ transform:rotate(210deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-8{ transform:rotate(240deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-9{ transform:rotate(270deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-10{ transform:rotate(300deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            .slice-11{ transform:rotate(330deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .captcha-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px auto; max-width: 300px; }
+            .captcha-btn { background: #6a11cb; color: #fff; padding: 12px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+            .captcha-btn:hover { background: #5a0fb8; }
         </style>
     </div>
 </form>
