@@ -13,6 +13,19 @@ def log_user_action(request, action, details=None):
     pass
 
 @login_required
+def dashboard(request):
+    """Wallet dashboard view"""
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+    withdrawal_requests = WithdrawalRequest.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    context = {
+        'wallet': wallet,
+        'withdrawal_requests': withdrawal_requests,
+    }
+    
+    return render(request, 'wallets/dashboard.html', context)
+
+@login_required
 @ratelimit(key='user', rate='3/m', block=True)
 def request_withdrawal(request):
     if request.method == 'POST':
