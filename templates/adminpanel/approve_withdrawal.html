@@ -1,108 +1,37 @@
-{% extends 'base.html' %}
-
-{% block title %}Approve Withdrawal{% endblock %}
-
-{% block content %}
-<div class="container">
-    <h2>🔐 Approve Withdrawal Request</h2>
-    
-    <div class="withdrawal-details">
-        <h3>Withdrawal Details</h3>
-        <p><strong>User:</strong> {{ withdrawal.user.username }}</p>
-        <p><strong>Amount:</strong> {{ withdrawal.amount }} BTC</p>
-        <p><strong>Address:</strong> {{ withdrawal.address }}</p>
-        <p><strong>Status:</strong> {{ withdrawal.status }}</p>
-        <p><strong>Created:</strong> {{ withdrawal.created_at }}</p>
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-        
-        <div class="security-verification">
-            <h3>🔒 Security Verification Required</h3>
-            
-            <div class="form-group">
-                <label for="totp_code">TOTP Code:</label>
-                <input type="text" id="totp_code" name="totp_code" required 
-                       placeholder="Enter 6-digit TOTP code" maxlength="6">
-            </div>
-            
-            <div class="form-group">
-                <label for="pow_token">Proof of Work Token:</label>
-                <input type="text" id="pow_token" name="pow_token" required 
-                       placeholder="Enter valid PoW token">
-                <small>Generate a token that produces a SHA256 hash starting with 0000</small>
-            </div>
-        </div>
-        
-        <div class="form-actions">
-            <button type="submit" class="btn btn-success">✅ Approve Withdrawal</button>
-            <a href="{% url 'adminpanel:withdrawals' %}" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-</div>
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Approve Withdrawal - Secure Marketplace</title>
 <style>
-.withdrawal-details {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.security-verification {
-    background: #fff3cd;
-    padding: 20px;
-    border-radius: 8px;
-    border-left: 4px solid #ffc107;
-    margin-bottom: 20px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.form-group small {
-    display: block;
-    margin-top: 5px;
-    color: #666;
-}
-
-.form-actions {
-    text-align: center;
-}
-
-.btn {
-    padding: 10px 20px;
-    margin: 0 10px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.btn-success {
-    background: #28a745;
-    color: white;
-}
-
-.btn-secondary {
-    background: #6c757d;
-    color: white;
-}
+body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); font-family: Arial, sans-serif; min-height: 100vh; margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+button { background: #6a11cb; color: #fff; padding: 12px; border: none; width: 100%; border-radius: 5px; font-size: 16px; cursor: pointer; }
+button:hover { background: #5a0fb8; }
+input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+h3 { color: #333; text-align: center; margin-bottom: 30px; }
+.info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+.info p { margin: 5px 0; color: #555; }
 </style>
-{% endblock %}
+</head>
+<body>
+<div class="container">
+<h3>Approve Withdrawal</h3>
+<div class="info">
+<p><strong>User:</strong> {{ withdrawal.user.username }}</p>
+<p><strong>Amount:</strong> {{ withdrawal.amount }}</p>
+<p><strong>Address:</strong> {{ withdrawal.address }}</p>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <label>TOTP Code:</label>
+    <input type="text" name="totp_code" placeholder="Enter TOTP" required>
+    <label>Proof-of-Work:</label>
+    <input type="text" name="pow_token" placeholder="PoW Token" required>
+    <input type="hidden" name="honeypot" value="">
+    <button type="submit">Approve</button>
+</form>
+</div>
+</body>
+</html>

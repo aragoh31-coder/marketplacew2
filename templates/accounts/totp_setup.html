@@ -1,11 +1,30 @@
-<h3>TOTP Setup</h3>
-<p>Enter this key in your authenticator app:</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Setup 2FA - Secure Marketplace</title>
+<style>
+body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); font-family: Arial, sans-serif; min-height: 100vh; margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+button { background: #6a11cb; color: #fff; padding: 12px; border: none; width: 100%; border-radius: 5px; font-size: 16px; cursor: pointer; }
+button:hover { background: #5a0fb8; }
+input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+h3 { color: #333; text-align: center; margin-bottom: 30px; }
+code { background: #f8f9fa; padding: 10px; border-radius: 4px; display: block; margin: 15px 0; font-family: monospace; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="container">
+<h3>Enable Two-Factor Authentication</h3>
+<p>Add this key to your authenticator app:</p>
 <code>{{ manual_entry_key }}</code>
-<p>Enter the 6-digit code:</p>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="hidden" name="honeypot" value="">
-    <input type="text" name="pow_token" placeholder="Proof-of-Work Token">
+    <input type="text" name="pow_token" placeholder="Proof-of-Work Token" required>
     <button type="submit">Verify</button>
 </form>
+</div>
+</body>
+</html>

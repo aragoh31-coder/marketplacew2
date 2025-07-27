@@ -1,82 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from django_ratelimit.decorators import ratelimit
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_protect
+from django_ratelimit.decorators import ratelimit
+from django.db import transaction
 from django.views.decorators.http import require_http_methods
-from django.db.models import Sum
-from django.utils import timezone
-from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponseForbidden
 from decimal import Decimal
-import logging
-from .models import Wallet, WithdrawalRequest
+from wallets.models import Wallet, WithdrawalRequest
 
 
 def log_user_action(request, action, details=None):
     """Log user actions for audit trail"""
     pass
-
-
-@login_required
-@csrf_protect
-def dashboard(request):
-    """Wallet dashboard with balance information"""
-    wallet, created = Wallet.objects.get_or_create(user=request.user)
-    
-    pending_withdrawals = WithdrawalRequest.objects.filter(
-        user=request.user,
-        status__in=['pending', 'reviewing', 'approved', 'processing']
-    ).order_by('-created_at')[:5]
-    
-    recent_transactions = []
-    
-    btc_available = wallet.balance
-    xmr_available = Decimal('0.00000000')
-    
-    last_check = None
-    show_balance_warning = False
-    
-    from django.utils import timezone
-    today = timezone.now().date()
-    daily_btc_used = WithdrawalRequest.objects.filter(
-        user=request.user,
-        created_at__date=today,
-        status__in=['approved', 'processing', 'completed']
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    
-    daily_xmr_used = Decimal('0')
-    
-    security_score = 0
-    if hasattr(request.user, 'totp_secret') and request.user.totp_secret:
-        security_score += 30
-    if hasattr(request.user, 'pgp_public_key') and request.user.pgp_public_key:
-        security_score += 25
-    
-    account_age = (timezone.now().date() - request.user.date_joined.date()).days
-    if account_age >= 90:
-        security_score += 20
-    elif account_age >= 30:
-        security_score += 15
-    elif account_age >= 7:
-        security_score += 10
-
-    context = {
-        'wallet': wallet,
-        'btc_available': btc_available,
-        'xmr_available': xmr_available,
-        'pending_withdrawals': pending_withdrawals,
-        'recent_transactions': recent_transactions,
-        'show_balance_warning': show_balance_warning,
-        'daily_btc_used': daily_btc_used,
-        'daily_xmr_used': daily_xmr_used,
-        'security_score': min(security_score, 100),
-        'security_alerts': [],
-    }
-    
-    return render(request, 'wallets/dashboard.html', context)
-
 
 @login_required
 @ratelimit(key='user', rate='3/m', block=True)
@@ -84,18 +18,19 @@ def request_withdrawal(request):
     if request.method == 'POST':
         amount = Decimal(request.POST.get('amount'))
         address = request.POST.get('address')
-        wallet = Wallet.objects.select_for_update().get(user=request.user)
-
-        if amount <= 0 or amount > wallet.balance:
-            messages.error(request, "Invalid amount")
-            return redirect('wallets:withdraw')
 
         with transaction.atomic():
+            wallet = Wallet.objects.select_for_update().get(user=request.user)
+
+            if amount <= 0 or amount > wallet.balance:
+                messages.error(request, "Invalid amount")
+                return redirect('wallets:withdraw')
+
             wallet.balance -= amount
             wallet.save()
             WithdrawalRequest.objects.create(user=request.user, amount=amount, address=address)
 
-        messages.success(request, "Withdrawal request submitted")
+        messages.success(request, "Withdrawal request submitted successfully")
         return redirect('wallets:dashboard')
 
     return render(request, 'wallets/withdraw.html')

@@ -16,6 +16,7 @@ import json
 import hashlib
 import pyotp
 import time
+from django_ratelimit.decorators import ratelimit
 from accounts.models import User
 from vendors.models import Vendor
 from products.models import Product
@@ -692,6 +693,7 @@ def withdrawal_management(request):
 
 
 @user_passes_test(lambda u: u.is_superuser)
+@ratelimit(key='ip', rate='5/m', block=True)
 def approve_withdrawal(request, withdrawal_id):
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id, status='pending')
 
@@ -711,7 +713,7 @@ def approve_withdrawal(request, withdrawal_id):
 
         log_admin_action(request.user, f"Approved withdrawal #{withdrawal.id} for {withdrawal.user.username}")
 
-        messages.success(request, "Withdrawal approved")
+        messages.success(request, "Withdrawal approved successfully")
         return redirect('adminpanel:withdrawals')
 
     return render(request, 'adminpanel/approve_withdrawal.html', {'withdrawal': withdrawal})
