@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Approve Withdrawal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>🔐 Approve Withdrawal Request</h2>
+    
+    <div class="withdrawal-details">
+        <h3>Withdrawal Details</h3>
+        <p><strong>User:</strong> {{ withdrawal.user.username }}</p>
+        <p><strong>Amount:</strong> {{ withdrawal.amount }} BTC</p>
+        <p><strong>Address:</strong> {{ withdrawal.address }}</p>
+        <p><strong>Status:</strong> {{ withdrawal.status }}</p>
+        <p><strong>Created:</strong> {{ withdrawal.created_at }}</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="security-verification">
+            <h3>🔒 Security Verification Required</h3>
+            
+            <div class="form-group">
+                <label for="totp_code">TOTP Code:</label>
+                <input type="text" id="totp_code" name="totp_code" required 
+                       placeholder="Enter 6-digit TOTP code" maxlength="6">
+            </div>
+            
+            <div class="form-group">
+                <label for="pow_token">Proof of Work Token:</label>
+                <input type="text" id="pow_token" name="pow_token" required 
+                       placeholder="Enter valid PoW token">
+                <small>Generate a token that produces a SHA256 hash starting with 0000</small>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">✅ Approve Withdrawal</button>
+            <a href="{% url 'adminpanel:withdrawals' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.withdrawal-details {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.security-verification {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #666;
+}
+
+.form-actions {
+    text-align: center;
+}
+
+.btn {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+</style>
+{% endblock %}

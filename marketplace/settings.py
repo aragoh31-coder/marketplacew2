@@ -192,6 +192,8 @@ LOGGING = get_logging_config()
 
 TOTP_ENCRYPTION_KEY = b'YourSecretKeyHere-GenerateWithFernet='
 
+POW_DIFFICULTY = 4  # Number of leading zeros required
+
 GPG_BINARY = '/usr/bin/gpg'
 
 PGP_2FA_TIMEOUT = 15  # minutes

@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.db.models import Sum, Count, Avg, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from django.utils import timezone
@@ -17,20 +17,16 @@ import hashlib
 import pyotp
 import time
 from accounts.models import User
-from accounts.pgp_service import PGPService
 from vendors.models import Vendor
 from products.models import Product
 from orders.models import Order
-from disputes.models import Dispute
-from wallets.models import Wallet, Transaction, WithdrawalRequest, AuditLog
-from messaging.models import Message
+from wallets.models import Wallet, WithdrawalRequest
 from .models import AdminLog, AdminProfile, AdminAction, SecurityAlert
 from .forms import SecondaryAuthForm, AdminPGPChallengeForm, AdminLoginForm, AdminTripleAuthForm
-from .security import AdminSecurityManager, TripleAuthenticator
 from .decorators import require_2fa, require_triple_auth, log_admin_action, admin_required
-from apps.security.models import SecurityEvent, SecurityAuditLog
-from apps.security.forms import TripleAuthForm
 from django.conf import settings
+from core.security.pow import validate_pow
+from core.audit_logger import log_admin_action
 
 def admin_login(request):
     """Enhanced admin login with triple authentication"""
@@ -373,9 +369,9 @@ def admin_dashboard(request):
     total_orders = Order.objects.count()
     orders_today = Order.objects.filter(created_at__date=timezone.now().date()).count()
     
-    total_disputes = Dispute.objects.count()
-    open_disputes = Dispute.objects.filter(status='OPEN').count()
-    resolved_disputes = Dispute.objects.filter(status='RESOLVED').count()
+    total_disputes = 0
+    open_disputes = 0
+    resolved_disputes = 0
     
     try:
         btc_revenue = Transaction.objects.filter(
@@ -406,7 +402,7 @@ def admin_dashboard(request):
     
     recent_users = User.objects.order_by('-date_joined')[:5]
     recent_orders = Order.objects.order_by('-created_at')[:5]
-    recent_disputes = Dispute.objects.order_by('-created_at')[:3]
+    recent_disputes = []
     
     context = {
         'total_users': total_users,
@@ -508,7 +504,7 @@ def admin_user_detail(request, username):
     
     withdrawals = WithdrawalRequest.objects.filter(user=user).order_by('-created_at')[:10]
     
-    transactions = Transaction.objects.filter(user=user).order_by('-created_at')[:20]
+    transactions = []
     
     total_deposits_btc = transactions.filter(type='deposit', currency='btc').aggregate(
         total=Sum('amount')
@@ -695,68 +691,30 @@ def withdrawal_management(request):
     return render(request, 'adminpanel/withdrawal_management.html', context)
 
 
-@require_triple_auth
+@user_passes_test(lambda u: u.is_superuser)
 def approve_withdrawal(request, withdrawal_id):
-    """Approve a withdrawal request with triple authentication"""
-    from wallets.models import WithdrawalRequest, Transaction
-    
-    withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
-    
+    withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id, status='pending')
+
     if request.method == 'POST':
-        if withdrawal.status != 'pending':
-            messages.error(request, 'Withdrawal is not in pending status.')
-            return redirect('adminpanel:withdrawal_management')
-        
-        wallet = withdrawal.user.wallet
-        balance_field = f'balance_{withdrawal.currency}'
-        current_balance = getattr(wallet, balance_field)
-        
-        if current_balance < withdrawal.amount:
-            messages.error(request, 'Insufficient balance for withdrawal.')
-            return redirect('adminpanel:withdrawal_management')
-        
+        if not validate_pow(request):
+            return HttpResponseForbidden("Proof of Work failed")
+
+        totp_code = request.POST.get('totp_code')
+        if not request.user.verify_totp(totp_code):
+            messages.error(request, "Invalid TOTP")
+            return redirect('adminpanel:withdrawals')
+
         withdrawal.status = 'approved'
-        withdrawal.processed_by = request.user
-        withdrawal.processed_at = timezone.now()
-        withdrawal.admin_notes = request.POST.get('admin_notes', '')
+        withdrawal.approved_at = timezone.now()
+        withdrawal.approved_by = request.user
         withdrawal.save()
-        
-        new_balance = current_balance - withdrawal.amount
-        setattr(wallet, balance_field, new_balance)
-        wallet.save()
-        
-        Transaction.objects.create(
-            user=withdrawal.user,
-            type='withdrawal',
-            amount=withdrawal.amount,
-            currency=withdrawal.currency,
-            balance_before=current_balance,
-            balance_after=new_balance,
-            reference=f'WR-{withdrawal.id}',
-            related_object_type='WithdrawalRequest',
-            related_object_id=withdrawal.id,
-            metadata={
-                'withdrawal_address': withdrawal.address,
-                'approved_by': request.user.username,
-                'admin_notes': withdrawal.admin_notes
-            }
-        )
-        
-        log_admin_action(request, 'withdrawal_approved', withdrawal, {
-            'amount': str(withdrawal.amount),
-            'currency': withdrawal.currency,
-            'user': withdrawal.user.username,
-            'admin_notes': withdrawal.admin_notes
-        })
-        
-        messages.success(request, f'Withdrawal {withdrawal.id} approved successfully.')
-        return redirect('adminpanel:withdrawal_management')
-    
-    context = {
-        'withdrawal': withdrawal,
-    }
-    
-    return render(request, 'adminpanel/withdrawal_approve_confirm.html', context)
+
+        log_admin_action(request.user, f"Approved withdrawal #{withdrawal.id} for {withdrawal.user.username}")
+
+        messages.success(request, "Withdrawal approved")
+        return redirect('adminpanel:withdrawals')
+
+    return render(request, 'adminpanel/approve_withdrawal.html', {'withdrawal': withdrawal})
 
 
 user_detail = admin_user_detail

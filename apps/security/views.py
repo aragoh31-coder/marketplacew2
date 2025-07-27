@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
-from wallets.models import AuditLog
+from adminpanel.models import AdminLog
 from .visual_captcha import VisualCaptcha, CaptchaSessionManager
 import random
 import time
@@ -44,7 +44,7 @@ def security_status(request):
         elif days_since_login <= 30:
             security_score += 10
     
-    recent_events = AuditLog.objects.filter(
+    recent_events = AdminLog.objects.filter(
         user=user
     ).order_by('-created_at')[:20]
     
@@ -173,12 +173,12 @@ def session_expired(request):
 @login_required
 def user_security_dashboard(request):
     """User security dashboard with risk assessment"""
-    from wallets.models import AuditLog
+    from adminpanel.models import AdminLog
     from .utils import calculate_security_score, detect_suspicious_patterns
     
     security_score = calculate_security_score(request.user)
     
-    recent_logs = AuditLog.objects.filter(
+    recent_logs = AdminLog.objects.filter(
         user=request.user
     ).order_by('-created_at')[:10]
     

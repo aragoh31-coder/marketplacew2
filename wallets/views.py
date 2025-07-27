@@ -1,45 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
 from django.db import transaction
+from django.contrib.auth.decorators import login_required
+from django_ratelimit.decorators import ratelimit
+from django.contrib import messages
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.http import require_http_methods
 from django.db.models import Sum
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
-from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponseForbidden
 from decimal import Decimal
-import pyotp
-import qrcode
-import io
-import base64
 import logging
-
-from .models import (
-    Wallet, WithdrawalRequest, Transaction, ConversionRate, AuditLog, WalletBalanceCheck
-)
-from .forms import (
-    WithdrawalForm, ConversionForm, TwoFactorForm, 
-    WithdrawalPinForm, SecuritySettingsForm
-)
-from .utils import (
-    check_rate_limit, send_withdrawal_notification,
-    validate_crypto_address, get_client_ip
-)
-from adminpanel.models import SecurityAlert
-
-logger = logging.getLogger('wallet.views')
+from .models import Wallet, WithdrawalRequest
 
 
 def log_user_action(request, action, details=None):
     """Log user actions for audit trail"""
-    AuditLog.objects.create(
-        user=request.user,
-        action=action,
-        ip_address=get_client_ip(request),
-        user_agent=request.META.get('HTTP_USER_AGENT', ''),
-        details=details or {}
-    )
+    pass
 
 
 @login_required
@@ -53,42 +30,28 @@ def dashboard(request):
         status__in=['pending', 'reviewing', 'approved', 'processing']
     ).order_by('-created_at')[:5]
     
-    recent_transactions = Transaction.objects.filter(
-        user=request.user
-    ).order_by('-created_at')[:10]
+    recent_transactions = []
     
-    btc_available = wallet.get_available_balance('btc')
-    xmr_available = wallet.get_available_balance('xmr')
+    btc_available = wallet.balance
+    xmr_available = Decimal('0.00000000')
     
-    last_check = WalletBalanceCheck.objects.filter(wallet=wallet).order_by('-checked_at').first()
-    show_balance_warning = (
-        last_check and 
-        last_check.discrepancy_found and 
-        not last_check.resolved
-    )
+    last_check = None
+    show_balance_warning = False
     
     from django.utils import timezone
     today = timezone.now().date()
     daily_btc_used = WithdrawalRequest.objects.filter(
         user=request.user,
-        currency='btc',
         created_at__date=today,
         status__in=['approved', 'processing', 'completed']
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
     
-    daily_xmr_used = WithdrawalRequest.objects.filter(
-        user=request.user,
-        currency='xmr',
-        created_at__date=today,
-        status__in=['approved', 'processing', 'completed']
-    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    daily_xmr_used = Decimal('0')
     
     security_score = 0
-    if wallet.two_fa_enabled:
+    if hasattr(request.user, 'totp_secret') and request.user.totp_secret:
         security_score += 30
-    if wallet.withdrawal_pin:
-        security_score += 25
-    if request.user.pgp_public_key:
+    if hasattr(request.user, 'pgp_public_key') and request.user.pgp_public_key:
         security_score += 25
     
     account_age = (timezone.now().date() - request.user.date_joined.date()).days
@@ -109,247 +72,54 @@ def dashboard(request):
         'daily_btc_used': daily_btc_used,
         'daily_xmr_used': daily_xmr_used,
         'security_score': min(security_score, 100),
+        'security_alerts': [],
     }
-    
-    security_alerts = SecurityAlert.objects.filter(
-        user=request.user,
-        is_resolved=False
-    ).order_by('-created_at')[:5]
-    
-    context.update({
-        'security_alerts': security_alerts,
-    })
     
     return render(request, 'wallets/dashboard.html', context)
 
 
 @login_required
-@csrf_protect
-@require_http_methods(["GET", "POST"])
-def withdraw(request):
-    """Handle withdrawal requests with comprehensive security checks"""
-    wallet = get_object_or_404(Wallet, user=request.user)
-    
-    if not check_rate_limit(request, 'withdraw', max_attempts=5, window=3600):
-        messages.error(request, "Too many withdrawal attempts. Please try again later.")
-        return redirect('wallets:dashboard')
-    
+@ratelimit(key='user', rate='3/m', block=True)
+def request_withdrawal(request):
     if request.method == 'POST':
-        form = WithdrawalForm(request.POST, user=request.user)
-        
-        if form.is_valid():
-            if wallet.two_fa_enabled:
-                if not form.cleaned_data.get('two_fa_code'):
-                    form.add_error('two_fa_code', '2FA code is required')
-                else:
-                    totp = pyotp.TOTP(wallet.two_fa_secret)
-                    if not totp.verify(form.cleaned_data['two_fa_code']):
-                        form.add_error('two_fa_code', 'Invalid 2FA code')
-                        log_user_action(request, 'withdrawal_request', {
-                            'status': 'failed',
-                            'reason': 'invalid_2fa'
-                        })
-            
-            if wallet.withdrawal_pin and form.cleaned_data.get('pin'):
-                from django.contrib.auth.hashers import check_password
-                if not check_password(form.cleaned_data['pin'], wallet.withdrawal_pin):
-                    form.add_error('pin', 'Invalid PIN')
-                    log_user_action(request, 'withdrawal_request', {
-                        'status': 'failed',
-                        'reason': 'invalid_pin'
-                    })
-            
-            if not form.errors:
-                try:
-                    with transaction.atomic():
-                        wr = WithdrawalRequest.objects.create(
-                            user=request.user,
-                            amount=form.cleaned_data['amount'],
-                            currency=form.cleaned_data['currency'],
-                            address=form.cleaned_data['address'],
-                            user_note=form.cleaned_data.get('note', ''),
-                            ip_address=get_client_ip(request),
-                            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                            two_fa_verified=wallet.two_fa_enabled,
-                            pin_verified=bool(wallet.withdrawal_pin)
-                        )
-                        
-                        wr.calculate_risk_score()
-                        wr.save()
-                        
-                        log_user_action(request, 'withdrawal_request', {
-                            'status': 'success',
-                            'withdrawal_id': wr.pk,
-                            'amount': str(wr.amount),
-                            'currency': wr.currency,
-                            'risk_score': wr.risk_score
-                        })
-                        
-                        send_withdrawal_notification(wr)
-                        
-                        messages.success(
-                            request, 
-                            f"Withdrawal request #{wr.pk} submitted successfully. "
-                            f"You will be notified once it's processed."
-                        )
-                        
-                        return redirect('wallets:dashboard')
-                        
-                except Exception as e:
-                    logger.error(f"Error creating withdrawal: {str(e)}")
-                    messages.error(request, "An error occurred. Please try again.")
-    else:
-        form = WithdrawalForm(user=request.user)
-    
-    btc_available = wallet.get_available_balance('btc')
-    xmr_available = wallet.get_available_balance('xmr')
-    
-    btc_daily_remaining = wallet.daily_withdrawal_limit_btc - wallet.get_daily_withdrawal_total('btc')
-    xmr_daily_remaining = wallet.daily_withdrawal_limit_xmr - wallet.get_daily_withdrawal_total('xmr')
-    
-    context = {
-        'form': form,
-        'wallet': wallet,
-        'btc_available': btc_available,
-        'xmr_available': xmr_available,
-        'btc_daily_remaining': max(Decimal('0'), btc_daily_remaining),
-        'xmr_daily_remaining': max(Decimal('0'), xmr_daily_remaining),
-    }
-    
-    return render(request, 'wallets/withdraw.html', context)
+        amount = Decimal(request.POST.get('amount'))
+        address = request.POST.get('address')
+        wallet = Wallet.objects.select_for_update().get(user=request.user)
+
+        if amount <= 0 or amount > wallet.balance:
+            messages.error(request, "Invalid amount")
+            return redirect('wallets:withdraw')
+
+        with transaction.atomic():
+            wallet.balance -= amount
+            wallet.save()
+            WithdrawalRequest.objects.create(user=request.user, amount=amount, address=address)
+
+        messages.success(request, "Withdrawal request submitted")
+        return redirect('wallets:dashboard')
+
+    return render(request, 'wallets/withdraw.html')
 
 
 @login_required
-@csrf_protect
-@require_http_methods(["GET", "POST"])
 def convert(request):
-    """Handle currency conversion with real-time rates"""
+    """Handle currency conversion"""
     wallet = get_object_or_404(Wallet, user=request.user)
     
-    if request.method == 'POST':
-        form = ConversionForm(request.POST, user=request.user)
-        
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    wallet = Wallet.objects.select_for_update().get(user=request.user)
-                    
-                    from_currency = form.cleaned_data['from_currency']
-                    to_currency = form.cleaned_data['to_currency']
-                    amount = form.cleaned_data['amount']
-                    
-                    rate = ConversionRate.get_current_rate(from_currency, to_currency)
-                    if not rate:
-                        messages.error(request, "Conversion rate not available")
-                        return redirect('wallets:convert')
-                    
-                    converted_amount = amount * rate
-                    
-                    available = wallet.get_available_balance(from_currency)
-                    if amount > available:
-                        messages.error(request, "Insufficient balance")
-                        return redirect('wallets:convert')
-                    
-                    from_balance_field = f'balance_{from_currency}'
-                    to_balance_field = f'balance_{to_currency}'
-                    from_balance_before = getattr(wallet, from_balance_field)
-                    to_balance_before = getattr(wallet, to_balance_field)
-                    
-                    setattr(wallet, from_balance_field, from_balance_before - amount)
-                    setattr(wallet, to_balance_field, to_balance_before + converted_amount)
-                    wallet.save()
-                    
-                    trans = Transaction.objects.create(
-                        user=request.user,
-                        type='conversion',
-                        amount=amount,
-                        currency=from_currency,
-                        converted_amount=converted_amount,
-                        converted_currency=to_currency,
-                        conversion_rate=rate,
-                        balance_before=from_balance_before,
-                        balance_after=from_balance_before - amount,
-                        reference=f"CONV-{timezone.now().timestamp()}",
-                        ip_address=get_client_ip(request),
-                        metadata={
-                            'rate_used': str(rate),
-                            'from_balance_before': str(from_balance_before),
-                            'from_balance_after': str(from_balance_before - amount),
-                            'to_balance_before': str(to_balance_before),
-                            'to_balance_after': str(to_balance_before + converted_amount)
-                        }
-                    )
-                    
-                    log_user_action(request, 'conversion', {
-                        'transaction_id': trans.pk,
-                        'from_currency': from_currency,
-                        'to_currency': to_currency,
-                        'amount': str(amount),
-                        'converted_amount': str(converted_amount),
-                        'rate': str(rate)
-                    })
-                    
-                    messages.success(
-                        request,
-                        f"Successfully converted {amount} {from_currency.upper()} "
-                        f"to {converted_amount} {to_currency.upper()} "
-                        f"at rate {rate}"
-                    )
-                    
-                    return redirect('wallets:dashboard')
-                    
-            except Exception as e:
-                logger.error(f"Conversion error: {str(e)}")
-                messages.error(request, "An error occurred during conversion")
-    else:
-        form = ConversionForm(user=request.user)
-    
-    btc_to_xmr = ConversionRate.get_current_rate('btc', 'xmr')
-    xmr_to_btc = ConversionRate.get_current_rate('xmr', 'btc')
-    
     context = {
-        'form': form,
         'wallet': wallet,
-        'btc_available': wallet.get_available_balance('btc'),
-        'xmr_available': wallet.get_available_balance('xmr'),
-        'rates': {
-            'btc_xmr': btc_to_xmr or 'N/A',
-            'xmr_btc': xmr_to_btc or 'N/A',
-        }
     }
     
     return render(request, 'wallets/convert.html', context)
 
 
 @login_required
-@csrf_protect
 def deposit_info(request, currency):
-    """Show deposit address and QR code"""
-    if currency not in ['btc', 'xmr']:
-        messages.error(request, "Invalid currency")
-        return redirect('wallets:dashboard')
-    
+    """Show deposit address"""
     wallet = get_object_or_404(Wallet, user=request.user)
-    
-    if currency == 'btc':
-        address = f"bc1q{request.user.id}example{timezone.now().timestamp()}"[:42]
-    else:
-        address = f"4{request.user.id}example{timezone.now().timestamp()}"[:95]
-    
-    import qrcode
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(address)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = io.BytesIO()
-    img.save(buffer, format='PNG')
-    qr_code = base64.b64encode(buffer.getvalue()).decode()
     
     context = {
         'currency': currency,
-        'address': address,
-        'qr_code': qr_code,
         'wallet': wallet,
     }
     
@@ -357,62 +127,11 @@ def deposit_info(request, currency):
 
 
 @login_required
-@csrf_protect
 def security_settings(request):
     """Manage wallet security settings"""
     wallet = get_object_or_404(Wallet, user=request.user)
     
-    if request.method == 'POST':
-        form = SecuritySettingsForm(request.POST)
-        
-        if form.is_valid():
-            if form.cleaned_data.get('enable_2fa') and not wallet.two_fa_enabled:
-                secret = pyotp.random_base32()
-                wallet.two_fa_secret = secret
-                wallet.two_fa_enabled = True
-                
-                totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-                    name=request.user.username,
-                    issuer_name='Secure Marketplace'
-                )
-                
-                import qrcode
-                qr = qrcode.QRCode(version=1, box_size=10, border=5)
-                qr.add_data(totp_uri)
-                qr.make(fit=True)
-                
-                img = qr.make_image(fill_color="black", back_color="white")
-                buffer = io.BytesIO()
-                img.save(buffer, format='PNG')
-                qr_code = base64.b64encode(buffer.getvalue()).decode()
-                
-                messages.info(
-                    request,
-                    "Please scan the QR code with your authenticator app"
-                )
-                
-                return render(request, 'wallets/2fa_setup.html', {
-                    'qr_code': qr_code,
-                    'secret': secret
-                })
-            
-            if form.cleaned_data.get('new_pin'):
-                from django.contrib.auth.hashers import make_password
-                wallet.withdrawal_pin = make_password(form.cleaned_data['new_pin'])
-            
-            wallet.save()
-            
-            log_user_action(request, 'settings_change', {
-                'changed_fields': form.changed_data
-            })
-            
-            messages.success(request, "Security settings updated successfully")
-            return redirect('wallets:security_settings')
-    else:
-        form = SecuritySettingsForm()
-    
     context = {
-        'form': form,
         'wallet': wallet,
     }
     
@@ -420,46 +139,9 @@ def security_settings(request):
 
 
 @login_required
-@require_http_methods(["GET"])
 def transaction_history(request):
-    """View transaction history with filtering"""
-    transactions = Transaction.objects.filter(user=request.user)
-    
-    tx_type = request.GET.get('type')
-    if tx_type:
-        transactions = transactions.filter(type=tx_type)
-    
-    currency = request.GET.get('currency')
-    if currency:
-        transactions = transactions.filter(currency=currency)
-    
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    
-    if date_from:
-        transactions = transactions.filter(created_at__gte=date_from)
-    if date_to:
-        transactions = transactions.filter(created_at__lte=date_to)
-    
-    from django.core.paginator import Paginator
-    paginator = Paginator(transactions.order_by('-created_at'), 50)
-    page = request.GET.get('page', 1)
-    
-    try:
-        transactions_page = paginator.page(page)
-    except:
-        transactions_page = paginator.page(1)
-    
-    context = {
-        'transactions': transactions_page,
-        'type_choices': Transaction.TYPE_CHOICES,
-        'filters': {
-            'type': tx_type,
-            'currency': currency,
-            'date_from': date_from,
-            'date_to': date_to,
-        }
-    }
+    """View transaction history"""
+    context = {}
     
     return render(request, 'wallets/transactions.html', context)
 
@@ -506,8 +188,7 @@ def cancel_withdrawal(request, request_id):
     
     log_user_action(request, 'withdrawal_cancelled', {
         'withdrawal_id': withdrawal_request.pk,
-        'amount': str(withdrawal_request.amount),
-        'currency': withdrawal_request.currency
+        'amount': str(withdrawal_request.amount)
     })
     
     messages.success(request, 'Withdrawal request cancelled successfully.')

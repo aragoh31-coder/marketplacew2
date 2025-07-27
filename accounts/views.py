@@ -364,9 +364,6 @@ from core.security.pow import validate_pow
 @ratelimit(key='ip', rate='5/m', block=True)
 def login_view(request):
     if request.method == 'POST':
-        if not validate_pow(request):
-            return HttpResponseForbidden("Proof of Work failed")
-        
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm(request.POST)
         if form.is_valid():
