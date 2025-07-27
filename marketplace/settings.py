@@ -237,10 +237,10 @@ IMAGE_UPLOAD_SETTINGS = {
     'UPLOADS_PER_DAY': 50,
 }
 
-SECURE_UPLOAD_ROOT = Path(BASE_DIR).parent / 'secure_uploads'
+SECURE_UPLOAD_ROOT = BASE_DIR / 'secure_uploads'
 SECURE_UPLOAD_ROOT.mkdir(exist_ok=True)
 
-TEMP_UPLOAD_ROOT = Path(BASE_DIR).parent / 'temp_uploads'
+TEMP_UPLOAD_ROOT = BASE_DIR / 'temp_uploads'
 TEMP_UPLOAD_ROOT.mkdir(exist_ok=True)
 
 WALLET_SECURITY = {

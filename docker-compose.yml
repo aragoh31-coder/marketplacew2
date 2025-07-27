@@ -4,9 +4,9 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: marketplace
-      POSTGRES_USER: marketplace
-      POSTGRES_PASSWORD: marketplace_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -34,14 +34,10 @@ services:
     build: .
     ports:
       - "8000:8000"
+    env_file:
+      - .env.docker
     environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - DEBUG=False
-      - DJANGO_SECRET_KEY=your-production-secret-key-here
-      - ALLOWED_HOSTS=localhost,127.0.0.1,*.onion,eo256pnscr5zd4bw2p4c24nrh2vntjhlcqxy5iluselu4mq7wgzt7sqd.onion
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     volumes:
       - ./logs:/app/logs
       - ./secure_uploads:/app/secure_uploads
@@ -54,14 +50,10 @@ services:
 
   celery:
     build: .
+    env_file:
+      - .env.docker
     environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - DEBUG=False
-      - DJANGO_SECRET_KEY=your-production-secret-key-here
-      - ALLOWED_HOSTS=localhost,127.0.0.1,*.onion
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     volumes:
       - ./logs:/app/logs
     depends_on:
@@ -71,14 +63,10 @@ services:
 
   celery-beat:
     build: .
+    env_file:
+      - .env.docker
     environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - DEBUG=False
-      - DJANGO_SECRET_KEY=your-production-secret-key-here
-      - ALLOWED_HOSTS=localhost,127.0.0.1,*.onion
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     volumes:
       - ./logs:/app/logs
     depends_on:
