@@ -4,8 +4,10 @@ from django.contrib import messages
 from django_ratelimit.decorators import ratelimit
 from django.db import transaction
 from django.views.decorators.http import require_http_methods
+from django.http import HttpResponseForbidden
 from decimal import Decimal
 from wallets.models import Wallet, WithdrawalRequest
+from core.security.captcha import generate_captcha, validate_captcha
 
 
 def log_user_action(request, action, details=None):
@@ -29,6 +31,9 @@ def dashboard(request):
 @ratelimit(key='user', rate='3/m', block=True)
 def request_withdrawal(request):
     if request.method == 'POST':
+        if not validate_captcha(request):
+            return HttpResponseForbidden("CAPTCHA failed")
+
         amount = Decimal(request.POST.get('amount'))
         address = request.POST.get('address')
 
@@ -46,7 +51,11 @@ def request_withdrawal(request):
         messages.success(request, "Withdrawal request submitted successfully")
         return redirect('wallets:dashboard')
 
-    return render(request, 'wallets/withdraw.html')
+    captcha_label, captcha_buttons = generate_captcha(request.session)
+    return render(request, 'wallets/withdraw.html', {
+        'captcha_label': captcha_label,
+        'captcha_buttons': captcha_buttons
+    })
 
 
 @login_required

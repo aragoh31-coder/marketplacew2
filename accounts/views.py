@@ -228,8 +228,8 @@ def home(request):
 @ratelimit(key='ip', rate='3/m', block=True)
 def register_view(request):
     if request.method == 'POST':
-        if not validate_pow(request):
-            return HttpResponseForbidden("Proof of Work failed")
+        if not validate_captcha(request):
+            return HttpResponseForbidden("CAPTCHA failed")
         
         from .forms import RegistrationForm
         form = RegistrationForm(request.POST)
@@ -243,7 +243,12 @@ def register_view(request):
     else:
         from .forms import RegistrationForm
         form = RegistrationForm()
-    return render(request, 'accounts/register.html', {'form': form})
+    captcha_label, captcha_buttons = generate_captcha(request.session)
+    return render(request, 'accounts/register.html', {
+        'form': form, 
+        'captcha_label': captcha_label, 
+        'captcha_buttons': captcha_buttons
+    })
 
 def register(request):
     if request.method == "GET":
@@ -359,11 +364,15 @@ def register(request):
 
 
 from django_ratelimit.decorators import ratelimit
-from core.security.pow import validate_pow
+from core.security.captcha import generate_captcha, validate_captcha
+from django.http import HttpResponseForbidden
 
 @ratelimit(key='ip', rate='5/m', block=True)
 def login_view(request):
     if request.method == 'POST':
+        if not validate_captcha(request):
+            return HttpResponseForbidden("CAPTCHA failed")
+
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm(request.POST)
         if form.is_valid():
@@ -375,7 +384,13 @@ def login_view(request):
     else:
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm()
-    return render(request, 'accounts/login.html', {'form': form})
+    
+    captcha_label, captcha_buttons = generate_captcha(request.session)
+    return render(request, 'accounts/login.html', {
+        'form': form, 
+        'captcha_label': captcha_label, 
+        'captcha_buttons': captcha_buttons
+    })
 
 def old_login_view(request):
     if request.method in ["GET", "HEAD"]:

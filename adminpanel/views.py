@@ -26,7 +26,7 @@ from .models import AdminLog, AdminProfile, AdminAction, SecurityAlert
 from .forms import SecondaryAuthForm, AdminPGPChallengeForm, AdminLoginForm, AdminTripleAuthForm
 from .decorators import require_2fa, require_triple_auth, log_admin_action, admin_required
 from django.conf import settings
-from core.security.pow import validate_pow
+from core.security.captcha import generate_captcha, validate_captcha
 from core.audit_logger import log_admin_action
 
 def admin_login(request):
@@ -698,8 +698,8 @@ def approve_withdrawal(request, withdrawal_id):
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id, status='pending')
 
     if request.method == 'POST':
-        if not validate_pow(request):
-            return HttpResponseForbidden("Proof of Work failed")
+        if not validate_captcha(request):
+            return HttpResponseForbidden("CAPTCHA failed")
 
         totp_code = request.POST.get('totp_code')
         if not request.user.verify_totp(totp_code):
@@ -716,7 +716,12 @@ def approve_withdrawal(request, withdrawal_id):
         messages.success(request, "Withdrawal approved successfully")
         return redirect('adminpanel:withdrawals')
 
-    return render(request, 'adminpanel/approve_withdrawal.html', {'withdrawal': withdrawal})
+    captcha_label, captcha_buttons = generate_captcha(request.session)
+    return render(request, 'adminpanel/approve_withdrawal.html', {
+        'withdrawal': withdrawal,
+        'captcha_label': captcha_label,
+        'captcha_buttons': captcha_buttons
+    })
 
 
 user_detail = admin_user_detail

@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.contrib.auth import login
 from django_ratelimit.decorators import ratelimit
-from core.security.pow import validate_pow
+from core.security.captcha import generate_captcha, validate_captcha
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .totp_forms import TOTPSetupForm, TOTPVerificationForm, TOTPDisableForm, BackupCodesRegenerateForm
@@ -20,8 +20,8 @@ def totp_setup(request):
     request.user.generate_totp_secret()
 
     if request.method == 'POST':
-        if not validate_pow(request):
-            return HttpResponseForbidden("Proof of Work failed")
+        if not validate_captcha(request):
+            return HttpResponseForbidden("CAPTCHA failed")
 
         form = TOTPSetupForm(request.user, request.POST)
         if form.is_valid():
@@ -49,9 +49,12 @@ def totp_setup(request):
     else:
         form = TOTPSetupForm(request.user)
 
+    captcha_label, captcha_buttons = generate_captcha(request.session)
     return render(request, 'accounts/totp_setup.html', {
         'form': form,
-        'manual_entry_key': request.user.totp_secret
+        'manual_entry_key': request.user.totp_secret,
+        'captcha_label': captcha_label,
+        'captcha_buttons': captcha_buttons
     })
 
 @login_required
