@@ -6,8 +6,8 @@ import uuid
 import secrets
 from datetime import timedelta
 import pyotp
-import qrcode
-import io
+from cryptography.fernet import Fernet
+from django.conf import settings
 import base64
 
 
@@ -44,7 +44,7 @@ class User(AbstractUser, PrivacyModel):
     account_created = models.DateTimeField(auto_now_add=True)
     last_activity = models.DateTimeField(default=timezone.now)
     
-    totp_secret = models.CharField(max_length=32, blank=True)
+    totp_secret = models.TextField(null=True, blank=True)
     totp_enabled = models.BooleanField(default=False)
     totp_backup_codes = models.JSONField(default=list, blank=True)
     totp_last_used_counter = models.IntegerField(default=0)
@@ -99,42 +99,46 @@ class User(AbstractUser, PrivacyModel):
         """Check if user has any 2FA method enabled"""
         return getattr(self, 'totp_enabled', False) or getattr(self, 'pgp_2fa_enabled', False)
     
+    def _get_encryption_key(self):
+        """Get encryption key for TOTP secrets"""
+        key = getattr(settings, 'TOTP_ENCRYPTION_KEY', None)
+        if not key:
+            key = Fernet.generate_key()
+        return key
+    
+    def _encrypt_secret(self, secret):
+        """Encrypt TOTP secret"""
+        if not secret:
+            return None
+        f = Fernet(self._get_encryption_key())
+        return f.encrypt(secret.encode()).decode()
+    
+    def _decrypt_secret(self, encrypted_secret):
+        """Decrypt TOTP secret"""
+        if not encrypted_secret:
+            return None
+        f = Fernet(self._get_encryption_key())
+        return f.decrypt(encrypted_secret.encode()).decode()
+    
     def generate_totp_secret(self):
         """Generate new TOTP secret"""
         if not self.totp_secret:
-            self.totp_secret = pyotp.random_base32()
+            secret = pyotp.random_base32()
+            self.totp_secret = self._encrypt_secret(secret)
             self.save(update_fields=['totp_secret'])
-        return self.totp_secret
+        return self._decrypt_secret(self.totp_secret)
     
-    def get_totp_uri(self):
-        """Get TOTP URI for QR code generation"""
-        if not self.totp_secret:
-            self.generate_totp_secret()
-        
-        return pyotp.totp.TOTP(self.totp_secret).provisioning_uri(
-            name=self.username,
-            issuer_name="Secure Marketplace"
-        )
-    
-    def generate_qr_code(self):
-        """Generate QR code for TOTP setup"""
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(self.get_totp_uri())
-        qr.make(fit=True)
-        
-        img = qr.make_image(fill_color="black", back_color="white")
-        buffer = io.BytesIO()
-        img.save(buffer, format='PNG')
-        buffer.seek(0)
-        
-        return base64.b64encode(buffer.getvalue()).decode()
     
     def verify_totp(self, token):
         """Verify TOTP token"""
         if not self.totp_secret or not self.totp_enabled:
             return False
         
-        totp = pyotp.TOTP(self.totp_secret)
+        secret = self._decrypt_secret(self.totp_secret)
+        if not secret:
+            return False
+            
+        totp = pyotp.TOTP(secret)
         
         import time
         current_time = int(time.time())

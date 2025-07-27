@@ -1,28 +1,35 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponseForbidden
+from django.contrib.auth import login
+from django_ratelimit.decorators import ratelimit
+from core.security.pow import validate_pow
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .totp_forms import TOTPSetupForm, TOTPVerificationForm, TOTPDisableForm, BackupCodesRegenerateForm
 from core.logging.audit_logger import audit_logger
 
 @login_required
+@ratelimit(key='ip', rate='5/m', block=True)
 def totp_setup(request):
-    """Setup TOTP 2FA for user"""
     if request.user.totp_enabled:
         messages.info(request, "Two-factor authentication is already enabled.")
         return redirect('accounts:totp_settings')
-    
+
     request.user.generate_totp_secret()
-    
+
     if request.method == 'POST':
+        if not validate_pow(request):
+            return HttpResponseForbidden("Proof of Work failed")
+
         form = TOTPSetupForm(request.user, request.POST)
         if form.is_valid():
             request.user.totp_enabled = True
             request.user.save(update_fields=['totp_enabled'])
-            
+
             backup_codes = request.user.generate_backup_codes()
-            
+
             audit_logger.log_user_action(
                 user=request.user,
                 action='totp_enabled',
@@ -30,21 +37,20 @@ def totp_setup(request):
                 request=request,
                 risk_level='medium'
             )
-            
-            messages.success(request, "Two-factor authentication has been enabled successfully!")
-            
+
+            request.session.flush()
+            login(request, request.user)
+
+            messages.success(request, "Two-factor authentication enabled successfully!")
             return render(request, 'accounts/totp_backup_codes.html', {
                 'backup_codes': backup_codes,
                 'is_setup': True
             })
     else:
         form = TOTPSetupForm(request.user)
-    
-    qr_code = request.user.generate_qr_code()
-    
+
     return render(request, 'accounts/totp_setup.html', {
         'form': form,
-        'qr_code': qr_code,
         'manual_entry_key': request.user.totp_secret
     })
 
@@ -97,7 +103,7 @@ def regenerate_backup_codes(request):
         return redirect('accounts:profile')
     
     if request.method == 'POST':
-        form = BackupCodesRegenerateForm(request.user, request.POST)
+        form = TOTPDisableForm(request.user, request.POST)
         if form.is_valid():
             backup_codes = request.user.generate_backup_codes()
             
@@ -116,7 +122,7 @@ def regenerate_backup_codes(request):
                 'is_regeneration': True
             })
     else:
-        form = BackupCodesRegenerateForm(request.user)
+        form = TOTPDisableForm(request.user)
     
     return render(request, 'accounts/regenerate_backup_codes.html', {
         'form': form

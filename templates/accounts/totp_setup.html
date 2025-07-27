@@ -1,67 +1,11 @@
-{% extends "base.html" %}
-{% block content %}
-<div class="container">
-    <h2>Set Up TOTP Authentication</h2>
-    
-    <div class="alert warning">
-        <p><strong>Important:</strong> Save this secret key securely. You won't be able to see it again.</p>
-    </div>
-    
-    <div class="setup-box">
-        <h3>1. Add to your authenticator app</h3>
-        <p>Enter this information in your authenticator app:</p>
-        
-        <div class="secret-display">
-            <p><strong>Account name:</strong> {{ user.username }}@{{ site_name }}</p>
-            <p><strong>Secret key:</strong></p>
-            <code class="secret">{{ secret }}</code>
-        </div>
-        
-        <p class="note">Make sure to enter the secret exactly as shown, including capital letters.</p>
-    </div>
-    
-    <div class="setup-box">
-        <h3>2. Verify setup</h3>
-        <p>Enter the 6-digit code from your authenticator app:</p>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <input type="text" name="code" pattern="[0-9]{6}" maxlength="6" 
-                       placeholder="000000" required autofocus>
-            </div>
-            <button type="submit" class="btn primary">Verify and Enable</button>
-        </form>
-        
-        <p class="hint">Current code for reference: <code>{{ current_code }}</code></p>
-    </div>
-    
-    <hr>
-    <a href="{% url 'accounts:totp_settings' %}">← Cancel Setup</a>
-</div>
-
-<style>
-.setup-box {
-    border: 1px solid #444;
-    padding: 20px;
-    margin: 20px 0;
-    background: #1a1a1a;
-}
-.secret-display {
-    background: #000;
-    padding: 15px;
-    margin: 10px 0;
-    border: 1px dashed #666;
-}
-.secret {
-    font-size: 1.2em;
-    font-family: monospace;
-    color: #0f0;
-    word-break: break-all;
-}
-.hint {
-    color: #888;
-    font-size: 0.9em;
-}
-</style>
-{% endblock %}
+<h3>TOTP Setup</h3>
+<p>Enter this key in your authenticator app:</p>
+<code>{{ manual_entry_key }}</code>
+<p>Enter the 6-digit code:</p>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="honeypot" value="">
+    <input type="text" name="pow_token" placeholder="Proof-of-Work Token">
+    <button type="submit">Verify</button>
+</form>

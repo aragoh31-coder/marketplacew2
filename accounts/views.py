@@ -7,6 +7,12 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.http import HttpResponse, JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
+from django_ratelimit.decorators import ratelimit
+from core.security.pow import validate_pow
 from products.models import Product
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
@@ -23,12 +29,11 @@ from dateutil import parser
 import pyotp
 import qrcode
 from django.db import transaction
-from .forms import (
-    PGPKeyForm, CustomPasswordChangeForm, DeleteAccountForm
-)
+from .forms import LoginForm, RegistrationForm
 from .totp_utils import TOTPManager
 from .models import User, LoginHistory
-from .pgp_service import PGPService
+from apps.security.visual_captcha import CaptchaSessionManager
+from core.logging.audit_logger import audit_logger
 from core.utils.cache import log_event
 
 
@@ -220,6 +225,26 @@ def home(request):
 
 
 
+@ratelimit(key='ip', rate='3/m', block=True)
+def register_view(request):
+    if request.method == 'POST':
+        if not validate_pow(request):
+            return HttpResponseForbidden("Proof of Work failed")
+        
+        from .forms import RegistrationForm
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password']
+            )
+            messages.success(request, 'Account created successfully! You can now log in.')
+            return redirect('accounts:login')
+    else:
+        from .forms import RegistrationForm
+        form = RegistrationForm()
+    return render(request, 'accounts/register.html', {'form': form})
+
 def register(request):
     if request.method == "GET":
         form = RegisterForm()
@@ -333,7 +358,29 @@ def register(request):
         })
 
 
+from django_ratelimit.decorators import ratelimit
+from core.security.pow import validate_pow
+
+@ratelimit(key='ip', rate='5/m', block=True)
 def login_view(request):
+    if request.method == 'POST':
+        if not validate_pow(request):
+            return HttpResponseForbidden("Proof of Work failed")
+        
+        from .forms import LoginForm as AuthLoginForm
+        form = AuthLoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.cleaned_data['username'],
+                                password=form.cleaned_data['password'])
+            if user:
+                login(request, user)
+                return redirect('/')
+    else:
+        from .forms import LoginForm as AuthLoginForm
+        form = AuthLoginForm()
+    return render(request, 'accounts/login.html', {'form': form})
+
+def old_login_view(request):
     if request.method in ["GET", "HEAD"]:
         form = LoginForm()
         
@@ -408,7 +455,8 @@ def login_view(request):
                     return redirect('/')
                 
                 if user.pgp_login_enabled and user.pgp_public_key:
-                    pgp_service = PGPService()
+                    messages.info(request, 'PGP functionality is currently disabled for security hardening.')
+                    return redirect('accounts:login')
                     
                     import_result = pgp_service.import_public_key(user.pgp_public_key)
                     
@@ -577,24 +625,16 @@ def profile_settings(request):
 @login_required
 def change_password(request):
     if request.method == 'POST':
-        form = CustomPasswordChangeForm(request.user, request.POST)
+        from django.contrib.auth.forms import PasswordChangeForm
+        form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
-            
-            LoginHistory.objects.create(
-                user=user,
-                ip_hash=hashlib.sha256(
-                    request.META.get('REMOTE_ADDR', '').encode()
-                ).hexdigest(),
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                success=True
-            )
-            
             messages.success(request, 'Password changed successfully!')
             return redirect('accounts:profile')
     else:
-        form = CustomPasswordChangeForm(request.user)
+        from django.contrib.auth.forms import PasswordChangeForm
+        form = PasswordChangeForm(request.user)
     
     return render(request, 'accounts/change_password.html', {'form': form})
 
@@ -606,7 +646,8 @@ def pgp_settings(request):
         if 'verify_code' in request.POST:
             return pgp_verify_key(request)
         
-        form = PGPKeyForm(request.POST)
+        messages.info(request, 'PGP functionality is currently disabled for security hardening.')
+        return redirect('accounts:profile')
         
         if form.is_valid():
             request.session['temp_pgp_key'] = form.cleaned_data['pgp_public_key']
@@ -675,11 +716,6 @@ def pgp_settings(request):
             'enable_pgp_login': request.user.pgp_login_enabled
         })
     
-    return render(request, 'accounts/pgp_settings.html', {
-        'form': form,
-        'has_pgp': bool(request.user.pgp_public_key),
-        'pgp_fingerprint': request.user.pgp_fingerprint
-    })
 
 
 @login_required
@@ -818,11 +854,8 @@ def login_history_view(request):
 @login_required
 def test_pgp_encryption(request):
     """Test PGP encryption for debugging"""
-    if not request.user.pgp_public_key:
-        messages.error(request, 'No PGP key configured')
-        return redirect('accounts:pgp_settings')
-    
-    pgp_service = PGPService()
+    messages.info(request, 'PGP functionality is currently disabled for security hardening.')
+    return redirect('accounts:profile')
     
     import_result = pgp_service.import_public_key(request.user.pgp_public_key)
     if not import_result['success']:
