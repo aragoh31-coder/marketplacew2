@@ -4,11 +4,12 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.contrib.auth import login
 from django_ratelimit.decorators import ratelimit
-from core.security.captcha import generate_captcha, validate_captcha
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from .totp_forms import TOTPSetupForm, TOTPVerificationForm, TOTPDisableForm, BackupCodesRegenerateForm
 from core.logging.audit_logger import audit_logger
+import random
+import time
 
 @login_required
 @ratelimit(key='ip', rate='5/m', block=True)
@@ -20,8 +21,22 @@ def totp_setup(request):
     request.user.generate_totp_secret()
 
     if request.method == 'POST':
-        if not validate_captcha(request):
-            return HttpResponseForbidden("CAPTCHA failed")
+        picked = int(request.POST.get('segment', -1))
+        exp = request.session.get('captcha_expected', {})
+        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+            form = TOTPSetupForm(request.user, request.POST)
+            from apps.security.captcha_oneclick.utils import make_cut_circle
+            missing = random.randrange(12)
+            img_b64, _ = make_cut_circle(missing)
+            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+            return render(request, 'accounts/totp_setup.html', {
+                'form': form,
+                'manual_entry_key': request.user.totp_secret,
+                'captcha_image': img_b64,
+                'SEGS': 12,
+                'error': 'Invalid selection—try again.'
+            })
+        del request.session['captcha_expected']
 
         form = TOTPSetupForm(request.user, request.POST)
         if form.is_valid():
@@ -49,12 +64,15 @@ def totp_setup(request):
     else:
         form = TOTPSetupForm(request.user)
 
-    captcha_label, captcha_buttons = generate_captcha(request.session)
+    from apps.security.captcha_oneclick.utils import make_cut_circle
+    missing = random.randrange(12)
+    img_b64, _ = make_cut_circle(missing)
+    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
     return render(request, 'accounts/totp_setup.html', {
         'form': form,
         'manual_entry_key': request.user.totp_secret,
-        'captcha_label': captcha_label,
-        'captcha_buttons': captcha_buttons
+        'captcha_image': img_b64,
+        'SEGS': 12
     })
 
 @login_required

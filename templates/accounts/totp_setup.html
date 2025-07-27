@@ -26,12 +26,20 @@ code { background: #f8f9fa; padding: 10px; border-radius: 4px; display: block; m
     {{ form.as_p }}
     <input type="hidden" name="honeypot" value="">
     <div class="captcha-section">
-        <p>Click the button that looks like: <strong>{{ captcha_label }}</strong></p>
-        <div class="captcha-buttons">
-            {% for btn in captcha_buttons %}
-            <button type="submit" name="captcha_token" value="{{ btn.token }}">{{ btn.label }}</button>
+        <p>Click the missing slice:</p>
+        <div class="captcha-container">
+            <img src="data:image/png;base64,{{ captcha_image }}" alt="CAPTCHA">
+            {% for i in "012345678901" %}
+            <button name="segment" value="{{forloop.counter0}}" class="slice-btn slice-{{forloop.counter0}}" aria-label="Slice {{forloop.counter}}"></button>
             {% endfor %}
         </div>
+        <style>
+            .captcha-container{ position:relative; width:200px; height:200px; margin: 0 auto; }
+            .slice-btn{ position:absolute; top:50%; left:50%; width:90px; height:90px; background:transparent; border:0; transform-origin:0 0; cursor:pointer; }
+            {% for i in "012345678901" %}
+            .slice-{{forloop.counter0}}{ transform:rotate({{forloop.counter0|mul:30}}deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            {% endfor %}
+        </style>
     </div>
 </form>
 </div>

@@ -228,8 +228,22 @@ def home(request):
 @ratelimit(key='ip', rate='3/m', block=True)
 def register_view(request):
     if request.method == 'POST':
-        if not validate_captcha(request):
-            return HttpResponseForbidden("CAPTCHA failed")
+        picked = int(request.POST.get('segment', -1))
+        exp = request.session.get('captcha_expected', {})
+        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+            from .forms import RegistrationForm
+            form = RegistrationForm(request.POST)
+            from apps.security.captcha_oneclick.utils import make_cut_circle
+            missing = random.randrange(SEGS)
+            img_b64, _ = make_cut_circle(missing)
+            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+            return render(request, 'accounts/register.html', {
+                'form': form, 
+                'captcha_image': img_b64, 
+                'SEGS': SEGS,
+                'error': 'Invalid selection—try again.'
+            })
+        del request.session['captcha_expected']
         
         from .forms import RegistrationForm
         form = RegistrationForm(request.POST)
@@ -243,11 +257,15 @@ def register_view(request):
     else:
         from .forms import RegistrationForm
         form = RegistrationForm()
-    captcha_label, captcha_buttons = generate_captcha(request.session)
+    
+    from apps.security.captcha_oneclick.utils import make_cut_circle
+    missing = random.randrange(SEGS)
+    img_b64, _ = make_cut_circle(missing)
+    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
     return render(request, 'accounts/register.html', {
         'form': form, 
-        'captcha_label': captcha_label, 
-        'captcha_buttons': captcha_buttons
+        'captcha_image': img_b64, 
+        'SEGS': SEGS
     })
 
 def register(request):
@@ -364,15 +382,37 @@ def register(request):
 
 
 from django_ratelimit.decorators import ratelimit
-from core.security.captcha import generate_captcha, validate_captcha
 from django.http import HttpResponseForbidden
+import random
+import time
+
+SEGS = 12
+
+def validate_captcha(request):
+    picked = int(request.POST.get('segment', -1))
+    exp = request.session.get('captcha_expected', {})
+    return not (time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'))
 
 @ratelimit(key='ip', rate='5/m', block=True)
 def login_view(request):
     if request.method == 'POST':
-        if not validate_captcha(request):
-            return HttpResponseForbidden("CAPTCHA failed")
-
+        picked = int(request.POST.get('segment', -1))
+        exp = request.session.get('captcha_expected', {})
+        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+            from .forms import LoginForm as AuthLoginForm
+            form = AuthLoginForm(request.POST)
+            from apps.security.captcha_oneclick.utils import make_cut_circle
+            missing = random.randrange(SEGS)
+            img_b64, _ = make_cut_circle(missing)
+            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+            return render(request, 'accounts/login.html', {
+                'form': form, 
+                'captcha_image': img_b64, 
+                'SEGS': SEGS,
+                'error': 'Invalid selection—try again.'
+            })
+        del request.session['captcha_expected']
+        
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm(request.POST)
         if form.is_valid():
@@ -385,11 +425,14 @@ def login_view(request):
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm()
     
-    captcha_label, captcha_buttons = generate_captcha(request.session)
+    from apps.security.captcha_oneclick.utils import make_cut_circle
+    missing = random.randrange(SEGS)
+    img_b64, _ = make_cut_circle(missing)
+    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
     return render(request, 'accounts/login.html', {
         'form': form, 
-        'captcha_label': captcha_label, 
-        'captcha_buttons': captcha_buttons
+        'captcha_image': img_b64, 
+        'SEGS': SEGS
     })
 
 def old_login_view(request):

@@ -7,7 +7,10 @@ from django.views.decorators.http import require_http_methods
 from django.http import HttpResponseForbidden
 from decimal import Decimal
 from wallets.models import Wallet, WithdrawalRequest
-from core.security.captcha import generate_captcha, validate_captcha
+import random
+import time
+
+SEGS = 12
 
 
 def log_user_action(request, action, details=None):
@@ -31,8 +34,19 @@ def dashboard(request):
 @ratelimit(key='user', rate='3/m', block=True)
 def request_withdrawal(request):
     if request.method == 'POST':
-        if not validate_captcha(request):
-            return HttpResponseForbidden("CAPTCHA failed")
+        picked = int(request.POST.get('segment', -1))
+        exp = request.session.get('captcha_expected', {})
+        if time.time() - exp.get('ts',0) > 120 or picked != exp.get('segment'):
+            from apps.security.captcha_oneclick.utils import make_cut_circle
+            missing = random.randrange(SEGS)
+            img_b64, _ = make_cut_circle(missing)
+            request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
+            return render(request, 'wallets/withdraw.html', {
+                'captcha_image': img_b64,
+                'SEGS': SEGS,
+                'error': 'Invalid selection—try again.'
+            })
+        del request.session['captcha_expected']
 
         amount = Decimal(request.POST.get('amount'))
         address = request.POST.get('address')
@@ -51,10 +65,13 @@ def request_withdrawal(request):
         messages.success(request, "Withdrawal request submitted successfully")
         return redirect('wallets:dashboard')
 
-    captcha_label, captcha_buttons = generate_captcha(request.session)
+    from apps.security.captcha_oneclick.utils import make_cut_circle
+    missing = random.randrange(SEGS)
+    img_b64, _ = make_cut_circle(missing)
+    request.session['captcha_expected'] = {'segment': missing, 'ts': time.time()}
     return render(request, 'wallets/withdraw.html', {
-        'captcha_label': captcha_label,
-        'captcha_buttons': captcha_buttons
+        'captcha_image': img_b64,
+        'SEGS': SEGS
     })
 
 

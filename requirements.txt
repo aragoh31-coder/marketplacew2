@@ -10,7 +10,7 @@ prometheus-client==0.20.0
 argon2-cffi==23.1.0
 bitcoinlib==0.7.4
 monero==1.1.1
-Pillow==11.0.0
+Pillow>=9.0.0
 factory-boy==3.3.0
 django-ratelimit==4.1.0
 flake8==7.1.0
