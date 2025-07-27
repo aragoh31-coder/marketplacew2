@@ -37,9 +37,18 @@ label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
         <style>
             .captcha-container{ position:relative; width:200px; height:200px; margin: 0 auto; }
             .slice-btn{ position:absolute; top:50%; left:50%; width:90px; height:90px; background:transparent; border:0; transform-origin:0 0; cursor:pointer; }
-            {% for i in "012345678901" %}
-            .slice-{{forloop.counter0}}{ transform:rotate({{forloop.counter0|mul:30}}deg); clip-path:polygon(0 0,50% 0,0 50%); }
-            {% endfor %}
+            .slice-0{ transform:rotate(0deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-1{ transform:rotate(30deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-2{ transform:rotate(60deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-3{ transform:rotate(90deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-4{ transform:rotate(120deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-5{ transform:rotate(150deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-6{ transform:rotate(180deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-7{ transform:rotate(210deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-8{ transform:rotate(240deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-9{ transform:rotate(270deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-10{ transform:rotate(300deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-11{ transform:rotate(330deg); clip-path:polygon(0 0,50% 0,0 50%); }
         </style>
     </div>
     <button type="submit">Submit Withdrawal</button>

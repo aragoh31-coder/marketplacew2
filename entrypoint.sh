@@ -15,6 +15,10 @@ echo "Redis started"
 echo "Running migrations..."
 python manage.py migrate
 
+echo "Setting up staticfiles directory..."
+mkdir -p /app/staticfiles
+chmod 755 /app/staticfiles
+
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 

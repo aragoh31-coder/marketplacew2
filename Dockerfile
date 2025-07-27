@@ -26,8 +26,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p logs staticfiles secure_uploads temp_uploads
+# Create necessary directories with proper permissions
+RUN mkdir -p logs staticfiles secure_uploads temp_uploads && \
+    chmod 755 logs staticfiles secure_uploads temp_uploads
 
 # Copy entrypoint script
 COPY entrypoint.sh /entrypoint.sh
@@ -37,6 +38,10 @@ RUN chmod +x /entrypoint.sh
 RUN useradd --create-home --shell /bin/bash app
 RUN chown -R app:app /app
 RUN chown app:app /entrypoint.sh
+
+# Set proper permissions for staticfiles directory
+RUN chmod -R 755 /app/staticfiles && \
+    chown -R app:app /app/staticfiles
 
 USER app
 
