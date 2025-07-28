@@ -1,93 +1,33 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: marketplace
-      POSTGRES_USER: marketplace
-      POSTGRES_PASSWORD: marketplace_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marketplace"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - tor-net
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - tor-net
-
   django:
     build: .
     container_name: django_app
-    ports:
-      - "8000:8000"
-    env_file:
-      - .env.docker
-    environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-      - ALLOWED_HOSTS=.onion,eo256pnscr5zd4bw2p4c24nrh2vntjhlcqxy5iluselu4mq7wgzt7sqd.onion,localhost,127.0.0.1
-    volumes:
-      - ./logs:/app/logs
-      - ./secure_uploads:/app/secure_uploads
-      - ./staticfiles:/app/staticfiles
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    restart: always
+    expose:
+      - "8000"
     networks:
       - tor-net
-
-  celery:
-    build: .
-    env_file:
-      - .env.docker
-    environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-    volumes:
-      - ./logs:/app/logs
     depends_on:
       - db
-      - redis
-    command: celery -A marketplace worker -l info
-    networks:
-      - tor-net
 
-  celery-beat:
-    build: .
-    env_file:
-      - .env.docker
+  db:
+    image: postgres:15-alpine
+    container_name: marketplace_db
+    restart: always
     environment:
-      - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
+      POSTGRES_DB: marketplace
+      POSTGRES_USER: secureuser
+      POSTGRES_PASSWORD: securepassword
     volumes:
-      - ./logs:/app/logs
-    depends_on:
-      - db
-      - redis
-    command: celery -A marketplace beat -l info
+      - db_data:/var/lib/postgresql/data
     networks:
       - tor-net
 
   tor:
-    image: osminogin/tor-simple
+    image: osminogin/tor-simple:latest
     container_name: tor_service
     restart: always
     volumes:
@@ -95,11 +35,12 @@ services:
       - /opt/tor/torrc:/etc/tor/torrc
     networks:
       - tor-net
-
-volumes:
-  postgres_data:
-  redis_data:
+    depends_on:
+      - django
 
 networks:
   tor-net:
     driver: bridge
+
+volumes:
+  db_data:
