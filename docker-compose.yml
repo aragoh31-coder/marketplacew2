@@ -43,6 +43,7 @@ services:
       - .env.docker
     environment:
       - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
+      - ALLOWED_HOSTS=.onion,eo256pnscr5zd4bw2p4c24nrh2vntjhlcqxy5iluselu4mq7wgzt7sqd.onion,localhost,127.0.0.1
     volumes:
       - ./logs:/app/logs
       - ./secure_uploads:/app/secure_uploads
