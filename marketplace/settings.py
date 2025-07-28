@@ -24,7 +24,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'django_ratelimit',
-    'django_redis',
     'accounts',
     'wallets',
     'vendors',
@@ -72,7 +71,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'marketplace.wsgi.application'
 
-DATABASES = {'default': env.db()}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'marketplace',
+        'USER': 'secureuser',
+        'PASSWORD': 'securepassword',
+        'HOST': 'db',
+        'PORT': '5432',
+    }
+}
 
 DATABASES['default']['CONN_MAX_AGE'] = 600
 
@@ -107,11 +115,8 @@ SITE_ID = 1
 
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': env('REDIS_URL'),
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'marketplace-cache',
     }
 }
 
@@ -134,8 +139,8 @@ SECURE_SSL_REDIRECT = False
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-CELERY_BROKER_URL = env('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
+# CELERY_BROKER_URL = env('CELERY_BROKER_URL')
+# CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'

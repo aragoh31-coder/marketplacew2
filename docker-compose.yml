@@ -4,8 +4,19 @@ services:
   django:
     build: .
     container_name: django_app
-    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
+    command: gunicorn marketplace.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120
     restart: always
+    environment:
+      - DJANGO_SECRET_KEY=production-secret-key-change-in-production-deployment
+      - ALLOWED_HOSTS=.onion,localhost,127.0.0.1
+      - BITCOIND_RPC_USER=bitcoinuser
+      - BITCOIND_RPC_PASSWORD=bitcoinpass
+      - BITCOIND_RPC_HOST=127.0.0.1
+      - BITCOIND_RPC_PORT=8332
+      - MONERO_RPC_HOST=127.0.0.1
+      - MONERO_RPC_PORT=18081
+      - MONERO_RPC_USER=monerouser
+      - MONERO_RPC_PASSWORD=moneropass
     expose:
       - "8000"
     networks:
