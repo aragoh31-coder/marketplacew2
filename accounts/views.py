@@ -351,24 +351,10 @@ def login_view(request):
             user_answer = -1
             timestamp = 0
         
-        from apps.security.captcha_oneclick.utils import validate_captcha_submission, generate_captcha_with_tokens
-        is_valid, error_msg = validate_captcha_submission(
-            user_answer, hmac_token, timestamp, pow_challenge, pow_nonce
-        )
-        
-        if not is_valid:
+        if not request.session.get('captcha_oneclick_validated'):
             from .forms import LoginForm as AuthLoginForm
             form = AuthLoginForm(request.POST)
-            captcha_data = generate_captcha_with_tokens()
-            return render(request, 'accounts/login.html', {
-                'form': form,
-                'captcha_image': captcha_data['image'],
-                'captcha_token': captcha_data['hmac_token'],
-                'captcha_timestamp': captcha_data['timestamp'],
-                'pow_challenge': captcha_data['pow_challenge'],
-                'SEGS': captcha_data['segments'],
-                'error': f'CAPTCHA validation failed: {error_msg}'
-            })
+            return redirect(f'/security/captcha/oneclick/?next={request.path}')
         
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm(request.POST)
@@ -382,15 +368,11 @@ def login_view(request):
         from .forms import LoginForm as AuthLoginForm
         form = AuthLoginForm()
     
-    from apps.security.captcha_oneclick.utils import generate_captcha_with_tokens
-    captcha_data = generate_captcha_with_tokens()
+    if not request.session.get('captcha_oneclick_validated'):
+        return redirect(f'/security/captcha/oneclick/?next={request.path}')
+    
     return render(request, 'accounts/login.html', {
-        'form': form,
-        'captcha_image': captcha_data['image'],
-        'captcha_token': captcha_data['hmac_token'],
-        'captcha_timestamp': captcha_data['timestamp'],
-        'pow_challenge': captcha_data['pow_challenge'],
-        'SEGS': captcha_data['segments']
+        'form': form
     })
 
 def old_login_view(request):
