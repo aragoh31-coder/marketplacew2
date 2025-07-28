@@ -16,16 +16,12 @@
 <body>
   <div class="box">
     <h2>Security Check</h2>
-    {% if error %}
-      <div class="error">{{ error }}</div>
-    {% endif %}
-
     <form method="post" action="">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">
       <input type="text" name="hp_field" value="" style="display:none">
       
-      {% if error %}<div style="color:red">{{ error }}</div>{% endif %}
+      {% if error %}<div class="error">{{ error }}</div>{% endif %}
       <p>Click on the circle with a missing gap.</p>
 
       {% if captcha_image %}

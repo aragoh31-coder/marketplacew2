@@ -355,7 +355,11 @@ def oneclick_captcha(request):
                 except ValueError:
                     error = 'Invalid click coordinates.'
                 else:
-                    if validate_click(click_x, click_y, data['target']):
+                    target_data = data['target']
+                    if isinstance(target_data, int):
+                        target_data = {'missing_index': target_data, 'circles': []}
+                    
+                    if validate_click(click_x, click_y, target_data):
                         request.session['captcha_oneclick_validated'] = True
                         request.session.pop('oneclick_captcha', None)
                         return redirect(next_url)
