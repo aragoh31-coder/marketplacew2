@@ -23,16 +23,14 @@
     <form method="post" action="">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">
-      <p>Click on the missing slice to continue.</p>
+      <input type="text" name="hp_field" value="" style="display:none">
+      
+      {% if error %}<div style="color:red">{{ error }}</div>{% endif %}
+      <p>Click on the circle with a missing gap.</p>
 
-      <input
-        type="image"
-        src="data:image/png;base64,{{ captcha_image }}"
-        name="position"
-        alt="Click the cut circle"
-        class="captcha-img"
-        title="Click on the missing slice"
-      >
+      {% if captcha_image %}
+      <input type="image" src="data:image/png;base64,{{ captcha_image }}" name="position" alt="Captcha" class="captcha-img" title="Click on the missing slice">
+      {% endif %}
     </form>
   </div>
 </body>

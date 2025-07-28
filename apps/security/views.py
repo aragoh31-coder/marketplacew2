@@ -318,37 +318,54 @@ def calculate_user_security_score(user):
     
     return max(0, min(100, score))
 
+RATE_LIMIT = 10  # max attempts
+RATE_WINDOW = 300  # 5 min
+SESSION_TTL = 120  # captcha expires in 2 min
+
 @csrf_protect
 def oneclick_captcha(request):
-    """
-    GET: render challenge
-    POST: validate click and redirect to `next`
-    """
     next_url = request.GET.get('next', '/')
     error = None
 
+    ip = request.META.get('REMOTE_ADDR', '')
+    cache_key = f"captcha_attempts_{ip}"
+    attempts = cache.get(cache_key, 0)
+    if attempts >= RATE_LIMIT:
+        return render(request, 'security/oneclick_challenge.html', {
+            'error': 'Too many attempts. Please try later.',
+            'captcha_image': None,
+            'next': next_url,
+        })
+
     if request.method == 'POST':
-        data = request.session.get('oneclick_captcha')
-        x = request.POST.get('position.x')
-        y = request.POST.get('position.y')
+        cache.set(cache_key, attempts + 1, RATE_WINDOW)
 
-        if data and x and y:
-            try:
-                click_x, click_y = int(x), int(y)
-            except ValueError:
-                error = 'Invalid click coordinates.'
-            else:
-                if validate_click(click_x, click_y, data['missing']):
-                    request.session['captcha_oneclick_validated'] = True
-                    del request.session['oneclick_captcha']
-                    return redirect(next_url)
-                else:
-                    error = 'Wrong circle. Please try again.'
+        if request.POST.get('hp_field'):
+            error = 'Bot detected.'
         else:
-            error = 'Please click on the cut circle.'
+            data = request.session.get('oneclick_captcha')
+            x = request.POST.get('position.x')
+            y = request.POST.get('position.y')
 
-    img_b64, missing = make_cut_circle()
-    request.session['oneclick_captcha'] = {'missing': missing}
+            if not data or not isinstance(data, dict) or 'ts' not in data or (timezone.now().timestamp() - data['ts']) > SESSION_TTL:
+                error = 'Captcha expired. Refresh and try again.'
+            elif x and y:
+                try:
+                    click_x, click_y = int(x), int(y)
+                except ValueError:
+                    error = 'Invalid click coordinates.'
+                else:
+                    if validate_click(click_x, click_y, data['target']):
+                        request.session['captcha_oneclick_validated'] = True
+                        request.session.pop('oneclick_captcha', None)
+                        return redirect(next_url)
+                    else:
+                        error = 'Wrong circle. Try again.'
+            else:
+                error = 'Please click on the cut circle.'
+
+    img_b64, target = make_cut_circle()
+    request.session['oneclick_captcha'] = {'target': target, 'ts': timezone.now().timestamp()}
 
     return render(request, 'security/oneclick_challenge.html', {
         'captcha_image': img_b64,
