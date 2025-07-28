@@ -32,7 +32,6 @@ from django.db import transaction
 from .forms import LoginForm, RegistrationForm
 from .totp_utils import TOTPManager
 from .models import User, LoginHistory
-from apps.security.visual_captcha import CaptchaSessionManager
 from core.logging.audit_logger import audit_logger
 from core.utils.cache import log_event
 
@@ -68,44 +67,11 @@ class CaptchaSessionManager:
     @staticmethod
     def validate_captcha(request, user_answer):
         """Validate CAPTCHA answer with consistent string comparison"""
-        captcha_data = CaptchaSessionManager.get_captcha(request)
-        if not captcha_data:
-            print("DEBUG VALIDATE_CAPTCHA: No captcha data found")
+        if not request.session.get('captcha_oneclick_validated'):
+            print("DEBUG VALIDATE_CAPTCHA: No oneclick captcha validation found")
             return False
         
-        try:
-            expires_str = captcha_data.get('expires')
-            if expires_str:
-                if isinstance(expires_str, str):
-                    expires = datetime.fromisoformat(expires_str.replace('Z', '+00:00'))
-                else:
-                    expires = expires_str
-                    if expires.tzinfo is None:
-                        expires = timezone.make_aware(expires)
-                
-                current_time = timezone.now()
-                print(f"DEBUG VALIDATE_CAPTCHA: Current time: {current_time}, Expires: {expires}")
-                if current_time > expires:
-                    print("DEBUG VALIDATE_CAPTCHA: CAPTCHA expired")
-                    return False
-                else:
-                    print(f"DEBUG VALIDATE_CAPTCHA: CAPTCHA still valid, {(expires - current_time).total_seconds()} seconds remaining")
-        except (ValueError, TypeError) as e:
-            print(f"DEBUG VALIDATE_CAPTCHA: Error parsing expiration: {e}")
-            print("DEBUG VALIDATE_CAPTCHA: Continuing validation despite expiration parsing error")
-        
-        stored_answer = str(captcha_data.get('answer', ''))
-        user_answer_str = str(user_answer).strip()
-        
-        print(f"DEBUG VALIDATE_CAPTCHA: Comparing '{user_answer_str}' == '{stored_answer}'")
-        print(f"DEBUG VALIDATE_CAPTCHA: user_answer_str type: {type(user_answer_str)}, len: {len(user_answer_str)}")
-        print(f"DEBUG VALIDATE_CAPTCHA: stored_answer type: {type(stored_answer)}, len: {len(stored_answer)}")
-        print(f"DEBUG VALIDATE_CAPTCHA: user_answer_str repr: {repr(user_answer_str)}")
-        print(f"DEBUG VALIDATE_CAPTCHA: stored_answer repr: {repr(stored_answer)}")
-        
-        result = user_answer_str == stored_answer
-        print(f"DEBUG VALIDATE_CAPTCHA: Comparison result: {result}")
-        return result
+        return True
     
     @staticmethod
     def clear_captcha(request):
@@ -431,15 +397,11 @@ def old_login_view(request):
     if request.method in ["GET", "HEAD"]:
         form = LoginForm()
         
-        CaptchaSessionManager.clear_captcha(request)
-        
-        q, a, img, exp = generate_shape_captcha()
-        CaptchaSessionManager.set_captcha(request, a, q, img, exp)
+        request.session.pop('captcha_oneclick_validated', None)
+        request.session.pop('oneclick_captcha', None)
         
         return render(request, 'accounts/login.html', {
             'form': form,
-            'captcha_question': q,
-            'captcha_image': img,
         })
     
     if request.method == "POST":
@@ -447,27 +409,14 @@ def old_login_view(request):
         
         user_answer = request.POST.get('captcha', '').strip()
         
-        captcha_data = CaptchaSessionManager.get_captcha(request)
-        print(f"DEBUG LOGIN CAPTCHA: User answered '{user_answer}' (type: {type(user_answer)})")
-        print(f"DEBUG LOGIN CAPTCHA: CAPTCHA data: {captcha_data}")
-        
-        captcha_valid = CaptchaSessionManager.validate_captcha(request, user_answer)
-        print(f"DEBUG LOGIN CAPTCHA: Validation result: {captcha_valid}")
+        captcha_valid = request.session.get('captcha_oneclick_validated', False)
+        print(f"DEBUG LOGIN CAPTCHA: OneClick validation result: {captcha_valid}")
         
         if not captcha_valid:
-            messages.error(request, "Incorrect CAPTCHA. Please try again.")
-            
-            CaptchaSessionManager.clear_captcha(request)
-            q, a, img, exp = generate_shape_captcha()
-            CaptchaSessionManager.set_captcha(request, a, q, img, exp)
-            
-            return render(request, 'accounts/login.html', {
-                'form': form,
-                'captcha_question': q,
-                'captcha_image': img,
-            })
+            messages.error(request, "Please complete the CAPTCHA verification first.")
+            return redirect('/security/captcha/oneclick/?next=' + request.path)
         
-        CaptchaSessionManager.clear_captcha(request)
+        request.session.pop('captcha_oneclick_validated', None)
         
         if form.is_valid():
             username = form.cleaned_data['username']
@@ -510,7 +459,6 @@ def old_login_view(request):
                     # if not import_result['success']:
                     #     messages.error(request, 'PGP key error. Please update your PGP key in settings.')
                     #     q, a, img, exp = generate_shape_captcha()
-                    #     CaptchaSessionManager.set_captcha(request, a, q, img, exp)
                     #     return render(request, 'accounts/login.html', {
                     #         'form': form,
                     #         'captcha_question': q,
@@ -529,7 +477,6 @@ def old_login_view(request):
                     #     messages.error(request, 'Failed to generate PGP challenge. Please try again.')
                     #     
                     #     q, a, img, exp = generate_shape_captcha()
-                    #     CaptchaSessionManager.set_captcha(request, a, q, img, exp)
                     #     
                     #     return render(request, 'accounts/login.html', {
                     #         'form': form,
@@ -587,8 +534,6 @@ def old_login_view(request):
         
         return render(request, 'accounts/login.html', {
             'form': form,
-            'captcha_question': q,
-            'captcha_image': img,
         })
 
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Verification Required</title>
+  <style>
+    /* Minimal styling, adapt to your theme */
+    body { background:#f5f5f5; font-family:sans-serif; }
+    .box { max-width:320px; padding:20px; margin:50px auto; background:#fff; border-radius:8px; text-align:center; }
+    .error { color:#c00; margin-bottom:10px; }
+    .captcha-img { cursor:pointer; border:2px solid #ddd; border-radius:4px; }
+    .captcha-img:hover { border-color:#888; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Security Check</h2>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ next }}">
+      <p>Click on the missing slice to continue.</p>
+
+      <input
+        type="image"
+        src="data:image/png;base64,{{ captcha_image }}"
+        name="position"
+        alt="Click the cut circle"
+        class="captcha-img"
+        title="Click on the missing slice"
+      >
+    </form>
+  </div>
+</body>
+</html>

@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from adminpanel.models import AdminLog
-from .visual_captcha import VisualCaptcha, CaptchaSessionManager
+from .captcha_oneclick.utils import make_cut_circle, validate_click
 import random
 import time
 import hashlib
@@ -318,60 +318,40 @@ def calculate_user_security_score(user):
     
     return max(0, min(100, score))
 
-def generate_visual_captcha(request):
-    """Generate new visual CAPTCHA challenge"""
-    try:
-        captcha = VisualCaptcha()
-        captcha_data = captcha.generate_captcha_session()
-        
-        CaptchaSessionManager.store_captcha_data(request, captcha_data)
-        
-        return JsonResponse({
-            'success': True,
-            'main_image': captcha_data['main_image'],
-            'slice_images': captcha_data['slice_images'],
-            'session_id': captcha_data['session_id']
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+@csrf_protect
+def oneclick_captcha(request):
+    """
+    GET: render challenge
+    POST: validate click and redirect to `next`
+    """
+    next_url = request.GET.get('next', '/')
+    error = None
 
-def validate_visual_captcha(request):
-    """Validate visual CAPTCHA solution"""
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'POST required'})
-    
-    try:
-        data = json.loads(request.body)
-        session_id = data.get('session_id')
-        selected_slice = int(data.get('selected_slice', -1))
-        drop_x = int(data.get('drop_x', 0))
-        drop_y = int(data.get('drop_y', 0))
-        
-        captcha_data = CaptchaSessionManager.get_captcha_data(request)
-        if not captcha_data or CaptchaSessionManager.is_captcha_expired(captcha_data):
-            return JsonResponse({
-                'success': False,
-                'error': 'CAPTCHA expired or not found'
-            })
-        
-        captcha = VisualCaptcha()
-        is_valid, message = captcha.validate_captcha(session_id, selected_slice, drop_x, drop_y)
-        
-        if is_valid:
-            CaptchaSessionManager.clear_captcha_data(request)
-            request.session['captcha_validated'] = True
-            request.session['captcha_validated_at'] = timezone.now().timestamp()
-        
-        return JsonResponse({
-            'success': is_valid,
-            'message': message
-        })
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
+    if request.method == 'POST':
+        data = request.session.get('oneclick_captcha')
+        x = request.POST.get('position.x')
+        y = request.POST.get('position.y')
+
+        if data and x and y:
+            try:
+                click_x, click_y = int(x), int(y)
+            except ValueError:
+                error = 'Invalid click coordinates.'
+            else:
+                if validate_click(click_x, click_y, data['missing']):
+                    request.session['captcha_oneclick_validated'] = True
+                    del request.session['oneclick_captcha']
+                    return redirect(next_url)
+                else:
+                    error = 'Wrong circle. Please try again.'
+        else:
+            error = 'Please click on the cut circle.'
+
+    img_b64, missing = make_cut_circle()
+    request.session['oneclick_captcha'] = {'missing': missing}
+
+    return render(request, 'security/oneclick_challenge.html', {
+        'captcha_image': img_b64,
+        'next': next_url,
+        'error': error,
+    })
