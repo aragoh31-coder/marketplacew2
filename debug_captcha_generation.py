@@ -19,7 +19,7 @@ def test_captcha_generation():
     
     try:
         print("1. Testing make_cut_circle function...")
-        img_b64, missing = make_cut_circle(5)
+        img_b64, missing = make_cut_circle()
         print(f"   ✅ Generated image for missing segment: {missing}")
         print(f"   ✅ Base64 length: {len(img_b64)}")
         print(f"   ✅ Base64 starts with: {img_b64[:50]}...")
