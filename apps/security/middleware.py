@@ -46,12 +46,19 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         return self._add_security_headers(response)
     
     def _is_advanced_bot(self, request):
-        """Advanced bot detection with multiple signals"""
+        """Advanced bot detection with multiple signals - Tor friendly"""
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
         
+        tor_friendly_patterns = ['tor browser', 'firefox', 'chrome', 'safari', 'edge']
+        for pattern in tor_friendly_patterns:
+            if pattern in user_agent:
+                return False
+        
+        if request.path in ['/login/', '/register/', '/accounts/login/', '/accounts/register/']:
+            return False
+        
         bot_patterns = [
-            'bot', 'crawler', 'spider', 'scraper', 'curl', 'wget',
-            'python-requests', 'scrapy', 'selenium', 'phantomjs',
+            'bot', 'crawler', 'spider', 'scraper', 'scrapy', 'selenium', 'phantomjs',
             'headless', 'automation', 'test'
         ]
         
@@ -62,7 +69,7 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         essential_headers = ['HTTP_ACCEPT', 'HTTP_ACCEPT_LANGUAGE', 'HTTP_ACCEPT_ENCODING']
         missing_headers = sum(1 for header in essential_headers if not request.META.get(header))
         
-        if missing_headers >= 2:
+        if missing_headers >= 3:
             return True
         
         accept = request.META.get('HTTP_ACCEPT', '')
@@ -117,9 +124,9 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         current_time = time.time()
         
         limits = [
-            ('1min', 60, 40),    # 40 requests per minute
-            ('5min', 300, 180),  # 180 requests per 5 minutes
-            ('1hour', 3600, 1500) # 1500 requests per hour
+            ('1min', 60, 20),    # 20 requests per minute
+            ('5min', 300, 50),   # 50 requests per 5 minutes
+            ('1hour', 3600, 200) # 200 requests per hour
         ]
         
         for window_name, window_size, limit in limits:
@@ -169,7 +176,7 @@ class WalletSecurityMiddleware(MiddlewareMixin):
             'X-Frame-Options': 'DENY',
             'X-XSS-Protection': '1; mode=block',
             'Referrer-Policy': 'strict-origin-when-cross-origin',
-            'Content-Security-Policy': "default-src 'self'; script-src 'none'; object-src 'none';",
+            'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self';",
             'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
             'Permissions-Policy': 'geolocation=(), microphone=(), camera=()'
         }
@@ -260,6 +267,24 @@ class RateLimitMiddleware:
         return ip
 
 
+class CaptchaRateLimitMiddleware:
+    """Rate limiting middleware for CAPTCHA attempts"""
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if "captcha" in request.path and request.method == "POST" and not request.path.startswith('/anti_ddos/'):
+            key = f"captcha_attempts:{request.META.get('REMOTE_ADDR')}"
+            attempts = cache.get(key, 0)
+            if attempts >= 5:
+                response = HttpResponse("Too many attempts.", status=429)
+                response['Retry-After'] = '300'
+                return response
+            cache.set(key, attempts + 1, timeout=300)
+        return self.get_response(request)
+
+
 class EnhancedSecurityMiddleware:
     """Enhanced security middleware with comprehensive bot detection"""
     
@@ -304,19 +329,24 @@ class EnhancedSecurityMiddleware:
         return response
 
     def _is_bot_request(self, request):
-        """Enhanced bot detection"""
+        """Enhanced bot detection - Tor friendly"""
         user_agent = request.META.get('HTTP_USER_AGENT', '').lower()
+        
+        tor_friendly_patterns = ['tor browser', 'firefox', 'chrome', 'safari', 'edge']
+        for pattern in tor_friendly_patterns:
+            if pattern in user_agent:
+                return False
+        
+        if request.path in ['/login/', '/register/', '/accounts/login/', '/accounts/register/']:
+            return False
         
         for pattern in self.BOT_USER_AGENTS:
             if re.search(pattern, user_agent, re.IGNORECASE):
-                if any(legit in user_agent for legit in ['googlebot', 'bingbot', 'duckduckbot']):
+                if any(legit in user_agent for legit in ['googlebot', 'bingbot', 'duckduckbot', 'tor browser']):
                     return False
                 return True
         
-        if not user_agent or len(user_agent) < 10:
-            return True
-        
-        if not request.META.get('HTTP_ACCEPT_LANGUAGE'):
+        if not user_agent or len(user_agent) < 5:
             return True
         
         return False
@@ -348,9 +378,9 @@ class EnhancedSecurityMiddleware:
         ).hexdigest()
         
         windows = [
-            ('1min', 60, 40),    # 40 requests per minute
-            ('5min', 300, 180),  # 180 requests per 5 minutes
-            ('1hour', 3600, 1500) # 1500 requests per hour
+            ('1min', 60, 30),    # 30 requests per minute
+            ('5min', 300, 100),  # 100 requests per 5 minutes
+            ('1hour', 3600, 500) # 500 requests per hour
         ]
         
         for window_name, duration, limit in windows:
@@ -371,7 +401,7 @@ class EnhancedSecurityMiddleware:
         response['X-Frame-Options'] = 'DENY'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Content-Security-Policy'] = "default-src 'self'; script-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline';"
+        response['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self';"
         response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
 
