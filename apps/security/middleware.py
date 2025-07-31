@@ -117,9 +117,9 @@ class WalletSecurityMiddleware(MiddlewareMixin):
         current_time = time.time()
         
         limits = [
-            ('1min', 60, 20),    # 20 requests per minute
-            ('5min', 300, 50),   # 50 requests per 5 minutes
-            ('1hour', 3600, 200) # 200 requests per hour
+            ('1min', 60, 40),    # 40 requests per minute
+            ('5min', 300, 180),  # 180 requests per 5 minutes
+            ('1hour', 3600, 1500) # 1500 requests per hour
         ]
         
         for window_name, window_size, limit in limits:
@@ -331,9 +331,9 @@ class EnhancedSecurityMiddleware:
         ).hexdigest()
         
         windows = [
-            ('1min', 60, 30),    # 30 requests per minute
-            ('5min', 300, 100),  # 100 requests per 5 minutes
-            ('1hour', 3600, 500) # 500 requests per hour
+            ('1min', 60, 40),    # 40 requests per minute
+            ('5min', 300, 180),  # 180 requests per 5 minutes
+            ('1hour', 3600, 1500) # 1500 requests per hour
         ]
         
         for window_name, duration, limit in windows:

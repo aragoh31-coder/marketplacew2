@@ -1,5 +1,6 @@
 from django.utils.deprecation import MiddlewareMixin
 from django.shortcuts import redirect
+from django.conf import settings
 from .utils import decode_token, verify_token
 import logging
 
@@ -7,12 +8,18 @@ logger = logging.getLogger(__name__)
 
 class AntiDDoSMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        if request.path.startswith(settings.STATIC_URL) or request.path.startswith('/admin/'):
+            return None
+            
         if request.path.startswith('/anti_ddos/'): 
             return None
             
         token = request.COOKIES.get('hmac_token')
         logger.info(f"AntiDDoS Middleware: path={request.path}, token_present={bool(token)}")
         
+        if request.session.get('captcha_passed'):
+            return None
+            
         if token:
             logger.info(f"AntiDDoS Middleware: token_length={len(token)}")
             decoded_token = decode_token(token)
