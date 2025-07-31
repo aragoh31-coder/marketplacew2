@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verifying Your Connection</title>
+  <style>
+    /* Tailwind CSS v3.2.4 (minified subset) */
+    *{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}
+    *::before,*::after{box-sizing:border-box}
+    html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"}
+    body{margin:0;line-height:inherit}
+    .bg-gray-900{background-color:#111827}
+    .text-white{color:#fff}
+    .text-2xl{font-size:1.5rem;line-height:2rem}
+    .text-center{text-align:center}
+    .flex{display:flex}
+    .flex-col{flex-direction:column}
+    .items-center{align-items:center}
+    .justify-center{justify-content:center}
+    .h-screen{height:100vh}
+    .mx-auto{margin-left:auto;margin-right:auto}
+    .mb-2{margin-bottom:0.5rem}
+    .mb-4{margin-bottom:1rem}
+    .mb-6{margin-bottom:1.5rem}
+    .p-2{padding:0.5rem}
+    .p-3{padding:0.75rem}
+    .rounded{border-radius:0.25rem}
+    .rounded-lg{border-radius:0.5rem}
+    .w-48{width:12rem}
+    .w-64{width:16rem}
+    .block{display:block}
+    .bg-gray-800{background-color:#1f2937}
+    .bg-blue-600{background-color:#2563eb}
+    .hover\:bg-blue-700:hover{background-color:#1d4ed8}
+    .border{border-width:1px}
+    .border-gray-600{border-color:#4b5563}
+    .focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}
+    .focus\:ring-2:focus{box-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)}
+    .focus\:ring-blue-500:focus{--tw-ring-color:#3b82f6}
+    .transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-timing-function:cubic-bezier(0.4,0,0.2,1);transition-duration:150ms}
+    .duration-200{transition-duration:200ms}
+    .animate-spin{animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .spinner{width:3rem;height:3rem;border:2px solid transparent;border-top:2px solid #3b82f6;border-radius:50%}
+    .math-problem{font-size:1.25rem;font-weight:600;color:#60a5fa;margin:1rem 0}
+  </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center h-screen">
+  <div class="text-center">
+    <div class="spinner animate-spin mx-auto mb-4"></div>
+    <h1 class="text-2xl mb-2">Securing your connection...</h1>
+    <p class="mb-6 text-gray-300">Please solve this simple math problem to continue</p>
+    
+    <form method="post" action="{% url 'anti_ddos:verify' %}" class="bg-gray-800 p-6 rounded-lg border border-gray-600">
+      {% csrf_token %}
+      <input type="hidden" name="challenge_data" value="{{ challenge_data }}">
+      <input type="hidden" name="start_time" value="{{ now_ts }}">
+      
+      <!-- Honeypot fields (hidden) -->
+      {% for i in "01234" %}
+        <input type="hidden" name="hp{{ i }}" value="" style="display:none;">
+      {% endfor %}
+      
+      <div class="math-problem mb-4">
+        What is {{ challenge.a }} {{ challenge.operation }} {{ challenge.b }}?
+      </div>
+      
+      <input type="number" 
+             name="answer" 
+             required 
+             placeholder="Your answer"
+             class="bg-gray-800 text-white p-3 rounded w-64 mx-auto mb-4 block border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      
+      <button type="submit" 
+              class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded w-64 mx-auto block transition duration-200">
+        Continue
+      </button>
+    </form>
+    
+    <p class="mt-4 text-sm text-gray-400">
+      This verification helps protect against automated attacks
+    </p>
+  </div>
+</body>
+</html>
