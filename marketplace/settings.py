@@ -41,6 +41,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'django.contrib.sessions.middleware.SessionMiddleware',  # Ensure sessions load before captcha
     'apps.anti_ddos.middleware.AntiDDoSMiddleware',
     
     'apps.security.openresty_middleware.OpenRestyIntegrationMiddleware',
@@ -56,7 +57,6 @@ MIDDLEWARE = [
     'apps.security.optimized_middleware.OptimizedSecurityMiddleware',
     
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',

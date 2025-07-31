@@ -62,13 +62,11 @@ def verify_view(request):
             token_str = serialize_token(t)
             logger.info(f"HMAC Verify: Token issued, length={len(token_str)}")
             
-            request.session['captcha_passed'] = True
-            request.session.save()
-            
             resp = redirect('/')
             resp.set_cookie('hmac_token', token_str,
-                            max_age=7200, httponly=True, secure=False, 
-                            domain=None, path='/')
+                            max_age=7200, httponly=True, secure=False)
+            request.session['captcha_passed'] = True
+            request.session.save()
             logger.info("HMAC Verify: Cookie set, redirecting to main site")
             return resp
         else:

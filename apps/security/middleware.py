@@ -187,6 +187,23 @@ class RateLimitMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        path = request.path
+        
+        if path in ['/login', '/register'] or path.startswith('/login/') or path.startswith('/register/'):
+            token = request.COOKIES.get('hmac_token')
+            if token:
+                for window, limit in [('1m', 20), ('5m', 50), ('1h', 300)]:
+                    seconds = {'1m':60, '5m':300, '1h':3600}[window]
+                    key = f"rl:{token}:{window}"
+                    count = cache.get(key, 0)
+                    if count >= limit:
+                        from django.http import HttpResponseTooManyRequests
+                        return HttpResponseTooManyRequests(
+                            f"Rate limit exceeded: {limit} requests per {window}"
+                        )
+                    cache.set(key, count+1, timeout=seconds)
+            return self.get_response(request)
+        
         if request.user.is_authenticated:
             path = request.path
             
