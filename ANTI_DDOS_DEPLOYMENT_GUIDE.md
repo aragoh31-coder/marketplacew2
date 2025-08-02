@@ -159,9 +159,9 @@ HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053E
 # Test challenge endpoint
 curl -s http://localhost/anti_ddos/challenge/ | grep challenge_data
 
-# Test onion service
+# Test onion service (replace with your actual .onion address)
 curl -s --socks5-hostname localhost:9050 \
-  http://j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion/anti_ddos/challenge/
+  http://YOUR_ONION_ADDRESS.onion/anti_ddos/challenge/
 
 # Check HMAC gatekeeper
 curl -s -I http://localhost/ | grep -i location
@@ -262,9 +262,9 @@ docker-compose exec openresty nginx -t
 # Test PoW launcher
 python3 tor_pow_launcher.py
 
-# Verify onion accessibility
+# Verify onion accessibility (replace with your actual .onion address)
 curl --socks5-hostname localhost:9050 \
-  http://j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion/
+  http://YOUR_ONION_ADDRESS.onion/
 ```
 
 ## Support and Maintenance

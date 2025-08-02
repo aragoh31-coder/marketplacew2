@@ -1,7 +1,7 @@
 SocksPort 0.0.0.0:9050
 DataDirectory /var/lib/tor
 HiddenServiceDir /var/lib/tor/hidden_service/
-HiddenServicePort 80 openresty:80
+HiddenServicePort 80 172.18.0.1:8080
 Log notice stdout
 RunAsDaemon 0
 

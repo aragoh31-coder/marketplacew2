@@ -11,6 +11,7 @@ import re
 import base64
 import json
 import requests
+import os
 from stem import Signal
 from stem.control import Controller
 import logging
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 TOR_CONTROL_PORT = 9051
 TOR_SOCKS_PORT = 9050
-ONION_ADDRESS = "j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion"
+ONION_ADDRESS = os.getenv("CURRENT_ONION_ADDRESS", "*.onion")
 CLEARNET_FALLBACK = "localhost"
 MAX_RETRIES = 3
 SOLVE_TIMEOUT = 30

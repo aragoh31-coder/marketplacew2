@@ -33,7 +33,7 @@ class TestResult:
 class AntiDDoSStressTester:
     def __init__(self):
         self.base_url = "http://localhost"
-        self.onion_url = "http://j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion"
+        self.onion_url = f"http://{os.getenv('CURRENT_ONION_ADDRESS', '*.onion')}"
         self.tor_proxy = {'http': 'socks5h://localhost:9050', 'https': 'socks5h://localhost:9050'}
         self.results = []
         

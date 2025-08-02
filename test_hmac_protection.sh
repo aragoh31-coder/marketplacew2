@@ -5,7 +5,7 @@ echo "HMAC STATELESS PROTECTION TESTING SUITE"
 echo "==============================================================================="
 
 TOR_PROXY="socks5h://localhost:9050"
-ONION="http://j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion"
+ONION="http://${CURRENT_ONION_ADDRESS:-*.onion}"
 CLEARNET="http://localhost"
 
 echo ""

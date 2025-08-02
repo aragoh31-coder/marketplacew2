@@ -103,7 +103,7 @@ AREAS FOR IMPROVEMENT:
 
 🌐 ONION SERVICE STATUS
 ======================
-✅ Address: j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion
+✅ Address: *.onion (example: j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion)
 ✅ Accessibility: CONFIRMED OPERATIONAL
 ✅ Anti-DDoS Protection: ACTIVE AND EFFECTIVE
 

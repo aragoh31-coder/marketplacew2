@@ -108,7 +108,7 @@ if client_ip.startswith('172.18.') or client_ip.startswith('127.'):
 ## 🌐 TOR ONION SERVICE
 
 ### Operational Status
-- **Onion Address:** `j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion`
+- **Onion Address:** `*.onion` (example: j2qnvjqnaihhrm5ktlwjp4tqkkpd27afli2qmn7fzphuefrgrt3imcqd.onion)
 - **Status:** ✅ Active and accessible
 - **Traffic Flow:** Internet → Tor → OpenResty → Django
 - **Security:** 7-layer protection active
