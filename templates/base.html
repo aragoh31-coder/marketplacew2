@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome (for icons) -->
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <!-- Local Tailwind CSS -->
+  {% load static %}
+  <link href="{% static 'css/tailwind.css' %}" rel="stylesheet"/>
   <style>
     /* Hide the checkbox inputs */
     #sidebar-toggle,
@@ -55,7 +53,7 @@
   <aside class="sidebar fixed inset-y-0 left-0 w-64 bg-gray-800 text-white p-6 z-20">
     <label for="sidebar-toggle"
            class="flex items-center space-x-2 mb-6 cursor-pointer hover:text-gray-300">
-      <i class="fas fa-times"></i>
+      <img src="{% static 'icons/close.svg' %}" class="w-6 h-6" alt="Close">
       <span>Close Menu</span>
     </label>
     <nav class="space-y-4">
@@ -91,7 +89,7 @@
         <!-- Hamburger -->
         <label for="sidebar-toggle"
                class="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer">
-          <i class="fas fa-bars text-2xl"></i>
+          <img src="{% static 'icons/menu.svg' %}" class="w-6 h-6" alt="Menu">
         </label>
         <a href="{% url 'accounts:home' %}" class="text-2xl font-semibold text-gray-800">SecureMarket</a>
       </div>
@@ -104,8 +102,8 @@
           <!-- Also toggleable on mobile via hidden checkbox -->
           <input type="checkbox" id="categories-toggle" class="dropdown-toggle hidden"/>
           <label for="categories-toggle"
-                 class="text-gray-700 hover:text-gray-900 transition cursor-pointer">
-            Categories <i class="fas fa-caret-down ml-1"></i>
+                 class="flex items-center text-gray-700 hover:text-gray-900 transition cursor-pointer">
+            Categories <img src="{% static 'icons/caret-down.svg' %}" class="w-4 h-4 ml-1" alt="Dropdown">
           </label>
           <ul class="dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden">
             <li><a href="{% url 'products:by_category' category_id=1 %}"
@@ -121,8 +119,8 @@
         <div class="relative">
           <input type="checkbox" id="user-menu-toggle" class="dropdown-toggle hidden"/>
           <label for="user-menu-toggle"
-                 class="text-gray-700 hover:text-gray-900 transition cursor-pointer">
-            Account <i class="fas fa-caret-down ml-1"></i>
+                 class="flex items-center text-gray-700 hover:text-gray-900 transition cursor-pointer">
+            Account <img src="{% static 'icons/caret-down.svg' %}" class="w-4 h-4 ml-1" alt="Dropdown">
           </label>
           <ul class="dropdown absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg overflow-hidden">
             {% if user.is_authenticated %}
@@ -151,12 +149,12 @@
         {% if user.is_authenticated %}
           <a href="{% url 'orders:cart' %}"
              class="text-gray-600 hover:text-gray-800 transition">
-            <i class="fas fa-shopping-cart text-2xl"></i>
+            <img src="{% static 'icons/cart.svg' %}" class="w-6 h-6" alt="Cart">
           </a>
         {% endif %}
         <label for="user-menu-toggle"
                class="relative text-gray-600 hover:text-gray-800 transition cursor-pointer">
-          <i class="fas fa-user-circle text-2xl"></i>
+          <img src="{% static 'icons/user.svg' %}" class="w-6 h-6" alt="User">
         </label>
       </div>
     </header>
