@@ -1,56 +1,137 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="h-full">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:;">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Secure Marketplace{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+  <meta charset="UTF-8"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data:;">
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>{% block title %}Secure Marketplace{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Sidebar toggle hack */
+    #sidebar-toggle { display: none; }
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease-in-out;
+    }
+    #sidebar-toggle:checked ~ .sidebar {
+      transform: translateX(0);
+    }
+    /* Overlay */
+    .overlay {
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+    #sidebar-toggle:checked ~ .overlay {
+      pointer-events: auto;
+      opacity: .5;
+    }
+    /* Dropdowns */
+    .dropdown { display: none; }
+    .group:hover .dropdown,
+    input.dropdown-toggle:checked + label + .dropdown {
+      display: block;
+    }
+  </style>
 </head>
-<body class="bg-dark-bg text-dark-text font-system">
-<header class="bg-tor-medium border-b border-gray-700 sticky top-0 z-50">
-    <div class="container mx-auto px-4 flex justify-between items-center py-4">
-        <div class="text-xl font-bold">
-            <a href="{% url 'accounts:home' %}" class="text-tor-accent hover:text-blue-400">🔒 SecureMarket</a>
+<body class="flex h-full bg-gray-50 font-inter">
+
+  <!-- Sidebar Toggle & Overlay -->
+  <input type="checkbox" id="sidebar-toggle" />
+  <label for="sidebar-toggle" class="overlay fixed inset-0 bg-black"></label>
+
+  <!-- Sidebar -->
+  <aside class="sidebar fixed inset-y-0 left-0 w-64 bg-gray-800 text-gray-100 p-6 space-y-6 z-20">
+    <label for="sidebar-toggle" class="flex items-center space-x-2 cursor-pointer mb-6 text-gray-400 hover:text-white">
+      <i class="fas fa-times text-xl">✕</i>
+      <span>Close Menu</span>
+    </label>
+    <nav class="space-y-3">
+      <a href="{% url 'accounts:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">🏠 Home</a>
+      <a href="{% url 'products:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">📦 Products</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'orders:cart' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">🛒 Cart</a>
+        <a href="{% url 'messaging:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">💬 Messages</a>
+        <a href="{% url 'wallets:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">💰 Wallet</a>
+        {% if user.vendor %}
+          <a href="{% url 'vendors:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">🏪 Vendor Dashboard</a>
+        {% else %}
+          <a href="{% url 'vendors:apply' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">🏪 Become Vendor</a>
+        {% endif %}
+        {% if user.is_staff %}
+          <a href="{% url 'adminpanel:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">⚙️ Admin Panel</a>
+        {% endif %}
+        <a href="{% url 'support:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">❓ Support</a>
+        <a href="{% url 'accounts:profile_settings' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">👤 Account</a>
+      {% else %}
+        <a href="{% url 'vendors:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">🏪 Vendors</a>
+        <a href="{% url 'support:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700 transition">❓ Support</a>
+      {% endif %}
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col">
+
+    <!-- Top Toolbar -->
+    <header class="flex items-center justify-between bg-white shadow px-6 py-4 z-10">
+      <div class="flex items-center space-x-4">
+        <label for="sidebar-toggle" class="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer">
+          <i class="fas fa-bars text-2xl">☰</i>
+        </label>
+        <a href="{% url 'accounts:home' %}" class="text-2xl font-semibold text-gray-800">🔒 SecureMarket</a>
+      </div>
+      <nav class="hidden md:flex items-center space-x-8">
+        <div class="relative group">
+          <a href="#" class="text-gray-700 hover:text-gray-900 transition">Categories</a>
+          <ul class="dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden">
+            <li><a href="{% url 'products:by_category' category_id=1 %}" class="block px-4 py-2 hover:bg-gray-100 transition">📱 Electronics</a></li>
+            <li><a href="{% url 'products:by_category' category_id=2 %}" class="block px-4 py-2 hover:bg-gray-100 transition">💾 Digital Goods</a></li>
+            <li><a href="{% url 'products:by_category' category_id=3 %}" class="block px-4 py-2 hover:bg-gray-100 transition">🛠 Services</a></li>
+          </ul>
         </div>
-        <nav class="hidden lg:flex space-x-6">
-            <div class="group relative">
-                <button class="flex items-center space-x-1 py-2 hover:text-tor-accent">
-                    <span>Categories</span>
-                    <svg class="w-4 h-4 transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-                <div class="absolute left-0 mt-1 w-64 bg-tor-medium border border-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
-                    <div class="py-2">
-                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">📱 Electronics</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">💾 Digital Goods</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">🛠 Services</a>
-                    </div>
-                </div>
-            </div>
-            <a href="{% url 'products:list' %}" class="hover:text-tor-accent">Products</a>
-            <a href="{% url 'vendors:list' %}" class="hover:text-tor-accent">Vendors</a>
-            <a href="{% url 'orders:cart' %}" class="hover:text-tor-accent">Cart</a>
-            <a href="{% url 'messaging:list' %}" class="hover:text-tor-accent">Messages</a>
-        </nav>
-        <div class="flex items-center space-x-4">
+        <div class="relative">
+          <input type="checkbox" id="user-menu" class="dropdown-toggle hidden" />
+          <label for="user-menu" class="flex items-center cursor-pointer text-gray-700 hover:text-gray-900 transition">
+            Account <i class="fas fa-caret-down ml-1">▼</i>
+          </label>
+          <ul class="dropdown absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg overflow-hidden">
             {% if user.is_authenticated %}
-                <a href="{% url 'accounts:profile_settings' %}" class="hover:text-tor-accent">Settings</a>
-                <a href="{% url 'logout' %}" class="hover:text-tor-accent">Logout</a>
+              <li><a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-100 transition">👤 Profile</a></li>
+              <li><a href="{% url 'accounts:change_password' %}" class="block px-4 py-2 hover:bg-gray-100 transition">🔑 Password</a></li>
+              <li><a href="{% url 'accounts:pgp_settings' %}" class="block px-4 py-2 hover:bg-gray-100 transition">🔐 PGP Settings</a></li>
+              <li><a href="{% url 'accounts:totp_setup' %}" class="block px-4 py-2 hover:bg-gray-100 transition">🔒 2FA Setup</a></li>
+              <li><a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-100 transition">🚪 Log Out</a></li>
             {% else %}
-                <a href="{% url 'accounts:login' %}" class="hover:text-tor-accent">Login</a>
-                <a href="{% url 'accounts:register' %}" class="hover:text-tor-accent">Register</a>
+              <li><a href="{% url 'accounts:login' %}" class="block px-4 py-2 hover:bg-gray-100 transition">🔑 Login</a></li>
+              <li><a href="{% url 'accounts:register' %}" class="block px-4 py-2 hover:bg-gray-100 transition">📝 Register</a></li>
             {% endif %}
+          </ul>
         </div>
-    </div>
-</header>
-<main class="container mx-auto px-4 py-8">
-    {% block content %}{% endblock %}
-</main>
-<footer class="bg-tor-medium border-t border-gray-700 mt-8 py-4 text-center text-gray-400 text-sm">
-    © SecureMarketplace - Tor Network • No JavaScript • Privacy Protected
-</footer>
+      </nav>
+
+      <!-- Mobile Icons -->
+      <div class="md:hidden flex items-center space-x-4">
+        {% if user.is_authenticated %}
+          <a href="{% url 'orders:cart' %}" class="text-gray-600 hover:text-gray-800 transition"><i class="fas fa-shopping-cart text-xl">🛒</i></a>
+        {% endif %}
+        <label for="user-menu" class="relative">
+          <i class="fas fa-user-circle text-2xl text-gray-600 hover:text-gray-800 transition cursor-pointer">👤</i>
+        </label>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-auto p-6">
+      {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-100 border-t border-gray-200 mt-8 py-4 text-center text-gray-500 text-sm">
+      © SecureMarketplace - Tor Network • No JavaScript • Privacy Protected
+    </footer>
+  </div>
+
 </body>
 </html>
