@@ -1,165 +1,120 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <!-- Local Tailwind CSS -->
-  {% load static %}
+
+  <!-- 3.1—Self-hosted Tailwind -->
   <link href="{% static 'css/tailwind.css' %}" rel="stylesheet"/>
+
+  <!-- 3.2—Font-Awesome (optional) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet"/>
+
+  <!-- 3.3—CSS-only interactivity hacks -->
   <style>
-    /* Hide the checkbox inputs */
-    #sidebar-toggle,
-    #user-menu-toggle,
-    #categories-toggle { display: none; }
+    /* hide toggles */
+    #sidebar-toggle, #user-menu-toggle, #categories-toggle { display: none; }
 
-    /* Sidebar slide-in */
-    .sidebar {
-      transform: translateX(-100%);
-      transition: transform 0.3s ease-in-out;
-    }
-    #sidebar-toggle:checked ~ .sidebar {
-      transform: translateX(0);
-    }
+    /* sidebar slide */
+    .sidebar { transform: translateX(-100%); transition: transform .3s ease; }
+    #sidebar-toggle:checked ~ .sidebar { transform: translateX(0); }
 
-    /* Overlay fade */
-    .overlay {
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-    }
-    #sidebar-toggle:checked ~ .overlay {
-      pointer-events: auto;
-      opacity: 0.5;
-    }
+    /* overlay fade */
+    .overlay { pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+    #sidebar-toggle:checked ~ .overlay { pointer-events: auto; opacity: .5; }
 
-    /* Dropdowns (hover & checkbox) */
+    /* dropdown show/hide */
     .dropdown { display: none; }
     .group:hover .dropdown,
-    input.dropdown-toggle:checked + label + .dropdown {
-      display: block;
-    }
+    input.dropdown-toggle:checked + label + .dropdown { display: block; }
   </style>
 </head>
 
-<body class="flex h-full bg-gray-50 font-sans">
+<body class="flex h-full bg-gray-50">
 
-  <!-- 1) Sidebar toggle checkbox -->
+  <!-- 3.4—Sidebar toggle -->
   <input type="checkbox" id="sidebar-toggle"/>
 
-  <!-- 2) Overlay -->
+  <!-- overlay -->
   <label for="sidebar-toggle" class="overlay fixed inset-0 bg-black"></label>
 
-  <!-- 3) Sidebar -->
+  <!-- sidebar -->
   <aside class="sidebar fixed inset-y-0 left-0 w-64 bg-gray-800 text-white p-6 z-20">
     <label for="sidebar-toggle"
-           class="flex items-center space-x-2 mb-6 cursor-pointer hover:text-gray-300">
-      <img src="{% static 'icons/close.svg' %}" class="w-6 h-6" alt="Close">
-      <span>Close Menu</span>
+           class="flex items-center mb-6 cursor-pointer hover:text-gray-300">
+      <i class="fas fa-times"></i><span class="ml-2">Close Menu</span>
     </label>
     <nav class="space-y-4">
       <a href="{% url 'accounts:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Home</a>
       <a href="{% url 'products:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Products</a>
-      {% if user.is_authenticated %}
-        <a href="{% url 'orders:cart' %}" class="block py-2 px-4 rounded hover:bg-gray-700">My Orders</a>
-        <a href="{% url 'accounts:profile_settings' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Account</a>
-        <a href="{% url 'messaging:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Messages</a>
-        <a href="{% url 'wallets:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Wallet</a>
-        {% if user.vendor %}
-          <a href="{% url 'vendors:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Vendor Dashboard</a>
-        {% else %}
-          <a href="{% url 'vendors:apply' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Become Vendor</a>
-        {% endif %}
-        {% if user.is_staff %}
-          <a href="{% url 'adminpanel:dashboard' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Admin Panel</a>
-        {% endif %}
-        <a href="{% url 'support:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Support</a>
-      {% else %}
-        <a href="{% url 'vendors:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Vendors</a>
-        <a href="{% url 'support:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Support</a>
-      {% endif %}
+      <a href="{% url 'orders:list' %}" class="block py-2 px-4 rounded hover:bg-gray-700">My Orders</a>
+      <a href="{% url 'accounts:home' %}" class="block py-2 px-4 rounded hover:bg-gray-700">Account</a>
     </nav>
   </aside>
 
-  <!-- 4) Main container -->
+  <!-- main panel -->
   <div class="flex-1 flex flex-col">
 
-    <!-- 4a) Top toolbar -->
+    <!-- top toolbar -->
     <header class="flex items-center justify-between bg-white shadow px-6 py-4 z-10">
       <div class="flex items-center space-x-4">
-        <!-- Hamburger -->
         <label for="sidebar-toggle"
-               class="p-2 rounded-md text-gray-600 hover:bg-gray-100 hover:text-gray-800 transition cursor-pointer">
-          <img src="{% static 'icons/menu.svg' %}" class="w-6 h-6" alt="Menu">
+               class="p-2 rounded text-gray-600 hover:bg-gray-100 hover:text-gray-800 cursor-pointer">
+          <i class="fas fa-bars text-2xl"></i>
         </label>
         <a href="{% url 'accounts:home' %}" class="text-2xl font-semibold text-gray-800">SecureMarket</a>
       </div>
 
-      <!-- Desktop nav -->
+      <!-- desktop nav -->
       <nav class="hidden md:flex items-center space-x-8">
-
-        <!-- Categories dropdown -->
         <div class="relative group">
-          <!-- Also toggleable on mobile via hidden checkbox -->
           <input type="checkbox" id="categories-toggle" class="dropdown-toggle hidden"/>
           <label for="categories-toggle"
-                 class="flex items-center text-gray-700 hover:text-gray-900 transition cursor-pointer">
-            Categories <img src="{% static 'icons/caret-down.svg' %}" class="w-4 h-4 ml-1" alt="Dropdown">
+                 class="text-gray-700 hover:text-gray-900 cursor-pointer">
+            Categories <i class="fas fa-caret-down ml-1"></i>
           </label>
-          <ul class="dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg overflow-hidden">
-            <li><a href="{% url 'products:by_category' category_id=1 %}"
-                   class="block px-4 py-2 hover:bg-gray-100 transition">Electronics</a></li>
-            <li><a href="{% url 'products:by_category' category_id=2 %}"
-                   class="block px-4 py-2 hover:bg-gray-100 transition">Digital Goods</a></li>
-            <li><a href="{% url 'products:by_category' category_id=3 %}"
-                   class="block px-4 py-2 hover:bg-gray-100 transition">Services</a></li>
+          <ul class="dropdown absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg">
+            <li><a href="{% url 'products:list' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Electronics</a></li>
+            <li><a href="{% url 'products:list' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Digital Goods</a></li>
+            <li><a href="{% url 'products:list' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Services</a></li>
           </ul>
         </div>
-
-        <!-- Account dropdown -->
         <div class="relative">
           <input type="checkbox" id="user-menu-toggle" class="dropdown-toggle hidden"/>
           <label for="user-menu-toggle"
-                 class="flex items-center text-gray-700 hover:text-gray-900 transition cursor-pointer">
-            Account <img src="{% static 'icons/caret-down.svg' %}" class="w-4 h-4 ml-1" alt="Dropdown">
+                 class="text-gray-700 hover:text-gray-900 cursor-pointer">
+            Account <i class="fas fa-caret-down ml-1"></i>
           </label>
-          <ul class="dropdown absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg overflow-hidden">
-            {% if user.is_authenticated %}
-              <li><a href="{% url 'accounts:profile_settings' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">Profile</a></li>
-              <li><a href="{% url 'accounts:change_password' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">Password</a></li>
-              <li><a href="{% url 'accounts:pgp_settings' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">PGP Settings</a></li>
-              <li><a href="{% url 'accounts:totp_setup' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">2FA Setup</a></li>
-              <li><a href="{% url 'logout' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">Log Out</a></li>
-            {% else %}
-              <li><a href="{% url 'accounts:login' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">Login</a></li>
-              <li><a href="{% url 'accounts:register' %}"
-                     class="block px-4 py-2 hover:bg-gray-100 transition">Register</a></li>
-            {% endif %}
+          <ul class="dropdown absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg">
+            <li><a href="{% url 'accounts:home' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Profile</a></li>
+            <li><a href="{% url 'accounts:home' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Settings</a></li>
+            <li><a href="{% url 'logout' %}"
+                   class="block px-4 py-2 hover:bg-gray-100">Log Out</a></li>
           </ul>
         </div>
       </nav>
 
-      <!-- Mobile icons -->
+      <!-- mobile icons -->
       <div class="md:hidden flex items-center space-x-4">
-        {% if user.is_authenticated %}
-          <a href="{% url 'orders:cart' %}"
-             class="text-gray-600 hover:text-gray-800 transition">
-            <img src="{% static 'icons/cart.svg' %}" class="w-6 h-6" alt="Cart">
-          </a>
-        {% endif %}
+        <a href="{% url 'orders:cart' %}"
+           class="text-gray-600 hover:text-gray-800">
+          <i class="fas fa-shopping-cart text-2xl"></i>
+        </a>
         <label for="user-menu-toggle"
-               class="relative text-gray-600 hover:text-gray-800 transition cursor-pointer">
-          <img src="{% static 'icons/user.svg' %}" class="w-6 h-6" alt="User">
+               class="text-gray-600 hover:text-gray-800 cursor-pointer">
+          <i class="fas fa-user-circle text-2xl"></i>
         </label>
       </div>
     </header>
 
-    <!-- 4b) Page content -->
+    <!-- page content -->
     <main class="flex-1 overflow-auto p-6 bg-gray-50">
       {% block content %}{% endblock %}
     </main>
