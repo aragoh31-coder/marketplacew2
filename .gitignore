@@ -38,3 +38,4 @@ media/
 
 # Docker
 .dockerignore
+node_modules/

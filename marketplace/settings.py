@@ -41,21 +41,11 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Ensure sessions load before captcha
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'apps.anti_ddos.middleware.AntiDDoSMiddleware',
-    
     'apps.security.openresty_middleware.OpenRestyIntegrationMiddleware',
-    
-    'apps.security.resource_protection.ResourceProtectionMiddleware',
-    
-    'apps.security.circuit_aware_defense.CircuitAwareDefense',
-    
-    'apps.security.fast_prefilter.FastPreFilterMiddleware',
-    
+    'apps.security.unified_middleware.UnifiedSecurityMiddleware',
     'apps.security.circuit_limiter.TorCircuitLimiter',
-    
-    'apps.security.optimized_middleware.OptimizedSecurityMiddleware',
-    
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -63,8 +53,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_ratelimit.middleware.RatelimitMiddleware',
-    'core.middleware.RateLimitMiddleware',
-    'apps.security.middleware.CaptchaRateLimitMiddleware',
     'wallets.middleware.WalletSecurityMiddleware',
     'core.middleware.TorSecurityMiddleware',
 ]
@@ -360,55 +348,59 @@ SECURE_UPLOAD_ROOT.mkdir(exist_ok=True)
 TEMP_UPLOAD_ROOT = BASE_DIR / 'temp_uploads'
 TEMP_UPLOAD_ROOT.mkdir(exist_ok=True)
 
-WALLET_SECURITY = {
-    'WITHDRAWAL_RATE_LIMIT': 5,  # Max withdrawal attempts per hour
-    'CONVERSION_RATE_LIMIT': 20,  # Max conversions per hour
-    'LOGIN_RATE_LIMIT': 10,  # Max login attempts per hour
+SECURITY_CONFIG = {
+    'RATE_LIMITS': {
+        'requests_per_minute': 50,
+        'requests_per_hour': 500,
+        'burst_limit': 20,
+        'withdrawal_rate_limit': 5,
+        'conversion_rate_limit': 20,
+        'login_rate_limit': 10,
+        'max_login_attempts_per_ip': 20,
+        'max_login_attempts_per_user': 5,
+        'max_registration_attempts_per_ip': 3,
+        'form_submission_rate_limit': 10,
+    },
     
-    'DEFAULT_DAILY_WITHDRAWAL_LIMIT_BTC': '1.0',
-    'DEFAULT_DAILY_WITHDRAWAL_LIMIT_XMR': '100.0',
+    'BOT_DETECTION': {
+        'enable_bot_detection': True,
+        'enable_honeypot_protection': True,
+        'enable_math_captcha': True,
+    },
     
-    'RISK_SCORE_LOW': 20,
-    'RISK_SCORE_MEDIUM': 40,
-    'RISK_SCORE_HIGH': 60,
-    'RISK_SCORE_MANUAL_REVIEW': 40,
+    'WALLET_SECURITY': {
+        'default_daily_withdrawal_limit_btc': '1.0',
+        'default_daily_withdrawal_limit_xmr': '100.0',
+        'risk_score_low': 20,
+        'risk_score_medium': 40,
+        'risk_score_high': 60,
+        'risk_score_manual_review': 40,
+        'require_ip_match': False,
+        'session_timeout_minutes': 30,
+        '2fa_validity_window': 1,
+        '2fa_issuer_name': 'Secure Marketplace',
+        'audit_log_retention_days': 365,
+        'reconciliation_schedule': '0 */6 * * *',
+    },
     
-    'REQUIRE_IP_MATCH': False,  # Disabled for Tor compatibility
-    'SESSION_TIMEOUT_MINUTES': 30,  # Auto logout after inactivity
+    'ADMIN_SECURITY': {
+        'require_triple_auth': True,
+        'secondary_password': 'admin_secure_2024!',
+        'pgp_required': True,
+        'session_timeout_minutes': 30,
+        'max_failed_attempts': 3,
+        'lockout_duration_minutes': 15,
+        'challenge_timeout_minutes': 5,
+        'log_all_actions': True,
+        'require_ip_consistency': True,
+    },
     
-    '2FA_VALIDITY_WINDOW': 1,  # TOTP window (30 second intervals)
-    '2FA_ISSUER_NAME': 'Secure Marketplace',
-    
-    'AUDIT_LOG_RETENTION_DAYS': 365,
-    
-    'RECONCILIATION_SCHEDULE': '0 */6 * * *',  # Every 6 hours
-}
-
-SECURITY_SETTINGS = {
-    'ENABLE_BOT_DETECTION': True,
-    'ENABLE_RATE_LIMITING': True,
-    'ENABLE_HONEYPOT_PROTECTION': True,
-    'ENABLE_MATH_CAPTCHA': True,
-    'MAX_LOGIN_ATTEMPTS_PER_IP': 20,
-    'MAX_LOGIN_ATTEMPTS_PER_USER': 5,
-    'MAX_REGISTRATION_ATTEMPTS_PER_IP': 3,
-    'FORM_SUBMISSION_RATE_LIMIT': 10,
-    'SESSION_SECURITY_TIMEOUT': 3600,
+    'SESSION_SECURITY': {
+        'session_security_timeout': 3600,
+    },
 }
 
 ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@marketplace.local')
-
-ADMIN_SECURITY = {
-    'REQUIRE_TRIPLE_AUTH': True,
-    'SECONDARY_PASSWORD': 'admin_secure_2024!',
-    'PGP_REQUIRED': True,
-    'SESSION_TIMEOUT_MINUTES': 30,
-    'MAX_FAILED_ATTEMPTS': 3,
-    'LOCKOUT_DURATION_MINUTES': 15,
-    'CHALLENGE_TIMEOUT_MINUTES': 5,
-    'LOG_ALL_ACTIONS': True,
-    'REQUIRE_IP_CONSISTENCY': True,
-}
 
 try:
     from config.admin_config import ADMIN_PANEL_CONFIG, ADMIN_PGP_CONFIG
@@ -435,8 +427,3 @@ SECURE_REFERRER_POLICY = "no-referrer"
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 CIRCUIT_FINGERPRINT_SECRET = b'super-secret-key-for-circuit-fingerprinting-change-in-production'
-
-FAST_PREFILTER_RATE_LIMIT = {
-    'per_minute': 50,  # 50 requests per minute for public IPs
-    'burst': 20,       # Allow burst of 20 additional requests
-}
