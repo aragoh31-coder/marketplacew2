@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Withdrawal Details - Secure Marketplace{% endblock %}
+
+{% block extra_head %}
+<style>
+    .detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .detail-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    .detail-header {
+        background: #f8f9fa;
+        padding: 20px;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .detail-body {
+        padding: 20px;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-completed { background: #d1ecf1; color: #0c5460; }
+    .status-cancelled { background: #f1f3f4; color: #495057; }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .info-item {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .info-label {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+    .info-value {
+        color: #212529;
+        word-break: break-all;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .btn-primary { background: #007bff; color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn:hover { opacity: 0.9; text-decoration: none; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    <h1>📤 Withdrawal Request Details</h1>
+    
+    <div class="detail-card">
+        <div class="detail-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Request #{{ withdrawal_request.id }}</h3>
+                <span class="status-badge status-{{ withdrawal_request.status }}">
+                    {{ withdrawal_request.get_status_display }}
+                </span>
+            </div>
+        </div>
+        
+        <div class="detail-body">
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Amount</div>
+                    <div class="info-value">{{ withdrawal_request.amount|floatformat:8 }} {{ withdrawal_request.currency|upper }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Network Fee</div>
+                    <div class="info-value">{{ withdrawal_request.network_fee|floatformat:8 }} {{ withdrawal_request.currency|upper }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Total Deducted</div>
+                    <div class="info-value">{{ withdrawal_request.amount|add:withdrawal_request.network_fee|floatformat:8 }} {{ withdrawal_request.currency|upper }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Destination Address</div>
+                    <div class="info-value">{{ withdrawal_request.address }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Requested</div>
+                    <div class="info-value">{{ withdrawal_request.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                {% if withdrawal_request.processed_at %}
+                <div class="info-item">
+                    <div class="info-label">Processed</div>
+                    <div class="info-value">{{ withdrawal_request.processed_at|date:"M d, Y H:i" }}</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if withdrawal_request.transaction_hash %}
+            <div class="info-item">
+                <div class="info-label">Transaction Hash</div>
+                <div class="info-value">
+                    <code>{{ withdrawal_request.transaction_hash }}</code>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if withdrawal_request.admin_notes %}
+            <div class="info-item">
+                <div class="info-label">Admin Notes</div>
+                <div class="info-value">{{ withdrawal_request.admin_notes }}</div>
+            </div>
+            {% endif %}
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="{% url 'wallets:withdrawal_status' %}" class="btn btn-secondary">
+                    ← Back to Status
+                </a>
+                <a href="{% url 'wallets:dashboard' %}" class="btn btn-primary">
+                    Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

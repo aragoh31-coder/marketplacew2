@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Triple Authentication - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">🔐 Triple Authentication Required</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>High Security Zone:</strong> This action requires triple authentication for maximum security.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">1. Admin Password</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="secondary_password" class="form-label">2. Secondary Password</label>
+                                    <input type="password" class="form-control" id="secondary_password" name="secondary_password" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">3. PGP Challenge</label>
+                            <div class="alert alert-info">
+                                <strong>Decrypt this message with your PGP private key:</strong>
+                                <pre class="mt-2">{{ pgp_challenge_message }}</pre>
+                            </div>
+                            <textarea class="form-control" name="pgp_challenge_response" rows="4" 
+                                      placeholder="Paste the decrypted message here" required></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger">Authenticate</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            Triple authentication ensures only authorized administrators can perform sensitive operations.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

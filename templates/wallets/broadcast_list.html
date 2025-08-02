@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Broadcast Messages{% endblock %}
+{% block content %}
+<h1>System Announcements</h1>
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">{{ message.title }}</h3>
+            <small>{{ message.created_at|date:"M d, Y H:i" }} - Target: {{ message.get_target_group_display }}</small>
+        </div>
+        <div class="card-body">
+            <p>{{ message.content|linebreaks }}</p>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <h3>No Messages</h3>
+        <p>There are currently no system announcements.</p>
+    </div>
+{% endif %}
+{% endblock %}

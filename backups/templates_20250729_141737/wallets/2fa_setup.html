@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}2FA Setup - Secure Marketplace{% endblock %}
+
+{% block content %}
+<h1>Two-Factor Authentication Setup</h1>
+
+<div class="card">
+    <h2>📱 Scan QR Code</h2>
+    
+    <div class="text-center mb-4">
+        <img src="data:image/png;base64,{{ qr_code }}" alt="2FA QR Code" class="qr-code">
+    </div>
+    
+    <div class="instructions">
+        <h3>Setup Instructions:</h3>
+        <ol>
+            <li>Install an authenticator app on your phone:
+                <ul>
+                    <li>Google Authenticator</li>
+                    <li>Authy</li>
+                    <li>Microsoft Authenticator</li>
+                </ul>
+            </li>
+            <li>Open your authenticator app</li>
+            <li>Scan the QR code above</li>
+            <li>Enter the 6-digit code from your app below to verify setup</li>
+        </ol>
+    </div>
+    
+    <div class="manual-entry">
+        <h3>Manual Entry</h3>
+        <p>If you can't scan the QR code, manually enter this secret key:</p>
+        <code class="secret-key">{{ secret }}</code>
+    </div>
+    
+    <form method="post" action="{% url 'wallets:verify_2fa_setup' %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="verification_code">Enter 6-digit verification code:</label>
+            <input type="text" id="verification_code" name="verification_code" 
+                   class="form-control" maxlength="6" pattern="[0-9]{6}" 
+                   placeholder="000000" required autocomplete="off">
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Verify and Enable 2FA
+            </button>
+            <a href="{% url 'wallets:security_settings' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>⚠️ Important Security Notes</h2>
+    <ul>
+        <li><strong>Save your secret key:</strong> Store the secret key in a safe place as backup</li>
+        <li><strong>Multiple devices:</strong> You can add the same secret to multiple authenticator apps</li>
+        <li><strong>Lost access:</strong> If you lose access to your authenticator, contact support immediately</li>
+        <li><strong>Time sync:</strong> Ensure your device's time is accurate for codes to work properly</li>
+    </ul>
+</div>
+
+<style>
+.qr-code {
+    border: 2px solid #ddd;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+}
+
+.secret-key {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 1.1em;
+    letter-spacing: 2px;
+    display: block;
+    margin: 10px 0;
+    word-break: break-all;
+}
+
+.instructions ol {
+    text-align: left;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.manual-entry {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+</style>
+
+{% endblock %}

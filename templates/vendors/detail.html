@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}{{ vendor.vendor_name }} - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="vendor-profile">
+        <div class="vendor-header">
+            <div class="vendor-info">
+                <h1>{{ vendor.vendor_name }}</h1>
+                {% if vendor.is_approved %}
+                    <span class="verified-badge">✓ Verified Vendor</span>
+                {% endif %}
+                <div class="trust-rating">
+                    <span class="trust-label">Trust Level:</span>
+                    <span class="trust-value trust-{{ vendor.trust_level }}">{{ vendor.trust_level }}/10</span>
+                </div>
+            </div>
+            
+            <div class="vendor-actions">
+                <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="btn btn-primary">Message Vendor</a>
+            </div>
+        </div>
+        
+        <div class="vendor-details">
+            <div class="vendor-description">
+                <h2>About This Vendor</h2>
+                <p>{{ vendor.description|default:"No description provided." }}</p>
+            </div>
+            
+            <div class="vendor-stats">
+                <h2>Vendor Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.products.count }}</div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.trust_level }}/10</div>
+                        <div class="stat-label">Trust Level</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ vendor.created_at|date:"M Y" }}</div>
+                        <div class="stat-label">Member Since</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">
+                            {% if vendor.is_approved %}Active{% else %}Pending{% endif %}
+                        </div>
+                        <div class="stat-label">Status</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="vendor-products">
+            <h2>Products by {{ vendor.vendor_name }}</h2>
+            
+            {% if vendor.products.all %}
+            <div class="products-grid">
+                {% for product in vendor.products.all %}
+                <div class="product-card">
+                    <div class="product-header">
+                        <h3><a href="{% url 'products:detail' product.id %}">{{ product.name }}</a></h3>
+                        <span class="product-type">{{ product.get_product_type_display }}</span>
+                    </div>
+                    
+                    <div class="product-info">
+                        <div class="category">{{ product.category.name }}</div>
+                        <div class="description">{{ product.description|truncatewords:15 }}</div>
+                    </div>
+                    
+                    <div class="product-pricing">
+                        <div class="prices">
+                            <div class="price-btc">₿ {{ product.price_btc }}</div>
+                            <div class="price-xmr">ɱ {{ product.price_xmr }}</div>
+                        </div>
+                        
+                        <div class="stock-info">
+                            {% if product.stock_quantity > 0 %}
+                                <span class="in-stock">{{ product.stock_quantity }} in stock</span>
+                            {% else %}
+                                <span class="out-of-stock">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="product-actions">
+                        {% if product.stock_quantity > 0 and product.is_available %}
+                            <a href="{% url 'products:detail' product.id %}" class="btn btn-primary">View Product</a>
+                        {% else %}
+                            <button disabled class="btn btn-disabled">Unavailable</button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-products">
+                <p>This vendor doesn't have any products listed yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .vendor-profile {
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #333;
+        overflow: hidden;
+    }
+    
+    .vendor-header {
+        background: #2a2a2a;
+        padding: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #333;
+    }
+    
+    .vendor-info h1 {
+        margin: 0 0 10px 0;
+        color: #4CAF50;
+    }
+    
+    .verified-badge {
+        background: #1b5e20;
+        color: #4CAF50;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+    
+    .trust-rating {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .trust-label {
+        color: #888;
+    }
+    
+    .trust-value {
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .trust-1, .trust-2, .trust-3 { color: #f44336; }
+    .trust-4, .trust-5, .trust-6 { color: #ff9800; }
+    .trust-7, .trust-8 { color: #2196F3; }
+    .trust-9, .trust-10 { color: #4CAF50; }
+    
+    .vendor-details {
+        padding: 30px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .vendor-description {
+        margin-bottom: 30px;
+    }
+    
+    .vendor-description h2 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .vendor-description p {
+        color: #ccc;
+        line-height: 1.6;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .stat-card {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4CAF50;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        color: #888;
+        font-size: 14px;
+    }
+    
+    .vendor-products {
+        padding: 30px;
+    }
+    
+    .vendor-products h2 {
+        color: #4CAF50;
+        margin-bottom: 25px;
+    }
+    
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .product-card {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 20px;
+        transition: border-color 0.3s;
+    }
+    
+    .product-card:hover {
+        border-color: #4CAF50;
+    }
+    
+    .product-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+    
+    .product-header h3 {
+        margin: 0;
+        font-size: 16px;
+    }
+    
+    .product-header h3 a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    
+    .product-type {
+        background: #1a1a1a;
+        color: #888;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    
+    .product-info {
+        margin-bottom: 15px;
+    }
+    
+    .category {
+        color: #888;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .description {
+        color: #ccc;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    
+    .product-pricing {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px 0;
+        border-top: 1px solid #444;
+    }
+    
+    .prices {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .price-btc, .price-xmr {
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .price-btc {
+        color: #f7931a;
+    }
+    
+    .price-xmr {
+        color: #ff6600;
+    }
+    
+    .in-stock {
+        color: #4CAF50;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    
+    .out-of-stock {
+        color: #f44336;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    
+    .product-actions {
+        text-align: center;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-disabled {
+        background: #666;
+        color: #999;
+        cursor: not-allowed;
+    }
+    
+    .empty-products {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .vendor-header {
+            flex-direction: column;
+            gap: 20px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .products-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

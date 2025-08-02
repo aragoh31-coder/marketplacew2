@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Secure Marketplace{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+</head>
+<body class="bg-dark-bg text-dark-text font-system">
+<header class="bg-tor-medium border-b border-gray-700 sticky top-0 z-50">
+    <div class="container mx-auto px-4 flex justify-between items-center py-4">
+        <div class="text-xl font-bold">
+            <a href="{% url 'accounts:home' %}" class="text-tor-accent hover:text-blue-400">🔒 SecureMarket</a>
+        </div>
+        <nav class="hidden lg:flex space-x-6">
+            <div class="group relative">
+                <button class="flex items-center space-x-1 py-2 hover:text-tor-accent">
+                    <span>Categories</span>
+                    <svg class="w-4 h-4 transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div class="absolute left-0 mt-1 w-64 bg-tor-medium border border-gray-700 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition">
+                    <div class="py-2">
+                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">📱 Electronics</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">💾 Digital Goods</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-tor-light">🛠 Services</a>
+                    </div>
+                </div>
+            </div>
+            <a href="{% url 'products:list' %}" class="hover:text-tor-accent">Products</a>
+            <a href="{% url 'vendors:list' %}" class="hover:text-tor-accent">Vendors</a>
+            <a href="{% url 'orders:cart' %}" class="hover:text-tor-accent">Cart</a>
+            <a href="{% url 'messaging:list' %}" class="hover:text-tor-accent">Messages</a>
+        </nav>
+        <div class="flex items-center space-x-4">
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:profile_settings' %}" class="hover:text-tor-accent">Settings</a>
+                <a href="{% url 'logout' %}" class="hover:text-tor-accent">Logout</a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="hover:text-tor-accent">Login</a>
+                <a href="{% url 'accounts:register' %}" class="hover:text-tor-accent">Register</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+<main class="container mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+</main>
+<footer class="bg-tor-medium border-t border-gray-700 mt-8 py-4 text-center text-gray-400 text-sm">
+    © SecureMarketplace - Tor Network • No JavaScript • Privacy Protected
+</footer>
+</body>
+</html>

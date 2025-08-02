@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}PGP Verification{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="pgp-container">
+        <h1>🔐 PGP Verification</h1>
+        <p class="auth-step">Step 3 of 3: Sign the challenge with your PGP key</p>
+        
+        <div class="challenge-section">
+            <h3>Challenge to Sign:</h3>
+            <div class="challenge-text">{{ challenge }}</div>
+            <p class="challenge-instructions">
+                Copy the challenge above, sign it with your PGP private key, and paste the signed message below.
+            </p>
+        </div>
+        
+        <form method="post" class="pgp-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.signed_challenge.label_tag }}
+                {{ form.signed_challenge }}
+                {% if form.signed_challenge.errors %}
+                    <div class="error">{{ form.signed_challenge.errors.0 }}</div>
+                {% endif %}
+                <small class="form-text">{{ form.signed_challenge.help_text }}</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                Verify Signature
+            </button>
+        </form>
+        
+        <div class="pgp-info">
+            <p>🔑 Using PGP key for: {{ user.username }}</p>
+            <p>Fingerprint: {{ user.pgp_fingerprint|default:"Not available" }}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pgp-container {
+        max-width: 700px;
+        margin: 60px auto;
+        background: #1a1a1a;
+        padding: 40px;
+        border-radius: 8px;
+        border: 2px solid #ff9800;
+    }
+    
+    .auth-step {
+        color: #ff9800;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+    
+    .challenge-section {
+        margin: 30px 0;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 5px;
+    }
+    
+    .challenge-text {
+        background: #000;
+        padding: 15px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 12px;
+        color: #0f0;
+        white-space: pre-wrap;
+        margin: 10px 0;
+        border: 1px solid #333;
+    }
+    
+    .challenge-instructions {
+        color: #ccc;
+        font-size: 14px;
+        margin-top: 15px;
+    }
+    
+    .pgp-form {
+        margin-top: 30px;
+    }
+    
+    .btn-block {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        margin-top: 20px;
+    }
+    
+    .pgp-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 14px;
+        color: #ff9800;
+    }
+    
+    .form-text {
+        color: #999;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}

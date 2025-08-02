@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Deactivate Sub-Vendor{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>⚠️ Deactivate Sub-Vendor Account</h1>
+    
+    <div class="confirmation-container">
+        <div class="warning-box">
+            <h3>Are you sure you want to deactivate this sub-vendor account?</h3>
+            <p><strong>Username:</strong> {{ subvendor.user.username }}</p>
+            <p><strong>Created:</strong> {{ subvendor.created_at|date:"Y-m-d H:i" }}</p>
+            
+            <div class="consequences">
+                <h4>This action will:</h4>
+                <ul>
+                    <li>❌ Disable login access for this account</li>
+                    <li>❌ Remove all permissions immediately</li>
+                    <li>❌ Prevent any further activity</li>
+                    <li>📝 Log the deactivation for audit purposes</li>
+                </ul>
+            </div>
+        </div>
+        
+        <form method="post" class="confirmation-form">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger">Yes, Deactivate Account</button>
+                <a href="{% url 'vendors:manage_subvendors' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.confirmation-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.warning-box {
+    background: #2a2a2a;
+    border: 2px solid #dc3545;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 20px;
+}
+
+.warning-box h3 {
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.warning-box p {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.consequences {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #444;
+}
+
+.consequences h4 {
+    color: #fff;
+    margin-bottom: 15px;
+}
+
+.consequences ul {
+    list-style: none;
+    padding: 0;
+}
+
+.consequences li {
+    color: #ccc;
+    margin-bottom: 8px;
+    padding-left: 5px;
+}
+
+.confirmation-form {
+    text-align: center;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+</style>
+{% endblock %}

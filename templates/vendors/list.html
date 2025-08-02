@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Vendors - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🏪 Verified Vendors</h1>
+    
+    <div class="vendors-grid">
+        {% for vendor in vendors %}
+        <div class="vendor-card">
+            <div class="vendor-header">
+                <h3><a href="{% url 'vendors:detail' vendor.id %}">{{ vendor.vendor_name }}</a></h3>
+                {% if vendor.is_approved %}
+                    <span class="verified-badge">✓ Verified</span>
+                {% endif %}
+            </div>
+            
+            <div class="vendor-stats">
+                <div class="stat-item">
+                    <span class="label">Trust Level:</span>
+                    <span class="value trust-{{ vendor.trust_level }}">{{ vendor.trust_level }}/10</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Products:</span>
+                    <span class="value">{{ vendor.products.count }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Member Since:</span>
+                    <span class="value">{{ vendor.created_at|date:"M Y" }}</span>
+                </div>
+            </div>
+            
+            <div class="vendor-description">
+                {{ vendor.description|truncatewords:20|default:"No description available." }}
+            </div>
+            
+            <div class="vendor-actions">
+                <a href="{% url 'vendors:detail' vendor.id %}" class="btn btn-primary">View Store</a>
+                <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="btn btn-secondary">Message</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-vendors">
+            <h3>No vendors found</h3>
+            <p>There are currently no verified vendors available.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="page-link">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+        {% endif %}
+        
+        <span class="page-current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .vendors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .vendor-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 25px;
+        transition: border-color 0.3s;
+    }
+    
+    .vendor-card:hover {
+        border-color: #4CAF50;
+    }
+    
+    .vendor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .vendor-header h3 {
+        margin: 0;
+    }
+    
+    .vendor-header h3 a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    
+    .vendor-header h3 a:hover {
+        text-decoration: underline;
+    }
+    
+    .verified-badge {
+        background: #1b5e20;
+        color: #4CAF50;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .vendor-stats {
+        margin-bottom: 20px;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .stat-item .label {
+        color: #888;
+    }
+    
+    .stat-item .value {
+        font-weight: bold;
+    }
+    
+    .trust-1, .trust-2, .trust-3 { color: #f44336; }
+    .trust-4, .trust-5, .trust-6 { color: #ff9800; }
+    .trust-7, .trust-8 { color: #2196F3; }
+    .trust-9, .trust-10 { color: #4CAF50; }
+    
+    .vendor-description {
+        color: #ccc;
+        line-height: 1.4;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+    
+    .vendor-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+    
+    .empty-vendors {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .page-link {
+        color: #4CAF50;
+        padding: 8px 16px;
+        text-decoration: none;
+        border: 1px solid #444;
+        border-radius: 5px;
+        background: #2a2a2a;
+    }
+    
+    .page-link:hover {
+        background: #333;
+        border-color: #4CAF50;
+    }
+    
+    .page-current {
+        padding: 8px 16px;
+        color: #e0e0e0;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

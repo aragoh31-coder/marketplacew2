@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Regenerate Backup Codes - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔄 Regenerate Backup Codes</h3>
+                </div>
+                <div class="card-body">
+                    <div class="info-section">
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Important Information</strong><br>
+                            Generating new backup codes will invalidate all your existing backup codes. 
+                            Make sure to save the new codes securely.
+                        </div>
+                    </div>
+                    
+                    <div class="confirmation-section">
+                        <p>To generate new backup codes, please confirm your identity:</p>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="form-group">
+                                {{ form.password.label_tag }}
+                                {{ form.password }}
+                                {% if form.password.help_text %}
+                                    <small class="form-text text-muted">{{ form.password.help_text }}</small>
+                                {% endif %}
+                                {% if form.password.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.password.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    🔄 Generate New Backup Codes
+                                </button>
+                                <a href="{% url 'accounts:totp_settings' %}" class="btn btn-secondary">
+                                    Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="help-section">
+                        <hr>
+                        <h5>What happens next?</h5>
+                        <ul class="help-list">
+                            <li>Your current backup codes will be invalidated</li>
+                            <li>10 new backup codes will be generated</li>
+                            <li>You'll be able to download or print the new codes</li>
+                            <li>Store the new codes in a safe place</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-section {
+    margin-bottom: 20px;
+}
+
+.confirmation-section {
+    margin-bottom: 20px;
+}
+
+.form-actions {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.form-actions .btn {
+    margin: 0 10px;
+}
+
+.help-section h5 {
+    color: #4ecdc4;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.help-list {
+    font-size: 14px;
+    color: #ccc;
+    padding-left: 20px;
+}
+
+.help-list li {
+    margin-bottom: 5px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,14 @@
+[Unit]
+Description=Tor PoW Automatic Solver for OpenResty
+After=network.target redis.service openresty.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/lua /etc/openresty/lua/standalone_solver.lua
+Restart=always
+User=www-data
+Environment=REDIS_HOST=redis
+Environment=REDIS_PORT=6379
+
+[Install]
+WantedBy=multi-user.target

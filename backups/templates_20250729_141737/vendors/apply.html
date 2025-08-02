@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+
+{% block title %}Apply to Become a Vendor - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🏪 Apply to Become a Vendor</h1>
+    
+    <div class="application-wrapper">
+        <div class="application-form">
+            <h2>Vendor Application</h2>
+            
+            <form method="post" class="vendor-form">
+                {% csrf_token %}
+                <input type="hidden" name="honeypot_field" class="honeypot">
+                
+                <div class="form-group">
+                    <label for="vendor_name">Vendor Name:</label>
+                    <input type="text" name="vendor_name" id="vendor_name" required>
+                    <small class="help-text">Choose a unique name for your store</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Store Description:</label>
+                    <textarea name="description" id="description" rows="6" required></textarea>
+                    <small class="help-text">Describe what you sell and your business background</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="business_type">Business Type:</label>
+                    <select name="business_type" id="business_type" required>
+                        <option value="">Select Business Type</option>
+                        <option value="individual">Individual Seller</option>
+                        <option value="small_business">Small Business</option>
+                        <option value="corporation">Corporation</option>
+                        <option value="reseller">Authorized Reseller</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="experience">Experience Level:</label>
+                    <select name="experience" id="experience" required>
+                        <option value="">Select Experience</option>
+                        <option value="new">New to online selling</option>
+                        <option value="some">Some experience (1-2 years)</option>
+                        <option value="experienced">Experienced (3+ years)</option>
+                        <option value="expert">Expert (5+ years)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="product_categories">Product Categories:</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="amazon"> Amazon Gift Cards
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="ebay"> eBay Gift Cards
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="steam"> Steam Gift Cards
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="google"> Google Play Cards
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="apple"> Apple Gift Cards
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="categories" value="other"> Other Digital Products
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pgp_key">PGP Public Key (Optional):</label>
+                    <textarea name="pgp_key" id="pgp_key" rows="8" placeholder="-----BEGIN PGP PUBLIC KEY BLOCK-----"></textarea>
+                    <small class="help-text">Provide your PGP public key for secure communications</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="terms_accepted" required>
+                        I agree to the <a href="/terms/" target="_blank">Terms of Service</a> and <a href="/vendor-agreement/" target="_blank">Vendor Agreement</a>
+                    </label>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Submit Application</button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        
+        <div class="application-info">
+            <h3>📋 Application Requirements</h3>
+            <ul>
+                <li>Valid account in good standing</li>
+                <li>Detailed business description</li>
+                <li>Legitimate product sources</li>
+                <li>Commitment to customer service</li>
+                <li>Compliance with marketplace rules</li>
+            </ul>
+            
+            <h3>⏱️ Review Process</h3>
+            <ul>
+                <li>Applications reviewed within 48-72 hours</li>
+                <li>Additional verification may be required</li>
+                <li>Approval notification via secure message</li>
+                <li>Initial trust level starts at 1/10</li>
+            </ul>
+            
+            <h3>🎯 Vendor Benefits</h3>
+            <ul>
+                <li>List unlimited products</li>
+                <li>Access to vendor dashboard</li>
+                <li>Direct customer messaging</li>
+                <li>Escrow protection for transactions</li>
+                <li>Trust level progression system</li>
+            </ul>
+            
+            <h3>🔒 Security Features</h3>
+            <ul>
+                <li>PGP encryption for sensitive data</li>
+                <li>Multi-signature escrow system</li>
+                <li>Reputation-based trust scoring</li>
+                <li>Dispute resolution process</li>
+                <li>Regular security audits</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .application-wrapper {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+    
+    .application-form {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .application-form h2 {
+        color: #4CAF50;
+        margin-bottom: 25px;
+    }
+    
+    .vendor-form {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .form-group label {
+        color: #888;
+        margin-bottom: 8px;
+        font-weight: bold;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+        padding: 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-family: inherit;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+    }
+    
+    .help-text {
+        color: #666;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+    
+    .checkbox-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .checkbox-item {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 3px;
+        transition: background 0.2s;
+    }
+    
+    .checkbox-item:hover {
+        background: #2a2a2a;
+    }
+    
+    .checkbox-item input[type="checkbox"] {
+        width: auto;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 16px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+    
+    .application-info {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .application-info h3 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+    
+    .application-info ul {
+        margin-bottom: 25px;
+        padding-left: 20px;
+    }
+    
+    .application-info li {
+        color: #ccc;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .application-info a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    
+    .application-info a:hover {
+        text-decoration: underline;
+    }
+    
+    .honeypot {
+        position: absolute;
+        left: -9999px;
+    }
+    
+    @media (max-width: 768px) {
+        .application-wrapper {
+            grid-template-columns: 1fr;
+        }
+        
+        .checkbox-group {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

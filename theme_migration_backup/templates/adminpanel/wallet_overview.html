@@ -1,0 +1,156 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Wallet System Overview - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Wallet System Overview</h2>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Wallets</h5>
+                            <h3 class="text-primary">{{ total_wallets }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total BTC</h5>
+                            <h3 class="text-warning">{{ total_balances.total_btc|default:"0.00000000" }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Total XMR</h5>
+                            <h3 class="text-info">{{ total_balances.total_xmr|default:"0.000000000000" }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Pending Withdrawals</h5>
+                            <h3 class="text-danger">{{ withdrawal_stats.pending_count|default:"0" }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Escrow Balances</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Escrow BTC:</strong> {{ total_balances.total_escrow_btc|default:"0.00000000" }}</p>
+                            <p><strong>Escrow XMR:</strong> {{ total_balances.total_escrow_xmr|default:"0.000000000000" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Withdrawal Statistics</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Pending:</strong> {{ withdrawal_stats.pending_count|default:"0" }}</p>
+                            <p><strong>Approved:</strong> {{ withdrawal_stats.approved_count|default:"0" }}</p>
+                            <p><strong>Rejected:</strong> {{ withdrawal_stats.rejected_count|default:"0" }}</p>
+                            <p><strong>Pending BTC:</strong> {{ withdrawal_stats.pending_btc|default:"0.00000000" }}</p>
+                            <p><strong>Pending XMR:</strong> {{ withdrawal_stats.pending_xmr|default:"0.000000000000" }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if recent_discrepancies %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Recent Balance Discrepancies</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Wallet</th>
+                                    <th>User</th>
+                                    <th>Checked At</th>
+                                    <th>Discrepancy Details</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for check in recent_discrepancies %}
+                                <tr>
+                                    <td>{{ check.wallet.id }}</td>
+                                    <td>{{ check.wallet.user.username }}</td>
+                                    <td>{{ check.checked_at }}</td>
+                                    <td>
+                                        {% if check.discrepancy_details %}
+                                        <small>{{ check.discrepancy_details|truncatechars:100 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge badge-{% if check.resolved %}success{% else %}danger{% endif %}">
+                                            {% if check.resolved %}Resolved{% else %}Unresolved{% endif %}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Transactions</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_transactions %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Currency</th>
+                                    <th>Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in recent_transactions %}
+                                <tr>
+                                    <td>{{ transaction.created_at }}</td>
+                                    <td>{{ transaction.user.username }}</td>
+                                    <td>{{ transaction.type|title }}</td>
+                                    <td>{{ transaction.amount }}</td>
+                                    <td>{{ transaction.currency|upper }}</td>
+                                    <td><code>{{ transaction.reference|truncatechars:20 }}</code></td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No recent transactions found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

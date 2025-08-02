@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Two-Factor Authentication (TOTP)</h2>
+    
+    {% if user.totp_enabled %}
+        <div class="alert success">
+            <p>TOTP authentication is <strong>enabled</strong>.</p>
+        </div>
+        
+        <h3>Disable TOTP</h3>
+        <p>Enter your password to disable TOTP authentication:</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="disable">
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" name="password" required>
+            </div>
+            <button type="submit" class="btn danger">Disable TOTP</button>
+        </form>
+    {% else %}
+        <div class="alert info">
+            <p>TOTP authentication is <strong>disabled</strong>.</p>
+        </div>
+        
+        {% if has_secret %}
+            <p>You have a pending TOTP setup. Continue to complete it:</p>
+            <a href="{% url 'accounts:totp_setup' %}" class="btn primary">Continue Setup</a>
+        {% else %}
+            <h3>Enable TOTP</h3>
+            <p>TOTP (Time-based One-Time Password) adds an extra layer of security to your account.</p>
+            <p>You'll need an authenticator app like:</p>
+            <ul>
+                <li>KeePassXC (recommended for Tor users)</li>
+                <li>Aegis Authenticator</li>
+                <li>andOTP</li>
+            </ul>
+            
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="generate">
+                <button type="submit" class="btn primary">Generate TOTP Secret</button>
+            </form>
+        {% endif %}
+    {% endif %}
+    
+    <hr>
+    <a href="{% url 'accounts:profile_settings' %}">← Back to Settings</a>
+</div>
+{% endblock %}

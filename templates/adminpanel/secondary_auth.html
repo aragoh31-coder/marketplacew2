@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Secondary Authentication{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="auth-container">
+        <h1>🔒 Secondary Authentication</h1>
+        <p class="auth-step">Step 2 of 3: Enter secondary password</p>
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {{ form.password.label_tag }}
+                {{ form.password }}
+                {% if form.password.errors %}
+                    <div class="error">{{ form.password.errors.0 }}</div>
+                {% endif %}
+                <small class="form-text">{{ form.password.help_text }}</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block">
+                Verify
+            </button>
+        </form>
+        
+        <div class="security-info">
+            <p>🛡️ Enhanced security verification</p>
+            <p>Contact administrator if you don't have the secondary password</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        max-width: 450px;
+        margin: 80px auto;
+        background: #1a1a1a;
+        padding: 40px;
+        border-radius: 8px;
+        border: 2px solid #ff9800;
+    }
+    
+    .auth-step {
+        color: #ff9800;
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 16px;
+    }
+    
+    .auth-form {
+        margin-top: 30px;
+    }
+    
+    .btn-block {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        margin-top: 20px;
+    }
+    
+    .security-info {
+        margin-top: 30px;
+        padding: 20px;
+        background: #2a2a2a;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 14px;
+        color: #ccc;
+    }
+    
+    .form-text {
+        color: #999;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+</style>
+{% endblock %}

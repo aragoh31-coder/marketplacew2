@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}My Wallets - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>💰 My Wallets</h1>
+    
+    <div class="wallets-grid">
+        {% for wallet in wallets %}
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <h3>{{ wallet.get_currency_display }} Wallet</h3>
+                <span class="currency-symbol">
+                    {% if wallet.currency == 'BTC' %}₿{% elif wallet.currency == 'XMR' %}ɱ{% endif %}
+                </span>
+            </div>
+            
+            <div class="balance-section">
+                <div class="balance">
+                    <span class="amount">{{ wallet.btc_balance|default:wallet.xmr_balance }}</span>
+                    <span class="currency">{{ wallet.currency|default:"BTC" }}</span>
+                </div>
+                <div class="usd-value">
+                    ≈ ${{ wallet.usd_value|default:"0.00"|floatformat:2 }} USD
+                </div>
+            </div>
+            
+            <div class="wallet-actions">
+                <a href="{% url 'wallets:deposit' %}" class="btn btn-primary">Deposit</a>
+                <a href="{% url 'wallets:withdraw' %}" class="btn btn-secondary">Withdraw</a>
+                <a href="{% url 'wallets:transactions' %}" class="btn btn-info">History</a>
+            </div>
+            
+            <div class="wallet-info">
+                <div class="info-item">
+                    <span class="label">BTC Address:</span>
+                    <code class="address">{{ wallet.btc_address|truncatechars:20 }}</code>
+                </div>
+                <div class="info-item">
+                    <span class="label">XMR Address:</span>
+                    <code class="address">{{ wallet.xmr_address|truncatechars:20 }}</code>
+                </div>
+                <div class="info-item">
+                    <span class="label">Status:</span>
+                    <span class="status active">Active</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-wallets">
+            <h3>No wallets found</h3>
+            <p>Your wallets will appear here once they are created.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="wallet-summary">
+        <h2>Portfolio Summary</h2>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="label">Total BTC:</span>
+                <span class="value btc">₿ {{ total_btc|default:"0.00000000" }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Total XMR:</span>
+                <span class="value xmr">ɱ {{ total_xmr|default:"0.00000000" }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Total USD Value:</span>
+                <span class="value usd">${{ total_usd|default:"0.00" }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .wallets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .wallet-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 25px;
+        transition: border-color 0.3s;
+    }
+    
+    .wallet-card:hover {
+        border-color: #4CAF50;
+    }
+    
+    .wallet-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .wallet-header h3 {
+        margin: 0;
+        color: #4CAF50;
+    }
+    
+    .currency-symbol {
+        font-size: 24px;
+        font-weight: bold;
+        color: #888;
+    }
+    
+    .balance-section {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    
+    .balance {
+        margin-bottom: 8px;
+    }
+    
+    .balance .amount {
+        font-size: 28px;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .balance .currency {
+        font-size: 16px;
+        color: #888;
+        margin-left: 5px;
+    }
+    
+    .usd-value {
+        color: #888;
+        font-size: 14px;
+    }
+    
+    .wallet-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-info {
+        background: #2196F3;
+        color: white;
+    }
+    
+    .wallet-info {
+        border-top: 1px solid #333;
+        padding-top: 15px;
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 14px;
+    }
+    
+    .info-item .label {
+        color: #888;
+    }
+    
+    .address {
+        color: #fff;
+        font-family: monospace;
+        font-size: 12px;
+    }
+    
+    .status.active {
+        color: #4CAF50;
+    }
+    
+    .empty-wallets {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .wallet-summary {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+    }
+    
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        background: #2a2a2a;
+        border-radius: 5px;
+    }
+    
+    .summary-item .label {
+        color: #888;
+    }
+    
+    .summary-item .value {
+        font-weight: bold;
+    }
+    
+    .summary-item .value.btc {
+        color: #f7931a;
+    }
+    
+    .summary-item .value.xmr {
+        color: #ff6600;
+    }
+    
+    .summary-item .value.usd {
+        color: #4CAF50;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block title %}Manage Sub-Vendor Accounts{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>👥 Sub-Vendor Accounts</h1>
+    
+    <div class="subvendor-header">
+        <p>Sub-vendor accounts allow you to give limited access to trusted team members for customer support tasks.</p>
+        
+        {% if can_create_more %}
+            <a href="{% url 'vendors:create_subvendor' %}" class="btn btn-primary">
+                ➕ Create Sub-Vendor Account
+            </a>
+        {% else %}
+            <p class="limit-notice">You have reached the maximum of 2 sub-vendor accounts.</p>
+        {% endif %}
+    </div>
+    
+    {% if subvendors %}
+        <div class="subvendors-list">
+            {% for subvendor in subvendors %}
+            <div class="subvendor-card">
+                <div class="subvendor-info">
+                    <h3>{{ subvendor.user.username }}</h3>
+                    <div class="status">
+                        {% if subvendor.is_active %}
+                            <span class="status-active">Active</span>
+                        {% else %}
+                            <span class="status-inactive">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="permissions">
+                    <h4>Permissions:</h4>
+                    <ul>
+                        {% if subvendor.can_view_orders %}
+                            <li>✅ View Orders</li>
+                        {% endif %}
+                        {% if subvendor.can_respond_messages %}
+                            <li>✅ Respond to Messages</li>
+                        {% endif %}
+                        {% if subvendor.can_update_tracking %}
+                            <li>✅ Update Tracking</li>
+                        {% endif %}
+                        {% if subvendor.can_process_refunds %}
+                            <li>✅ Process Refunds</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                
+                <div class="stats">
+                    <p>Daily Message Limit: {{ subvendor.daily_message_limit }}</p>
+                    <p>Messages Today: {{ subvendor.messages_sent_today }}</p>
+                    {% if subvendor.last_login %}
+                        <p>Last Login: {{ subvendor.last_login|date:"Y-m-d H:i" }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="actions">
+                    <a href="{% url 'vendors:edit_subvendor' subvendor.id %}" class="btn btn-secondary">Edit</a>
+                    <a href="{% url 'vendors:subvendor_activity_log' subvendor.id %}" class="btn btn-info">Activity Log</a>
+                    {% if subvendor.is_active %}
+                        <a href="{% url 'vendors:deactivate_subvendor' subvendor.id %}" class="btn btn-danger">Deactivate</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No sub-vendor accounts created yet.</p>
+            {% if can_create_more %}
+                <a href="{% url 'vendors:create_subvendor' %}" class="btn btn-primary">Create Your First Sub-Vendor</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.subvendor-header {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #2a2a2a;
+    border-radius: 8px;
+}
+
+.subvendor-header p {
+    color: #ccc;
+    margin-bottom: 15px;
+}
+
+.limit-notice {
+    color: #ffc107;
+    font-weight: 500;
+}
+
+.subvendors-list {
+    display: grid;
+    gap: 20px;
+}
+
+.subvendor-card {
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 25px;
+    border: 1px solid #444;
+}
+
+.subvendor-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.subvendor-info h3 {
+    color: #fff;
+    margin: 0;
+}
+
+.status-active {
+    background: #28a745;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-inactive {
+    background: #6c757d;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.permissions {
+    margin-bottom: 20px;
+}
+
+.permissions h4 {
+    color: #fff;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.permissions ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.permissions li {
+    color: #ccc;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.stats {
+    margin-bottom: 20px;
+}
+
+.stats p {
+    color: #999;
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #2a2a2a;
+    border-radius: 12px;
+}
+
+.empty-state p {
+    color: #999;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}

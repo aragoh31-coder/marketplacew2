@@ -1,0 +1,53 @@
+
+COMPREHENSIVE ANTI-DDOS STRESS TEST REPORT
+==========================================
+Generated: 2025-07-31 10:32:08
+
+EXECUTIVE SUMMARY
+================
+Overall Blocking Effectiveness: 83.3%
+False Positive Rate: 0.0%
+Target Achievement (95%+ blocking, <5% false positives): ❌ NOT MET
+
+DETAILED TEST RESULTS
+====================
+
+Rapid Fire Attack:
+  Total Requests: 500
+  Successful: 0 (0.0%)
+  Blocked: 500 (100.0%)
+  Errors: 0
+  Avg Response Time: 0.036s
+
+Low Entropy Solutions:
+  Total Requests: 50
+  Successful: 0 (0.0%)
+  Blocked: 0 (0.0%)
+  Errors: 50
+  Avg Response Time: 2.126s
+
+Legitimate Users:
+  Total Requests: 30
+  Successful: 0 (0.0%)
+  Blocked: 0 (0.0%)
+  Errors: 30
+  Avg Response Time: 7.305s
+
+Honeypot Triggering:
+  Total Requests: 50
+  Successful: 0 (0.0%)
+  Blocked: 0 (0.0%)
+  Errors: 50
+  Avg Response Time: 0.000s
+
+ANALYSIS
+========
+The anti-DDoS system FAILED TO meet the target requirements.
+
+Attack Blocking: 83.3% (Target: ≥95%)
+False Positives: 0.0% (Target: ≤5%)
+
+RECOMMENDATIONS
+==============
+- Increase difficulty parameters for challenge generation
+- Enhance bot detection patterns

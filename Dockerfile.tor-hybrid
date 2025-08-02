@@ -1,0 +1,40 @@
+FROM debian:bookworm-slim
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libargon2-1 \
+    libevent-2.1-7 \
+    libssl3 \
+    libzstd1 \
+    liblzma5 \
+    libscrypt0 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create tor user and directories
+RUN useradd -r -s /bin/false tor && \
+    mkdir -p /var/lib/tor /etc/tor && \
+    chown -R tor:tor /var/lib/tor
+
+# Copy our hybrid PoW Tor binary
+COPY tor-hybrid-pow /usr/local/bin/tor
+RUN chmod +x /usr/local/bin/tor
+
+# Copy configuration
+COPY torrc /etc/tor/torrc
+
+# Set up volumes
+VOLUME ["/var/lib/tor"]
+
+# Switch to tor user
+USER tor
+
+# Expose ports
+EXPOSE 9050 8080
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=15s --start-period=20s --retries=3 \
+    CMD curl -H 'Host: localhost' -s http://127.0.0.1:8080/ > /dev/null || exit 1
+
+# Start Tor
+CMD ["/usr/local/bin/tor", "-f", "/etc/tor/torrc"]

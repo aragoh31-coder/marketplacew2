@@ -1,0 +1,19 @@
+Subject: Withdrawal Request #{{ withdrawal.id }} Submitted
+
+Dear {{ user.username }},
+
+Your withdrawal request has been submitted successfully and is now pending review.
+
+Withdrawal Details:
+- Request ID: #{{ withdrawal.id }}
+- Amount: {{ withdrawal.amount }} {{ withdrawal.currency|upper }}
+- Address: {{ withdrawal.address }}
+- Submitted: {{ withdrawal.created_at }}
+- Status: {{ withdrawal.get_status_display }}
+
+Your withdrawal will be processed within 24-48 hours. You will receive another email when the status changes.
+
+If you have any questions, please contact our support team.
+
+Best regards,
+Secure Marketplace Team

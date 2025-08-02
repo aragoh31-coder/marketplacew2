@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Support Center{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Support Center</h1>
+    
+    <div class="support-grid">
+        <div class="support-card">
+            <h2>📚 Help & Documentation</h2>
+            <p>Find answers to common questions and learn how to use the marketplace.</p>
+            <a href="{% url 'support:faq' %}" class="btn">View FAQ</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>🎫 Submit a Ticket</h2>
+            <p>Need help? Submit a support ticket and we'll assist you.</p>
+            <a href="{% url 'support:create_ticket' %}" class="btn">Create Ticket</a>
+        </div>
+        
+        <div class="support-card">
+            <h2>💬 Live Support</h2>
+            <p>Chat with a support agent for immediate assistance.</p>
+            <a href="{% url 'messaging:compose' %}" class="btn">Start Chat</a>
+        </div>
+    </div>
+    
+    {% if user.is_authenticated %}
+    <h2>Your Recent Tickets</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Ticket #</th>
+                <th>Subject</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in recent_tickets %}
+            <tr>
+                <td>#{{ ticket.id }}</td>
+                <td>{{ ticket.subject }}</td>
+                <td>
+                    <span class="status-{{ ticket.status }}">{{ ticket.status|title }}</span>
+                </td>
+                <td>{{ ticket.created_at|date:"Y-m-d" }}</td>
+                <td><a href="{% url 'support:ticket_detail' ticket.id %}">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty">No tickets yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<style>
+    .support-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .support-card {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        text-align: center;
+        border: 1px solid #333;
+    }
+    
+    .support-card h2 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .support-card p {
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .btn {
+        background: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        display: inline-block;
+        font-weight: bold;
+    }
+    
+    .btn:hover {
+        background: #45a049;
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+    }
+    
+    th {
+        background: #1a1a1a;
+        color: #4CAF50;
+    }
+    
+    .status-open { color: #4CAF50; }
+    .status-pending { color: #ff9800; }
+    .status-closed { color: #666; }
+    
+    .empty {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+</style>
+{% endblock %}

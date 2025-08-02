@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Profile Settings - Secure Marketplace{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h1>⚙️ Profile Settings</h1>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.default_currency.label_tag }}
+                {{ form.default_currency }}
+                {% if form.default_currency.errors %}
+                    <div class="error">{{ form.default_currency.errors.0 }}</div>
+                {% endif %}
+                <small class="text-muted">Your preferred currency for displaying prices</small>
+            </div>
+            
+            <div class="form-group">
+                {{ form.default_shipping_country.label_tag }}
+                {{ form.default_shipping_country }}
+                {% if form.default_shipping_country.errors %}
+                    <div class="error">{{ form.default_shipping_country.errors.0 }}</div>
+                {% endif %}
+                <small class="text-muted">Default country for shipping calculations</small>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+                <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-container {
+        max-width: 500px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #ccc;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 5px;
+    }
+    
+    .form-control:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+    
+    .text-muted {
+        color: #888;
+        font-size: 12px;
+        margin-top: 5px;
+        display: block;
+    }
+    
+    .error {
+        color: #f44336;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-success {
+        background: #1b5e20;
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+    
+    .alert-error {
+        background: #b71c1c;
+        color: #f44336;
+        border: 1px solid #f44336;
+    }
+</style>
+{% endblock %}

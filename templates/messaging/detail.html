@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Message - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="message-header">
+        <h1>Message from {{ message.sender.username }}</h1>
+        <a href="{% url 'messaging:list' %}" class="btn btn-secondary">← Back to Messages</a>
+    </div>
+    
+    <div class="message-detail">
+        <div class="message-info">
+            <div class="info-grid">
+                <div class="info-item">
+                    <label>From:</label>
+                    <span>{{ message.sender.username }}</span>
+                    {% if message.sender.vendor %}
+                        <span class="vendor-badge">Vendor</span>
+                    {% endif %}
+                </div>
+                <div class="info-item">
+                    <label>Date:</label>
+                    <span>{{ message.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                <div class="info-item">
+                    <label>Subject:</label>
+                    <span>{{ message.subject|default:"No Subject" }}</span>
+                </div>
+                {% if message.is_encrypted %}
+                <div class="info-item">
+                    <label>Encryption:</label>
+                    <span class="encrypted-badge">🔒 PGP Encrypted</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="message-content">
+            {% if message.is_encrypted %}
+            <div class="encrypted-message">
+                <h3>Encrypted Message</h3>
+                <p>This message is encrypted with PGP. Use your private key to decrypt it.</p>
+                <pre>{{ message.encrypted_content }}</pre>
+            </div>
+            {% else %}
+            <div class="message-body">
+                {{ message.content|linebreaks }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="message-actions">
+            <a href="{% url 'messaging:compose' %}?reply_to={{ message.id }}" class="btn btn-primary">Reply</a>
+            <a href="{% url 'messaging:list' %}" class="btn btn-secondary">Back to Inbox</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .message-detail {
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #333;
+        overflow: hidden;
+    }
+    
+    .message-info {
+        background: #2a2a2a;
+        padding: 25px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .info-item label {
+        color: #888;
+        font-weight: bold;
+        min-width: 80px;
+    }
+    
+    .vendor-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    
+    .encrypted-badge {
+        background: #1b5e20;
+        color: #4CAF50;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .message-content {
+        padding: 30px;
+    }
+    
+    .message-body {
+        color: #e0e0e0;
+        line-height: 1.6;
+        font-size: 16px;
+    }
+    
+    .encrypted-message {
+        text-align: center;
+    }
+    
+    .encrypted-message h3 {
+        color: #4CAF50;
+        margin-bottom: 15px;
+    }
+    
+    .encrypted-message p {
+        color: #888;
+        margin-bottom: 20px;
+    }
+    
+    .encrypted-message pre {
+        background: #0a0a0a;
+        padding: 20px;
+        border-radius: 5px;
+        overflow-x: auto;
+        font-size: 12px;
+        color: #888;
+        text-align: left;
+        border: 1px solid #333;
+    }
+    
+    .message-actions {
+        padding: 25px;
+        border-top: 1px solid #333;
+        background: #2a2a2a;
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+    
+    .btn-danger {
+        background: #f44336;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #d32f2f;
+    }
+    
+    .inline-form {
+        display: inline;
+    }
+    
+    .honeypot {
+        position: absolute;
+        left: -9999px;
+    }
+</style>
+{% endblock %}

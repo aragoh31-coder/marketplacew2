@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block title %}Sub-Vendor Dashboard{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>👤 Sub-Vendor Dashboard</h1>
+    
+    <div class="subvendor-info">
+        <div class="info-card">
+            <h3>Account Information</h3>
+            <p><strong>Username:</strong> {{ subvendor.user.username }}</p>
+            <p><strong>Main Vendor:</strong> {{ vendor.vendor_name }}</p>
+            <p><strong>Daily Message Limit:</strong> {{ message_limit }}</p>
+            <p><strong>Messages Sent Today:</strong> {{ messages_sent_today }}</p>
+        </div>
+        
+        <div class="permissions-card">
+            <h3>Your Permissions</h3>
+            <ul class="permissions-list">
+                {% if permissions.view_orders %}
+                    <li class="permission-granted">✅ View Orders</li>
+                {% else %}
+                    <li class="permission-denied">❌ View Orders</li>
+                {% endif %}
+                
+                {% if permissions.respond_messages %}
+                    <li class="permission-granted">✅ Respond to Messages</li>
+                {% else %}
+                    <li class="permission-denied">❌ Respond to Messages</li>
+                {% endif %}
+                
+                {% if permissions.update_tracking %}
+                    <li class="permission-granted">✅ Update Tracking</li>
+                {% else %}
+                    <li class="permission-denied">❌ Update Tracking</li>
+                {% endif %}
+                
+                {% if permissions.process_refunds %}
+                    <li class="permission-granted">✅ Process Refunds</li>
+                {% else %}
+                    <li class="permission-denied">❌ Process Refunds</li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    
+    {% if permissions.view_orders %}
+    <div class="orders-section">
+        <h3>Recent Orders</h3>
+        {% if recent_orders %}
+            <div class="orders-list">
+                {% for order in recent_orders %}
+                <div class="order-item">
+                    <div class="order-header">
+                        <span class="order-id">Order #{{ order.id|slice:":8" }}</span>
+                        <span class="order-status status-{{ order.status }}">{{ order.get_status_display }}</span>
+                    </div>
+                    <div class="order-details">
+                        <p>Total: ₿{{ order.total_btc }}</p>
+                        <p>Date: {{ order.created_at|date:"Y-m-d H:i" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-orders">No recent orders to display.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="actions-grid">
+            {% if permissions.view_orders %}
+                <a href="{% url 'vendors:orders' %}" class="action-btn">📦 View All Orders</a>
+            {% endif %}
+            
+            {% if permissions.respond_messages %}
+                <a href="#" class="action-btn">💬 Messages</a>
+            {% endif %}
+            
+            <a href="{% url 'accounts:profile' %}" class="action-btn">⚙️ Account Settings</a>
+        </div>
+    </div>
+</div>
+
+<style>
+.subvendor-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.info-card, .permissions-card {
+    background: #2a2a2a;
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.info-card h3, .permissions-card h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.info-card p {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.permissions-list {
+    list-style: none;
+    padding: 0;
+}
+
+.permissions-list li {
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.permission-granted {
+    color: #28a745;
+}
+
+.permission-denied {
+    color: #6c757d;
+}
+
+.orders-section {
+    margin-bottom: 30px;
+}
+
+.orders-section h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.orders-list {
+    display: grid;
+    gap: 15px;
+}
+
+.order-item {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.order-id {
+    color: #fff;
+    font-weight: 500;
+}
+
+.order-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-paid {
+    background: #ffc107;
+    color: #212529;
+}
+
+.status-shipped {
+    background: #17a2b8;
+    color: white;
+}
+
+.status-completed {
+    background: #28a745;
+    color: white;
+}
+
+.order-details p {
+    color: #ccc;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.no-orders {
+    color: #999;
+    text-align: center;
+    padding: 40px;
+    background: #2a2a2a;
+    border-radius: 8px;
+}
+
+.quick-actions h3 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.action-btn {
+    background: #007bff;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .subvendor-info {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

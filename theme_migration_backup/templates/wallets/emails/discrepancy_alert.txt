@@ -1,0 +1,23 @@
+Subject: Wallet Balance Discrepancy - User {{ wallet.user.username }}
+
+A balance discrepancy has been detected in wallet ID {{ wallet.id }}.
+
+User: {{ wallet.user.username }}
+Wallet ID: {{ wallet.id }}
+
+Expected Balances:
+- BTC: {{ check.expected_btc }}
+- XMR: {{ check.expected_xmr }}
+
+Actual Balances:
+- BTC: {{ check.actual_btc }}
+- XMR: {{ check.actual_xmr }}
+
+Differences:
+- BTC: {{ check.discrepancy_details.btc_diff }}
+- XMR: {{ check.discrepancy_details.xmr_diff }}
+
+Please investigate this discrepancy immediately.
+
+Check ID: {{ check.id }}
+Detected: {{ check.checked_at }}

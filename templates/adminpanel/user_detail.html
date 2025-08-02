@@ -1,0 +1,589 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - {{ user.username }} - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="admin-header">
+        <h1>👤 User Details: {{ user.username }}</h1>
+        <div class="user-actions">
+            <form method="post" action="{% url 'adminpanel:user_action' user.username %}" style="display: inline;">
+                {% csrf_token %}
+                {% if user.is_active %}
+                    <button type="submit" name="action" value="ban" class="btn btn-danger">
+                        🚫 Ban User
+                    </button>
+                {% else %}
+                    <button type="submit" name="action" value="unban" class="btn btn-success">
+                        ✅ Unban User
+                    </button>
+                {% endif %}
+                
+                {% if not user.is_staff %}
+                    <button type="submit" name="action" value="make_staff" class="btn btn-warning">
+                        ⭐ Make Staff
+                    </button>
+                {% else %}
+                    <button type="submit" name="action" value="remove_staff" class="btn btn-secondary">
+                        ❌ Remove Staff
+                    </button>
+                {% endif %}
+                
+                <button type="submit" name="action" value="reset_2fa" class="btn btn-warning">
+                    🔄 Reset 2FA
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="user-details-grid">
+        <!-- Basic Information Card -->
+        <div class="detail-card">
+            <h3>📋 Basic Information</h3>
+            <div class="detail-row">
+                <span class="label">Username:</span>
+                <span class="value">{{ user.username }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Email:</span>
+                <span class="value">{{ user.email|default:"Not provided" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-{{ user.is_active|yesno:'active,banned' }}">
+                    {{ user.is_active|yesno:"Active,Banned" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Date Joined:</span>
+                <span class="value">{{ user.date_joined|date:"M d, Y H:i" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Last Login:</span>
+                <span class="value">{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+            </div>
+        </div>
+
+        <!-- Wallet Information Card -->
+        <div class="detail-card">
+            <h3>💰 Wallet Information</h3>
+            {% if wallet %}
+                <div class="wallet-balances">
+                    <div class="balance-item">
+                        <span class="currency">₿ BTC:</span>
+                        <span class="amount">{{ btc_balance|floatformat:8 }}</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="currency">ɱ XMR:</span>
+                        <span class="amount">{{ xmr_balance|floatformat:4 }}</span>
+                    </div>
+                </div>
+                
+                <div class="wallet-stats">
+                    <div class="stat-row">
+                        <span class="label">Total Deposits (BTC):</span>
+                        <span class="value">₿ {{ total_deposits_btc|floatformat:8 }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Total Deposits (XMR):</span>
+                        <span class="value">ɱ {{ total_deposits_xmr|floatformat:4 }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Total Withdrawals (BTC):</span>
+                        <span class="value">₿ {{ total_withdrawals_btc|floatformat:8 }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="label">Total Withdrawals (XMR):</span>
+                        <span class="value">ɱ {{ total_withdrawals_xmr|floatformat:4 }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <p class="no-data">No wallet found for this user</p>
+            {% endif %}
+        </div>
+
+        <!-- Security Information Card -->
+        <div class="detail-card">
+            <h3>🔐 Security Settings</h3>
+            <div class="detail-row">
+                <span class="label">PGP Enabled:</span>
+                <span class="value status-{{ security_info.pgp_enabled|yesno:'enabled,disabled' }}">
+                    {{ security_info.pgp_enabled|yesno:"Yes,No" }}
+                </span>
+            </div>
+            {% if security_info.pgp_fingerprint %}
+                <div class="detail-row">
+                    <span class="label">PGP Fingerprint:</span>
+                    <span class="value fingerprint">{{ security_info.pgp_fingerprint }}</span>
+                </div>
+            {% endif %}
+            <div class="detail-row">
+                <span class="label">2FA Login:</span>
+                <span class="value status-{{ security_info.two_factor_enabled|yesno:'enabled,disabled' }}">
+                    {{ security_info.two_factor_enabled|yesno:"Enabled,Disabled" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Staff Member:</span>
+                <span class="value status-{{ security_info.is_staff|yesno:'enabled,disabled' }}">
+                    {{ security_info.is_staff|yesno:"Yes,No" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Superuser:</span>
+                <span class="value status-{{ security_info.is_superuser|yesno:'enabled,disabled' }}">
+                    {{ security_info.is_superuser|yesno:"Yes,No" }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Vendor Information Card -->
+        {% if vendor_info %}
+        <div class="detail-card">
+            <h3>🏪 Vendor Information</h3>
+            <div class="detail-row">
+                <span class="label">Vendor Name:</span>
+                <span class="value">{{ vendor_info.vendor_name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Trust Level:</span>
+                <span class="value trust-{{ vendor_info.trust_level|lower }}">{{ vendor_info.get_trust_level_display }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Approved:</span>
+                <span class="value status-{{ vendor_stats.is_approved|yesno:'approved,pending' }}">
+                    {{ vendor_stats.is_approved|yesno:"Yes,Pending" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Vacation Mode:</span>
+                <span class="value status-{{ vendor_stats.vacation_mode|yesno:'vacation,active' }}">
+                    {{ vendor_stats.vacation_mode|yesno:"On Vacation,Active" }}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label">Rating:</span>
+                <span class="value">{{ vendor_stats.vendor_rating|floatformat:1 }}/5.0</span>
+            </div>
+            
+            <div class="vendor-stats">
+                <div class="stat-row">
+                    <span class="label">Total Products:</span>
+                    <span class="value">{{ vendor_stats.total_products }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Active Products:</span>
+                    <span class="value">{{ vendor_stats.active_products }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Total Sales:</span>
+                    <span class="value">{{ vendor_stats.total_sales }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="label">Pending Orders:</span>
+                    <span class="value">{{ vendor_stats.pending_orders }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Order History Card -->
+        <div class="detail-card full-width">
+            <h3>📦 Order History</h3>
+            <div class="order-summary">
+                <div class="summary-item">
+                    <span class="label">Total Orders:</span>
+                    <span class="value">{{ total_orders }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">Completed Orders:</span>
+                    <span class="value">{{ completed_orders }}</span>
+                </div>
+            </div>
+            
+            {% if orders %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td class="order-id">{{ order.id|truncatechars:8 }}...</td>
+                                <td class="amount">
+                                    {% if order.total_btc > 0 %}
+                                        ₿ {{ order.total_btc|floatformat:8 }}
+                                    {% else %}
+                                        ɱ {{ order.total_xmr|floatformat:4 }}
+                                    {% endif %}
+                                </td>
+                                <td class="status status-{{ order.status|lower }}">{{ order.status }}</td>
+                                <td class="date">{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="no-data">No orders found for this user</p>
+            {% endif %}
+        </div>
+
+        <!-- Recent Transactions Card -->
+        <div class="detail-card full-width">
+            <h3>💳 Recent Transactions</h3>
+            {% if transactions %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Currency</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in transactions %}
+                            <tr>
+                                <td class="type type-{{ transaction.transaction_type|lower }}">
+                                    {{ transaction.get_transaction_type_display }}
+                                </td>
+                                <td class="amount">{{ transaction.amount|floatformat:8 }}</td>
+                                <td class="currency">{{ transaction.currency }}</td>
+                                <td class="status status-{{ transaction.status|lower }}">{{ transaction.status }}</td>
+                                <td class="date">{{ transaction.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="no-data">No transactions found for this user</p>
+            {% endif %}
+        </div>
+
+        <!-- Disputes Card -->
+        {% if buyer_disputes or vendor_disputes %}
+        <div class="detail-card full-width">
+            <h3>⚖️ Dispute History</h3>
+            <div class="dispute-summary">
+                <div class="summary-item">
+                    <span class="label">Total Disputes:</span>
+                    <span class="value">{{ total_disputes }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">As Buyer:</span>
+                    <span class="value">{{ buyer_disputes|length }}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="label">As Vendor:</span>
+                    <span class="value">{{ vendor_disputes|length }}</span>
+                </div>
+            </div>
+            
+            {% if buyer_disputes %}
+                <h4>Disputes Filed by User</h4>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Dispute ID</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dispute in buyer_disputes %}
+                            <tr>
+                                <td class="dispute-id">{{ dispute.id|truncatechars:8 }}...</td>
+                                <td class="reason">{{ dispute.reason|truncatechars:50 }}</td>
+                                <td class="status status-{{ dispute.status|lower }}">{{ dispute.status }}</td>
+                                <td class="date">{{ dispute.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            
+            {% if vendor_disputes %}
+                <h4>Disputes Against User (as Vendor)</h4>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Dispute ID</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dispute in vendor_disputes %}
+                            <tr>
+                                <td class="dispute-id">{{ dispute.id|truncatechars:8 }}...</td>
+                                <td class="reason">{{ dispute.reason|truncatechars:50 }}</td>
+                                <td class="status status-{{ dispute.status|lower }}">{{ dispute.status }}</td>
+                                <td class="date">{{ dispute.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #333;
+    }
+    
+    .admin-header h1 {
+        color: #00ff88;
+        margin: 0;
+    }
+    
+    .user-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .user-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+    }
+    
+    .detail-card {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .detail-card.full-width {
+        grid-column: 1 / -1;
+    }
+    
+    .detail-card h3 {
+        color: #00ff88;
+        margin: 0 0 20px 0;
+        font-size: 18px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+    }
+    
+    .detail-row, .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid #2a2a2a;
+    }
+    
+    .detail-row:last-child, .stat-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+    }
+    
+    .label {
+        font-weight: bold;
+        color: #ccc;
+    }
+    
+    .value {
+        color: #fff;
+    }
+    
+    .status-active, .status-enabled, .status-approved {
+        color: #00ff88;
+    }
+    
+    .status-banned, .status-disabled, .status-pending {
+        color: #ff6b6b;
+    }
+    
+    .status-vacation {
+        color: #ffa500;
+    }
+    
+    .fingerprint {
+        font-family: monospace;
+        font-size: 12px;
+        word-break: break-all;
+    }
+    
+    .wallet-balances {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #2a2a2a;
+        border-radius: 5px;
+    }
+    
+    .balance-item {
+        text-align: center;
+    }
+    
+    .currency {
+        display: block;
+        font-weight: bold;
+        color: #00ff88;
+        margin-bottom: 5px;
+    }
+    
+    .amount {
+        display: block;
+        font-size: 18px;
+        color: #fff;
+    }
+    
+    .order-summary, .dispute-summary {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 20px;
+        padding: 15px;
+        background: #2a2a2a;
+        border-radius: 5px;
+    }
+    
+    .summary-item {
+        text-align: center;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        margin-top: 15px;
+    }
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #2a2a2a;
+    }
+    
+    .data-table th {
+        background: #333;
+        color: #00ff88;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #00ff88;
+    }
+    
+    .data-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #444;
+        color: #ccc;
+    }
+    
+    .data-table tr:hover {
+        background: #333;
+    }
+    
+    .order-id, .dispute-id {
+        font-family: monospace;
+        font-size: 12px;
+    }
+    
+    .status-pending {
+        color: #ffa500;
+    }
+    
+    .status-completed, .status-confirmed {
+        color: #00ff88;
+    }
+    
+    .status-cancelled, .status-failed {
+        color: #ff6b6b;
+    }
+    
+    .type-deposit {
+        color: #00ff88;
+    }
+    
+    .type-withdrawal {
+        color: #ff6b6b;
+    }
+    
+    .trust-new {
+        color: #ffa500;
+    }
+    
+    .trust-trusted {
+        color: #00ff88;
+    }
+    
+    .trust-verified {
+        color: #00bfff;
+    }
+    
+    .trust-premium {
+        color: #ffd700;
+    }
+    
+    .no-data {
+        text-align: center;
+        color: #666;
+        font-style: italic;
+        padding: 20px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn-danger {
+        background: #ff6b6b;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #00ff88;
+        color: black;
+    }
+    
+    .btn-warning {
+        background: #ffa500;
+        color: black;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn:hover {
+        opacity: 0.8;
+    }
+</style>
+{% endblock %}

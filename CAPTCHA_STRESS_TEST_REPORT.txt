@@ -1,0 +1,55 @@
+
+COMPREHENSIVE CAPTCHA STRESS TEST REPORT
+========================================
+Generated: 2025-07-31 14:40:42
+
+EXECUTIVE SUMMARY
+================
+Overall Success Rate: 75.0%
+Average Solve Time: 1.201s
+Total Test Categories: 4
+
+DETAILED TEST RESULTS
+====================
+
+
+Legitimate Users:
+  Total Attempts: 50
+  Successful: 50 (100.0%)
+  Failed: 0
+  Timeouts: 0
+  Avg Solve Time: 2.749s
+
+
+Rapid Bot Solving:
+  Total Attempts: 100
+  Successful: 100 (100.0%)
+  Failed: 0
+  Timeouts: 0
+  Avg Solve Time: 0.180s
+
+
+Wrong Answers:
+  Total Attempts: 30
+  Successful: 0 (0.0%)
+  Failed: 30
+  Timeouts: 0
+  Avg Solve Time: 0.051s
+
+
+High Concurrency Legitimate:
+  Total Attempts: 200
+  Successful: 200 (100.0%)
+  Failed: 0
+  Timeouts: 0
+  Avg Solve Time: 1.825s
+
+
+ANALYSIS
+========
+Legitimate User Success Rate: 100.0%
+Bot Detection Effectiveness: 0.0%
+
+RECOMMENDATIONS
+==============
+- Enhance bot detection mechanisms

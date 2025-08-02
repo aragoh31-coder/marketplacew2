@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>📦 My Orders</h1>
+    
+    {% if orders %}
+    <div class="orders-wrapper">
+        <table class="orders-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total (BTC)</th>
+                    <th>Total (XMR)</th>
+                    <th>Items</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <a href="{% url 'orders:detail' order.id %}" class="order-link">
+                            #{{ order.id|truncatechars:8 }}
+                        </a>
+                    </td>
+                    <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="status status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="price-btc">₿ {{ order.total_btc|default:"0.00" }}</td>
+                    <td class="price-xmr">ɱ {{ order.total_xmr|default:"0.00" }}</td>
+                    <td>{{ order.items.count }} item{{ order.items.count|pluralize }}</td>
+                    <td>
+                        <a href="{% url 'orders:detail' order.id %}" class="btn btn-sm">View</a>
+                        {% if order.status == 'shipped' %}
+                            <form method="post" action="{% url 'orders:finalize' order.id %}" class="inline-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="honeypot_field" class="honeypot">
+                                <button type="submit" class="btn btn-success btn-sm">Finalize</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-orders">
+        <h3>No orders yet</h3>
+        <p>You haven't placed any orders yet. Start shopping to see your orders here.</p>
+        <a href="{% url 'products:list' %}" class="btn btn-primary">Browse Products</a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .orders-wrapper {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .orders-table {
+        width: 100%;
+    }
+    
+    .orders-table th {
+        background: #2a2a2a;
+        padding: 15px;
+        text-align: left;
+        border-bottom: 2px solid #444;
+    }
+    
+    .orders-table td {
+        padding: 15px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .order-link {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .order-link:hover {
+        text-decoration: underline;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-pending {
+        background: #f57c00;
+        color: #fff;
+    }
+    
+    .status-paid {
+        background: #2196F3;
+        color: #fff;
+    }
+    
+    .status-shipped {
+        background: #ff9800;
+        color: #fff;
+    }
+    
+    .status-delivered {
+        background: #4CAF50;
+        color: #fff;
+    }
+    
+    .status-cancelled {
+        background: #f44336;
+        color: #fff;
+    }
+    
+    .price-btc {
+        color: #f7931a;
+        font-weight: bold;
+    }
+    
+    .price-xmr {
+        color: #ff6600;
+        font-weight: bold;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 5px;
+        font-weight: bold;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-success {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .inline-form {
+        display: inline;
+    }
+    
+    .empty-orders {
+        text-align: center;
+        padding: 60px;
+        background: #1a1a1a;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .honeypot {
+        position: absolute;
+        left: -9999px;
+    }
+</style>
+{% endblock %}

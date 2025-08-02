@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Internal Server Error - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-page">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                
+                <h1 class="error-title">500</h1>
+                <h2 class="error-subtitle">Internal Server Error</h2>
+                
+                <div class="error-message">
+                    <p>We're experiencing technical difficulties. Our team has been notified and is working to resolve the issue.</p>
+                </div>
+                
+                <div class="error-details">
+                    <p><strong>Error ID:</strong> <code>{{ error_id }}</code></p>
+                    <p><small>Please include this ID when contacting support.</small></p>
+                </div>
+                
+                <div class="error-actions">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> Return Home
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Go Back
+                    </a>
+                </div>
+                
+                <div class="support-info">
+                    <p>If the problem persists, please contact support:</p>
+                    <p><strong>{{ support_contact }}</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    text-align: center;
+    padding: 40px 20px;
+    background: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-top: 50px;
+}
+
+.error-icon {
+    font-size: 4rem;
+    color: #ff6b6b;
+    margin-bottom: 20px;
+}
+
+.error-title {
+    font-size: 6rem;
+    font-weight: bold;
+    color: #ff6b6b;
+    margin: 0;
+    line-height: 1;
+}
+
+.error-subtitle {
+    font-size: 1.5rem;
+    color: #4ecdc4;
+    margin: 10px 0 30px 0;
+}
+
+.error-message {
+    margin-bottom: 30px;
+}
+
+.error-message p {
+    font-size: 1.1rem;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.error-details {
+    background: #2a2a2a;
+    padding: 20px;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    border: 1px solid #333;
+}
+
+.error-details code {
+    background: #333;
+    color: #4ecdc4;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.error-actions {
+    margin-bottom: 30px;
+}
+
+.error-actions .btn {
+    margin: 0 10px;
+    padding: 12px 24px;
+}
+
+.support-info {
+    border-top: 1px solid #333;
+    padding-top: 20px;
+    color: #999;
+}
+
+.support-info p {
+    margin-bottom: 5px;
+}
+
+@media (max-width: 768px) {
+    .error-title {
+        font-size: 4rem;
+    }
+    
+    .error-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .error-actions .btn {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+    }
+}
+</style>
+{% endblock %}

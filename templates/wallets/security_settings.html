@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Security Settings - Secure Marketplace{% endblock %}
+
+{% block content %}
+<h1>Security Settings</h1>
+
+<div class="card">
+    <h2>🔒 Wallet Security Configuration</h2>
+    
+    <form method="post" action="{% url 'wallets:security_settings' %}">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h3>Two-Factor Authentication (2FA)</h3>
+            {% if wallet.two_fa_enabled %}
+                <p class="text-success">✓ 2FA is currently enabled</p>
+                <p class="help-text">Your account is protected with two-factor authentication.</p>
+            {% else %}
+                <p class="text-warning">⚠️ 2FA is currently disabled</p>
+                <div class="form-group">
+                    <label>
+                        {{ form.enable_2fa }} Enable Two-Factor Authentication
+                    </label>
+                    <p class="help-text">
+                        Enabling 2FA adds an extra layer of security to your account. 
+                        You'll need to enter a code from your authenticator app when withdrawing funds.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="form-section">
+            <h3>Withdrawal Limits</h3>
+            <p class="help-text">Set daily withdrawal limits to protect your account from unauthorized access.</p>
+            
+            <div class="form-group">
+                <label for="{{ form.daily_withdrawal_limit_btc.id_for_label }}">
+                    Daily BTC Withdrawal Limit:
+                </label>
+                {{ form.daily_withdrawal_limit_btc }}
+                {% if form.daily_withdrawal_limit_btc.errors %}
+                    <div class="error">{{ form.daily_withdrawal_limit_btc.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.daily_withdrawal_limit_xmr.id_for_label }}">
+                    Daily XMR Withdrawal Limit:
+                </label>
+                {{ form.daily_withdrawal_limit_xmr }}
+                {% if form.daily_withdrawal_limit_xmr.errors %}
+                    <div class="error">{{ form.daily_withdrawal_limit_xmr.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Withdrawal PIN</h3>
+            {% if wallet.withdrawal_pin %}
+                <p class="text-success">✓ Withdrawal PIN is set</p>
+                <p class="help-text">You have a withdrawal PIN configured. You can update it below.</p>
+            {% else %}
+                <p class="text-warning">⚠️ No withdrawal PIN set</p>
+                <p class="help-text">
+                    Setting a withdrawal PIN adds an extra security step when withdrawing funds.
+                </p>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.new_pin.id_for_label }}">
+                    {% if wallet.withdrawal_pin %}New{% else %}Set{% endif %} Withdrawal PIN:
+                </label>
+                {{ form.new_pin }}
+                {% if form.new_pin.errors %}
+                    <div class="error">{{ form.new_pin.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.confirm_pin.id_for_label }}">
+                    Confirm PIN:
+                </label>
+                {{ form.confirm_pin }}
+                {% if form.confirm_pin.errors %}
+                    <div class="error">{{ form.confirm_pin.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Security Status</h3>
+            <table>
+                <tr>
+                    <td>Last Login:</td>
+                    <td>{{ request.user.last_login|date:"Y-m-d H:i" }}</td>
+                </tr>
+                <tr>
+                    <td>Account Created:</td>
+                    <td>{{ request.user.date_joined|date:"Y-m-d" }}</td>
+                </tr>
+                <tr>
+                    <td>2FA Status:</td>
+                    <td>
+                        {% if wallet.two_fa_enabled %}
+                            <span class="text-success">✓ Enabled</span>
+                        {% else %}
+                            <span class="text-danger">✗ Disabled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Withdrawal PIN:</td>
+                    <td>
+                        {% if wallet.withdrawal_pin %}
+                            <span class="text-success">✓ Set</span>
+                        {% else %}
+                            <span class="text-danger">✗ Not Set</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                Save Security Settings
+            </button>
+            <a href="{% url 'wallets:dashboard' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>🛡️ Security Recommendations</h2>
+    <ul>
+        <li><strong>Enable 2FA:</strong> Use an authenticator app like Google Authenticator or Authy</li>
+        <li><strong>Set a Withdrawal PIN:</strong> Choose a unique 4-6 digit PIN different from other accounts</li>
+        <li><strong>Use Strong Passwords:</strong> Your account password should be unique and complex</li>
+        <li><strong>Regular Security Checks:</strong> Review your transaction history regularly</li>
+        <li><strong>Secure Environment:</strong> Always access your account from a secure, private connection</li>
+    </ul>
+</div>
+
+{% endblock %}

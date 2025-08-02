@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-07-31 14:40:42",
+  "summary": {
+    "total_tests": 4,
+    "overall_success_rate": 75.0,
+    "avg_solve_time": 1.201440789004167
+  },
+  "detailed_results": [
+    {
+      "test_type": "Legitimate Users",
+      "total_attempts": 50,
+      "successful_solves": 50,
+      "failed_solves": 0,
+      "timeouts": 0,
+      "avg_solve_time": 2.749,
+      "success_rate": 100.0
+    },
+    {
+      "test_type": "Rapid Bot Solving",
+      "total_attempts": 100,
+      "successful_solves": 100,
+      "failed_solves": 0,
+      "timeouts": 0,
+      "avg_solve_time": 0.18,
+      "success_rate": 100.0
+    },
+    {
+      "test_type": "Wrong Answers",
+      "total_attempts": 30,
+      "successful_solves": 0,
+      "failed_solves": 30,
+      "timeouts": 0,
+      "avg_solve_time": 0.051,
+      "success_rate": 0.0
+    },
+    {
+      "test_type": "High Concurrency Legitimate",
+      "total_attempts": 200,
+      "successful_solves": 200,
+      "failed_solves": 0,
+      "timeouts": 0,
+      "avg_solve_time": 1.825,
+      "success_rate": 100.0
+    }
+  ]
+}

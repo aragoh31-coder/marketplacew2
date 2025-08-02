@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}Edit Sub-Vendor: {{ subvendor.user.username }}{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>✏️ Edit Sub-Vendor: {{ subvendor.user.username }}</h1>
+    
+    <div class="form-container">
+        <form method="post" class="subvendor-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <h3>Permissions</h3>
+                
+                <div class="permission-grid">
+                    <div class="permission-item">
+                        {{ form.can_view_orders }}
+                        <label for="{{ form.can_view_orders.id_for_label }}">View Orders</label>
+                        <small>Allow viewing order details and status</small>
+                    </div>
+                    
+                    <div class="permission-item">
+                        {{ form.can_respond_messages }}
+                        <label for="{{ form.can_respond_messages.id_for_label }}">Respond to Messages</label>
+                        <small>Allow responding to customer messages</small>
+                    </div>
+                    
+                    <div class="permission-item">
+                        {{ form.can_update_tracking }}
+                        <label for="{{ form.can_update_tracking.id_for_label }}">Update Tracking</label>
+                        <small>Allow updating order tracking information</small>
+                    </div>
+                    
+                    <div class="permission-item">
+                        {{ form.can_process_refunds }}
+                        <label for="{{ form.can_process_refunds.id_for_label }}">Process Refunds</label>
+                        <small>Allow processing customer refunds</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Limits</h3>
+                
+                <div class="form-group">
+                    <label for="{{ form.daily_message_limit.id_for_label }}">Daily Message Limit</label>
+                    {{ form.daily_message_limit }}
+                    <small>Maximum messages this sub-vendor can send per day</small>
+                    {% if form.daily_message_limit.errors %}
+                        <div class="error">{{ form.daily_message_limit.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <div class="error">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Update Permissions</button>
+                <a href="{% url 'vendors:manage_subvendors' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.subvendor-form {
+    background: #2a2a2a;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #444;
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.form-section h3 {
+    color: #fff;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.permission-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.permission-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.permission-item label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.form-check {
+    width: 18px;
+    height: 18px;
+    accent-color: #007bff;
+}
+
+.permission-item small {
+    color: #999;
+    font-size: 12px;
+    margin-left: 28px;
+}
+
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.error {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.form-errors {
+    margin-bottom: 20px;
+}
+
+small {
+    color: #999;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+</style>
+{% endblock %}

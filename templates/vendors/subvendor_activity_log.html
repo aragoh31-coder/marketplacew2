@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Activity Log: {{ subvendor.user.username }}{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>📋 Activity Log: {{ subvendor.user.username }}</h1>
+    
+    <div class="log-header">
+        <a href="{% url 'vendors:manage_subvendors' %}" class="btn btn-secondary">← Back to Sub-Vendors</a>
+    </div>
+    
+    {% if activities %}
+        <div class="activity-list">
+            {% for activity in activities %}
+            <div class="activity-item">
+                <div class="activity-header">
+                    <span class="action-type">{{ activity.get_action_display }}</span>
+                    <span class="timestamp">{{ activity.created_at|date:"Y-m-d H:i:s" }}</span>
+                </div>
+                
+                {% if activity.details %}
+                <div class="activity-details">
+                    {% for key, value in activity.details.items %}
+                        <div class="detail-item">
+                            <strong>{{ key|title }}:</strong>
+                            {% if value is dict %}
+                                <ul>
+                                    {% for k, v in value.items %}
+                                        <li>{{ k|title }}: {{ v }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                {{ value }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% if activity.ip_address %}
+                <div class="ip-address">
+                    IP: {{ activity.ip_address }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <p>No activity recorded yet for this sub-vendor account.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.log-header {
+    margin-bottom: 30px;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.activity-item {
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 4px solid #007bff;
+}
+
+.activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.action-type {
+    color: #fff;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.timestamp {
+    color: #999;
+    font-size: 12px;
+}
+
+.activity-details {
+    margin-bottom: 10px;
+}
+
+.detail-item {
+    color: #ccc;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.detail-item strong {
+    color: #fff;
+}
+
+.detail-item ul {
+    margin: 5px 0 0 20px;
+    padding: 0;
+}
+
+.detail-item li {
+    margin-bottom: 3px;
+}
+
+.ip-address {
+    color: #999;
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #2a2a2a;
+    border-radius: 12px;
+}
+
+.empty-state p {
+    color: #999;
+}
+</style>
+{% endblock %}

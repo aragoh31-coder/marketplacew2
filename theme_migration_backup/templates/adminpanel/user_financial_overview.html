@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+
+{% block title %}User Financial Overview - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>💼 User Financial Overview: {{ user_detail.username }}</h1>
+    
+    <div class="user-summary">
+        <div class="user-info">
+            <h3>User Information</h3>
+            <p><strong>Username:</strong> {{ user_detail.username }}</p>
+            <p><strong>Email:</strong> {{ user_detail.email }}</p>
+            <p><strong>Joined:</strong> {{ user_detail.date_joined|date:"M d, Y" }}</p>
+            <p><strong>Last Login:</strong> {{ user_detail.last_login|date:"M d, Y H:i" }}</p>
+        </div>
+        
+        {% if wallet_data %}
+        <div class="wallet-summary">
+            <h3>Wallet Summary</h3>
+            <div class="balance-grid">
+                <div class="balance-item">
+                    <span class="label">BTC Balance:</span>
+                    <span class="value">{{ wallet_data.btc_balance }} BTC</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">BTC Available:</span>
+                    <span class="value">{{ wallet_data.btc_available }} BTC</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">BTC Escrow:</span>
+                    <span class="value">{{ wallet_data.btc_escrow }} BTC</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">XMR Balance:</span>
+                    <span class="value">{{ wallet_data.xmr_balance }} XMR</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">XMR Available:</span>
+                    <span class="value">{{ wallet_data.xmr_available }} XMR</span>
+                </div>
+                <div class="balance-item">
+                    <span class="label">XMR Escrow:</span>
+                    <span class="value">{{ wallet_data.xmr_escrow }} XMR</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="financial-sections">
+        <div class="section">
+            <h3>📊 Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">{{ stats.total_orders }}</span>
+                    <span class="stat-label">Total Orders</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ stats.total_transactions }}</span>
+                    <span class="stat-label">Transactions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ stats.total_withdrawals }}</span>
+                    <span class="stat-label">Withdrawals</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ stats.total_disputes }}</span>
+                    <span class="stat-label">Disputes</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">{{ stats.flagged_activities }}</span>
+                    <span class="stat-label">Security Alerts</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>💸 Recent Withdrawals</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Status</th>
+                            <th>Risk Score</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdrawal in withdrawal_requests %}
+                        <tr>
+                            <td>{{ withdrawal.created_at|date:"M d, H:i" }}</td>
+                            <td>{{ withdrawal.amount }}</td>
+                            <td>{{ withdrawal.currency|upper }}</td>
+                            <td>
+                                <span class="status-badge status-{{ withdrawal.status }}">
+                                    {{ withdrawal.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ withdrawal.risk_score }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No withdrawals found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>💰 Recent Transactions</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.created_at|date:"M d, H:i" }}</td>
+                            <td>{{ transaction.get_type_display }}</td>
+                            <td>{{ transaction.amount }}</td>
+                            <td>{{ transaction.currency|upper }}</td>
+                            <td>{{ transaction.reference|slice:":20" }}...</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No transactions found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🛒 Recent Orders</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Role</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td>{{ order.created_at|date:"M d, H:i" }}</td>
+                            <td>
+                                {% if order.buyer == user_detail %}Buyer{% else %}Vendor{% endif %}
+                            </td>
+                            <td>{{ order.product.name|slice:":30" }}...</td>
+                            <td>{{ order.total_price }} {{ order.currency|upper }}</td>
+                            <td>
+                                <span class="status-badge status-{{ order.status }}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No orders found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>🚨 Security Logs</h3>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Action</th>
+                            <th>Risk Score</th>
+                            <th>Flagged</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in security_logs %}
+                        <tr class="{% if log.flagged %}flagged-row{% endif %}">
+                            <td>{{ log.created_at|date:"M d, H:i" }}</td>
+                            <td>{{ log.get_action_display }}</td>
+                            <td>{{ log.risk_score }}</td>
+                            <td>
+                                {% if log.flagged %}
+                                    <span class="flag-badge">🚩 Flagged</span>
+                                {% else %}
+                                    <span class="ok-badge">✓ OK</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ log.details|truncatechars:50 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">No security logs found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="admin-actions">
+        <a href="{% url 'adminpanel:users' %}" class="btn btn-secondary">← Back to Users</a>
+        <a href="{% url 'adminpanel:user_detail' user_detail.username %}" class="btn btn-primary">View Full Profile</a>
+    </div>
+</div>
+
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.user-summary {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.user-info, .wallet-summary {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.balance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.balance-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.balance-item:last-child {
+    border-bottom: none;
+}
+
+.value {
+    font-weight: 600;
+    font-family: monospace;
+}
+
+.financial-sections {
+    display: grid;
+    gap: 30px;
+}
+
+.section {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2em;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-pending { background: #fff3cd; color: #856404; }
+.status-reviewing { background: #cce5ff; color: #004085; }
+.status-approved { background: #d4edda; color: #155724; }
+.status-rejected { background: #f8d7da; color: #721c24; }
+.status-completed { background: #d4edda; color: #155724; }
+.status-cancelled { background: #f8d7da; color: #721c24; }
+
+.flagged-row {
+    background-color: #fff5f5;
+}
+
+.flag-badge {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.ok-badge {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.admin-actions {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.admin-actions .btn {
+    margin: 0 10px;
+}
+
+.text-center {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+}
+</style>
+{% endblock %}

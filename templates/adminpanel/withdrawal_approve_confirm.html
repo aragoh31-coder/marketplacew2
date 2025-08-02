@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Withdrawal Approval - Admin Panel</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1a1a1a;
+            color: #00ff00;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 30px;
+            border: 2px solid #ffaa00;
+            background-color: #000;
+            border-radius: 5px;
+        }
+        h1 {
+            color: #ffaa00;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .withdrawal-summary {
+            background-color: #2a2a2a;
+            border: 1px solid #ffaa00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .security-warnings {
+            background-color: #330000;
+            border: 1px solid #ff6666;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .security-warnings h3 {
+            color: #ff6666;
+            margin-top: 0;
+        }
+        .security-warnings ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .security-warnings li {
+            color: #ff9999;
+            margin: 5px 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ff00;
+            font-weight: bold;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: #00ff00;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+        .form-input:focus {
+            border-color: #ffaa00;
+            outline: none;
+        }
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .btn {
+            background-color: #333;
+            color: #ffaa00;
+            border: 2px solid #ffaa00;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background-color: #ffaa00;
+            color: #000;
+        }
+        .btn-danger {
+            border-color: #ff6666;
+            color: #ff6666;
+        }
+        .btn-danger:hover {
+            background-color: #ff6666;
+            color: #000;
+        }
+        .info-section {
+            background-color: #2a2a2a;
+            border: 1px solid #555;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .risk-high { color: #ff6666; }
+        .risk-medium { color: #ffaa00; }
+        .risk-low { color: #00ff00; }
+        .balance-info {
+            background-color: #003300;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Confirm Withdrawal Approval</h1>
+        
+        <div class="withdrawal-summary">
+            <h2>Withdrawal Summary</h2>
+            <table style="width: 100%; color: #00ff00;">
+                <tr>
+                    <td><strong>Withdrawal ID:</strong></td>
+                    <td>#{{ withdrawal.id }}</td>
+                </tr>
+                <tr>
+                    <td><strong>User:</strong></td>
+                    <td>{{ withdrawal.user.username }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Amount:</strong></td>
+                    <td>{{ withdrawal.amount }} {{ withdrawal.currency|upper }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Address:</strong></td>
+                    <td style="word-break: break-all;">{{ withdrawal.address }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Risk Score:</strong></td>
+                    <td>
+                        {% if withdrawal.risk_score >= 60 %}
+                            <span class="risk-high">{{ withdrawal.risk_score }} (HIGH RISK)</span>
+                        {% elif withdrawal.risk_score >= 40 %}
+                            <span class="risk-medium">{{ withdrawal.risk_score }} (Medium Risk)</span>
+                        {% else %}
+                            <span class="risk-low">{{ withdrawal.risk_score }} (Low Risk)</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Requested:</strong></td>
+                    <td>{{ withdrawal.created_at|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="balance-info">
+            <strong>Available Balance:</strong> {{ available_balance }} {{ withdrawal.currency|upper }}
+            {% if withdrawal.amount > available_balance %}
+                <span class="risk-high"> ⚠️ INSUFFICIENT BALANCE</span>
+            {% endif %}
+        </div>
+
+        {% if security_warnings %}
+        <div class="security-warnings">
+            <h3>⚠️ Security Warnings</h3>
+            <ul>
+                {% for warning in security_warnings %}
+                <li>{{ warning }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if admin_notes %}
+        <div class="info-section">
+            <h3>Admin Notes</h3>
+            <p>{{ admin_notes|linebreaks }}</p>
+        </div>
+        {% endif %}
+
+        {% if security_check %}
+        <div class="info-section">
+            <h3>Security Check Notes</h3>
+            <p>{{ security_check|linebreaks }}</p>
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'adminpanel:withdrawal_approve' withdrawal.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="step" value="2">
+            
+            {% if withdrawal.risk_score >= 60 or security_warnings %}
+            <div class="form-group">
+                <label class="form-label" for="admin_password">Admin Password (Required for High-Risk Approval):</label>
+                <input type="password" name="admin_password" id="admin_password" 
+                       class="form-input" required 
+                       placeholder="Enter your admin password">
+                <small style="color: #888;">Password verification required for high-risk withdrawals</small>
+            </div>
+            {% endif %}
+            
+            <div class="checkbox-group">
+                <input type="checkbox" name="final_confirmation" id="final_confirmation" required>
+                <label for="final_confirmation">
+                    I have reviewed all security warnings and confirm approval of this withdrawal
+                </label>
+            </div>
+            
+            <div class="form-group" style="margin-top: 30px;">
+                <button type="submit" class="btn">
+                    ✓ APPROVE WITHDRAWAL
+                </button>
+                <a href="{% url 'adminpanel:withdrawal_detail' withdrawal.id %}" class="btn btn-danger">
+                    ✗ Cancel
+                </a>
+            </div>
+        </form>
+
+        <div class="info-section">
+            <h3>⚠️ Important Security Notice</h3>
+            <ul>
+                <li>This action will immediately approve the withdrawal for processing</li>
+                <li>Approved withdrawals cannot be reversed</li>
+                <li>All approval actions are logged and audited</li>
+                <li>High-risk withdrawals require additional password verification</li>
+                <li>Ensure you have verified the user's identity and withdrawal details</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

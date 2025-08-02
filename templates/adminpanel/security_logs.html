@@ -1,0 +1,103 @@
+{% extends 'adminpanel/base.html' %}
+
+{% block title %}Security Logs - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Security Audit Logs</h2>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Flagged Security Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if flagged_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Risk Score</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in flagged_logs %}
+                                <tr class="{% if log.risk_score >= 70 %}table-danger{% elif log.risk_score >= 50 %}table-warning{% endif %}">
+                                    <td>{{ log.created_at }}</td>
+                                    <td>{{ log.user.username }}</td>
+                                    <td>{{ log.action }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if log.risk_score >= 70 %}danger{% elif log.risk_score >= 50 %}warning{% else %}info{% endif %}">
+                                            {{ log.risk_score }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if log.details %}
+                                        <small>{{ log.details|truncatechars:100 }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No flagged security events found.</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5>High Risk Events (Score ≥ 50)</h5>
+                </div>
+                <div class="card-body">
+                    {% if high_risk_logs %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Risk Score</th>
+                                    <th>IP Address</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in high_risk_logs %}
+                                <tr class="{% if log.risk_score >= 70 %}table-danger{% else %}table-warning{% endif %}">
+                                    <td>{{ log.created_at }}</td>
+                                    <td>{{ log.user.username }}</td>
+                                    <td>{{ log.action }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if log.risk_score >= 70 %}danger{% else %}warning{% endif %}">
+                                            {{ log.risk_score }}
+                                        </span>
+                                    </td>
+                                    <td><code>{{ log.ip_address }}</code></td>
+                                    <td>
+                                        {% if log.details %}
+                                        <small>{{ log.details|truncatechars:80 }}</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No high-risk events found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

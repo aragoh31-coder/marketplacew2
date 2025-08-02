@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>💬 Messages</h1>
+    
+    <div class="messaging-wrapper">
+        <div class="message-actions">
+            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">New Message</a>
+        </div>
+        
+        {% if messages %}
+        <table class="messages-table">
+            <thead>
+                <tr>
+                    <th>From</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for message in messages %}
+                <tr class="{% if not message.is_read %}unread{% endif %}">
+                    <td>
+                        <div class="sender-info">
+                            <strong>{{ message.sender.username }}</strong>
+                            {% if message.sender.vendor %}
+                                <span class="vendor-badge">Vendor</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <a href="{% url 'messaging:detail' message.id %}" class="message-link">
+                            {{ message.subject|default:"No Subject" }}
+                        </a>
+                    </td>
+                    <td>{{ message.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if message.is_read %}
+                            <span class="status read">Read</span>
+                        {% else %}
+                            <span class="status unread">Unread</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'messaging:detail' message.id %}" class="btn btn-sm">View</a>
+                        <form method="post" action="{% url 'messaging:delete' message.id %}" class="inline-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="honeypot_field" class="honeypot">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="page-link">« First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+            {% endif %}
+            
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-messages">
+            <h3>No messages</h3>
+            <p>You don't have any messages yet. Start a conversation with a vendor or another user.</p>
+            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">Send a Message</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .messaging-wrapper {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .message-actions {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-danger {
+        background: #f44336;
+        color: white;
+    }
+    
+    .messages-table {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .messages-table th {
+        background: #2a2a2a;
+        padding: 15px;
+        text-align: left;
+        border-bottom: 2px solid #444;
+        font-weight: bold;
+    }
+    
+    .messages-table td {
+        padding: 15px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .messages-table tr.unread {
+        background: #1e2a1e;
+    }
+    
+    .messages-table tr:hover {
+        background: #252525;
+    }
+    
+    .sender-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .vendor-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: bold;
+    }
+    
+    .message-link {
+        color: #4CAF50;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    
+    .message-link:hover {
+        text-decoration: underline;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status.read {
+        background: #2a2a2a;
+        color: #888;
+    }
+    
+    .status.unread {
+        background: #1b5e20;
+        color: #4CAF50;
+    }
+    
+    .inline-form {
+        display: inline;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .page-link {
+        color: #4CAF50;
+        padding: 8px 16px;
+        text-decoration: none;
+        border: 1px solid #444;
+        border-radius: 5px;
+        background: #2a2a2a;
+    }
+    
+    .page-link:hover {
+        background: #333;
+        border-color: #4CAF50;
+    }
+    
+    .page-current {
+        padding: 8px 16px;
+        color: #e0e0e0;
+        font-weight: bold;
+    }
+    
+    .empty-messages {
+        text-align: center;
+        padding: 60px;
+        color: #888;
+    }
+    
+    .empty-messages h3 {
+        margin-bottom: 15px;
+        color: #fff;
+    }
+    
+    .empty-messages p {
+        margin-bottom: 25px;
+    }
+    
+    .honeypot {
+        position: absolute;
+        left: -9999px;
+    }
+</style>
+{% endblock %}

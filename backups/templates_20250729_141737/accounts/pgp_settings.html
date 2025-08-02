@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% block title %}PGP Settings{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="pgp-settings-container">
+        <h1>🔐 PGP Settings</h1>
+        
+        {% if has_pgp %}
+        <div class="current-key-info">
+            <h2>Current PGP Key</h2>
+            <div class="key-details">
+                <p><strong>Status:</strong> <span class="status-active">✓ Active</span></p>
+                <p><strong>Fingerprint:</strong> <code>{{ pgp_fingerprint|slice:":8" }}...{{ pgp_fingerprint|slice:"-8:" }}</code></p>
+                <p><strong>2FA Status:</strong> 
+                    {% if user.pgp_login_enabled %}
+                        <span class="status-active">✓ Enabled</span>
+                    {% else %}
+                        <span class="status-inactive">✗ Disabled</span>
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="current-key-actions">
+                <form method="post" action="{% url 'accounts:pgp_remove' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <details>
+                        <summary class="btn btn-danger">Remove Key</summary>
+                        <div class="confirm-removal">
+                            <input type="password" name="password" placeholder="Enter password to confirm" required>
+                            <button type="submit" class="btn btn-danger">Confirm Removal</button>
+                        </div>
+                    </details>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="pgp-form-section">
+            <h2>{% if has_pgp %}Update{% else %}Add{% endif %} PGP Key</h2>
+            
+            <div class="info-box">
+                <h3>🛡️ Why Use PGP?</h3>
+                <ul>
+                    <li>Enable two-factor authentication for enhanced security</li>
+                    <li>Receive encrypted messages that only you can read</li>
+                    <li>Prove your identity with digital signatures</li>
+                    <li>Protect your account from unauthorized access</li>
+                </ul>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            
+            <form method="post" action="{% url 'accounts:pgp_settings' %}" id="pgp-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    {{ form.pgp_public_key.label_tag }}
+                    {{ form.pgp_public_key }}
+                    {% if form.pgp_public_key.errors %}
+                        <div class="error">{{ form.pgp_public_key.errors.0 }}</div>
+                    {% endif %}
+                    <small class="form-help">
+                        Paste your complete PGP public key block including the 
+                        <code>-----BEGIN PGP PUBLIC KEY BLOCK-----</code> and 
+                        <code>-----END PGP PUBLIC KEY BLOCK-----</code> lines.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        {{ form.enable_pgp_login }}
+                        {{ form.enable_pgp_login.label }}
+                    </label>
+                    <small class="form-help">
+                        When enabled, you'll need to decrypt a challenge with your PGP key to login.
+                        This provides strong two-factor authentication.
+                    </small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        🔍 Verify Key
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                        Cancel
+                    </a>
+                </div>
+                
+                <div class="verification-notice">
+                    <p>📋 <strong>Important:</strong> After clicking "Verify Key", you'll need to decrypt a test message to prove you have the private key.</p>
+                </div>
+            </form>
+        </div>
+        
+        <div class="pgp-help">
+            <h3>📚 Getting Started with PGP</h3>
+            <details>
+                <summary>How to Generate a PGP Key</summary>
+                <div class="help-content">
+                    <h4>Command Line (GPG)</h4>
+                    <pre>
+# Generate a new key pair
+gpg --gen-key
+
+# Export your public key
+gpg --armor --export your-email@example.com</pre>
+                    
+                    <h4>GUI Tools</h4>
+                    <ul>
+                        <li><strong>Windows:</strong> Gpg4win (Kleopatra)</li>
+                        <li><strong>macOS:</strong> GPG Suite</li>
+                        <li><strong>Linux:</strong> Seahorse, KGpg</li>
+                    </ul>
+                </div>
+            </details>
+            
+            <details>
+                <summary>PGP Best Practices</summary>
+                <div class="help-content">
+                    <ul>
+                        <li>Use a strong passphrase for your private key</li>
+                        <li>Keep your private key secure and never share it</li>
+                        <li>Create a revocation certificate in case your key is compromised</li>
+                        <li>Use a key size of at least 2048 bits (4096 recommended)</li>
+                        <li>Regularly backup your private key to a secure location</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pgp-settings-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .current-key-info {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .key-details p {
+        margin-bottom: 10px;
+    }
+    
+    .status-active {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .status-inactive {
+        color: #ff9800;
+    }
+    
+    .current-key-actions {
+        margin-top: 20px;
+    }
+    
+    .confirm-removal {
+        margin-top: 10px;
+        padding: 15px;
+        background: rgba(244, 67, 54, 0.1);
+        border: 1px solid #f44336;
+        border-radius: 5px;
+    }
+    
+    .confirm-removal input {
+        margin-right: 10px;
+        width: 200px;
+        padding: 8px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 4px;
+    }
+    
+    .pgp-form-section {
+        background: #1a1a1a;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #ccc;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        background: #2a2a2a;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 5px;
+        font-family: monospace;
+        font-size: 12px;
+    }
+    
+    .form-control:focus {
+        border-color: #4CAF50;
+        outline: none;
+    }
+    
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        color: #ccc;
+    }
+    
+    .checkbox-label input {
+        margin-right: 10px;
+    }
+    
+    .form-help {
+        color: #888;
+        font-size: 12px;
+        margin-top: 5px;
+        display: block;
+    }
+    
+    .form-help code {
+        color: #4CAF50;
+        background: #0a0a0a;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    
+    .verification-notice {
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid #ff9800;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .verification-notice p {
+        margin: 0;
+        color: #ff9800;
+    }
+    
+    .pgp-help {
+        background: #1a1a1a;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .pgp-help details {
+        margin-bottom: 15px;
+    }
+    
+    .pgp-help summary {
+        cursor: pointer;
+        color: #4CAF50;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .help-content {
+        margin-left: 20px;
+        color: #ccc;
+    }
+    
+    .help-content pre {
+        background: #0a0a0a;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #333;
+        font-size: 12px;
+        overflow-x: auto;
+    }
+    
+    .error {
+        color: #f44336;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .alert {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    
+    .alert-success {
+        background: #1b5e20;
+        color: #4CAF50;
+        border: 1px solid #4CAF50;
+    }
+    
+    .alert-error {
+        background: #b71c1c;
+        color: #f44336;
+        border: 1px solid #f44336;
+    }
+</style>
+
+<!-- JavaScript removed - functionality moved to server-side form processing -->
+{% endblock %}

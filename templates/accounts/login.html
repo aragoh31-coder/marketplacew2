@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Login - Secure Marketplace{% endblock %}
+{% block content %}
+<div class="bg-gray-800 border border-gray-700 rounded-lg p-8 max-w-md mx-auto">
+    <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" name="honeypot" value="">
+        <div class="text-center">
+            <p class="mb-4">Click on the circle with a cut/notch to verify you're human:</p>
+            <input type="image" 
+                   src="data:image/png;base64,{{ captcha_img }}" 
+                   name="captcha_click" 
+                   alt="Click on the cut circle"
+                   width="300"
+                   height="200"
+                   class="border-2 border-gray-600 cursor-pointer mx-auto block"
+                   title="Click on the circle with a cut">
+            <br>
+            <small class="text-gray-400">No JavaScript required - just click on the circle with a visible cut.</small>
+        </div>
+    </form>
+    <div class="text-center mt-6">
+        <a href="{% url 'accounts:register' %}" class="text-tor-accent hover:underline">Create Account</a>
+    </div>
+</div>
+{% endblock %}

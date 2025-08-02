@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Wallet Deposit - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>💰 Deposit Funds</h1>
+    
+    <div class="wallet-grid">
+        <div class="wallet-card">
+            <h2>Bitcoin (BTC)</h2>
+            <div class="balance">
+                <span class="label">Current Balance:</span>
+                <span class="amount">{{ wallet.btc_balance|default:"0.00000000" }} BTC</span>
+                <span class="usd">(≈ ${{ btc_usd_value|default:"0.00"|floatformat:2 }} USD)</span>
+            </div>
+            
+            <div class="deposit-info">
+                <h3>Deposit Address</h3>
+                <div class="address-box">
+                    <code class="wallet-address">{{ wallet.btc_address|default:"bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh" }}</code>
+                    <span class="copy-instruction">Select text to copy</span>
+                </div>
+                
+                <div class="deposit-notes">
+                    <p>⚠️ Important:</p>
+                    <ul>
+                        <li>Send only Bitcoin (BTC) to this address</li>
+                        <li>Minimum deposit: 0.0001 BTC</li>
+                        <li>Confirmations required: 6</li>
+                        <li>Deposits credited after ~60 minutes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="wallet-card">
+            <h2>Monero (XMR)</h2>
+            <div class="balance">
+                <span class="label">Current Balance:</span>
+                <span class="amount">{{ wallet.xmr_balance|default:"0.00000000" }} XMR</span>
+                <span class="usd">(≈ ${{ xmr_usd_value|default:"0.00"|floatformat:2 }} USD)</span>
+            </div>
+            
+            <div class="deposit-info">
+                <h3>Deposit Address</h3>
+                <div class="address-box">
+                    <code class="wallet-address">{{ wallet.xmr_address|default:"4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRJ5BNjPiQCI9bA3swRn5n6GyGiGtx6yiA1VPLLbQ7" }}</code>
+                    <span class="copy-instruction">Select text to copy</span>
+                </div>
+                
+                <div class="deposit-notes">
+                    <p>⚠️ Important:</p>
+                    <ul>
+                        <li>Send only Monero (XMR) to this address</li>
+                        <li>Minimum deposit: 0.01 XMR</li>
+                        <li>Confirmations required: 10</li>
+                        <li>Deposits credited after ~20 minutes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="transactions-section">
+        <h2>Recent Transactions</h2>
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>TX ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tx in recent_transactions %}
+                <tr>
+                    <td>{{ tx.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ tx.transaction_type|title }}</td>
+                    <td>{{ tx.amount }}</td>
+                    <td>{{ tx.currency }}</td>
+                    <td>
+                        <span class="status status-{{ tx.status }}">{{ tx.status|title }}</span>
+                    </td>
+                    <td>
+                        {% if tx.tx_hash %}
+                        <code>{{ tx.tx_hash|truncatechars:20 }}</code>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty">No transactions yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<style>
+    .wallet-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .wallet-card {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .wallet-card h2 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+    }
+    
+    .balance {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 30px;
+    }
+    
+    .balance .label {
+        display: block;
+        color: #888;
+        margin-bottom: 10px;
+    }
+    
+    .balance .amount {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .balance .usd {
+        display: block;
+        color: #888;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .address-box {
+        background: #0a0a0a;
+        padding: 15px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 15px 0;
+    }
+    
+    .address-box code {
+        color: #fff;
+        font-family: monospace;
+        font-size: 12px;
+        word-break: break-all;
+        flex-grow: 1;
+        margin-right: 10px;
+    }
+    
+    .copy-instruction {
+        color: #888;
+        font-size: 12px;
+        white-space: nowrap;
+        padding: 8px 15px;
+        background: #2a2a2a;
+        border-radius: 3px;
+    }
+    
+    .wallet-address {
+        user-select: all;
+        -webkit-user-select: all;
+        -moz-user-select: all;
+        -ms-user-select: all;
+    }
+    
+    
+    .deposit-notes {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+    }
+    
+    .deposit-notes ul {
+        margin-left: 20px;
+        margin-top: 10px;
+    }
+    
+    .deposit-notes li {
+        margin-bottom: 5px;
+        color: #ccc;
+    }
+    
+    .transactions-section {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border: 1px solid #333;
+    }
+    
+    .transactions-table {
+        width: 100%;
+        margin-top: 20px;
+    }
+    
+    .transactions-table th {
+        background: #2a2a2a;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #444;
+    }
+    
+    .transactions-table td {
+        padding: 12px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-confirmed {
+        background: #1b5e20;
+        color: #4CAF50;
+    }
+    
+    .status-pending {
+        background: #f57c00;
+        color: #fff;
+    }
+    
+    .empty {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+    }
+    
+    @media (max-width: 768px) {
+        .wallet-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

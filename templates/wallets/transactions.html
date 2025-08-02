@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}Transaction History - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>📊 Transaction History</h1>
+    
+    <div class="transactions-wrapper">
+        <div class="filter-section">
+            <form method="get" class="filter-form">
+                <div class="filter-row">
+                    <select name="currency">
+                        <option value="">All Currencies</option>
+                        <option value="BTC" {% if request.GET.currency == 'BTC' %}selected{% endif %}>Bitcoin (BTC)</option>
+                        <option value="XMR" {% if request.GET.currency == 'XMR' %}selected{% endif %}>Monero (XMR)</option>
+                    </select>
+                    
+                    <select name="type">
+                        <option value="">All Types</option>
+                        <option value="deposit" {% if request.GET.type == 'deposit' %}selected{% endif %}>Deposit</option>
+                        <option value="withdrawal" {% if request.GET.type == 'withdrawal' %}selected{% endif %}>Withdrawal</option>
+                        <option value="purchase" {% if request.GET.type == 'purchase' %}selected{% endif %}>Purchase</option>
+                        <option value="refund" {% if request.GET.type == 'refund' %}selected{% endif %}>Refund</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </div>
+            </form>
+        </div>
+        
+        {% if transactions %}
+        <table class="transactions-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Description</th>
+                    <th>TX Hash</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        <span class="tx-type tx-{{ transaction.transaction_type }}">
+                            {{ transaction.get_transaction_type_display }}
+                        </span>
+                    </td>
+                    <td class="amount {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}positive{% else %}negative{% endif %}">
+                        {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                    </td>
+                    <td>
+                        <span class="currency currency-{{ transaction.currency }}">
+                            {% if transaction.currency == 'BTC' %}₿{% elif transaction.currency == 'XMR' %}ɱ{% endif %} {{ transaction.currency }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status status-{{ transaction.status }}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ transaction.description|default:"-" }}</td>
+                    <td>
+                        {% if transaction.tx_hash %}
+                        <code class="tx-hash">{{ transaction.tx_hash|truncatechars:20 }}</code>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if request.GET.currency %}&currency={{ request.GET.currency }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}" class="page-link">« First</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.currency %}&currency={{ request.GET.currency }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}" class="page-link">Previous</a>
+            {% endif %}
+            
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.currency %}&currency={{ request.GET.currency }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}" class="page-link">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.currency %}&currency={{ request.GET.currency }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}" class="page-link">Last »</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <div class="empty-transactions">
+            <h3>No transactions found</h3>
+            <p>Your transaction history will appear here once you make deposits or purchases.</p>
+            <a href="{% url 'wallets:deposit' %}" class="btn btn-primary">Make a Deposit</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .transactions-wrapper {
+        background: #1a1a1a;
+        padding: 30px;
+        border-radius: 8px;
+        border: 1px solid #333;
+    }
+    
+    .filter-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .filter-form {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 5px;
+    }
+    
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .filter-form select {
+        background: #1a1a1a;
+        border: 1px solid #444;
+        color: #fff;
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .transactions-table {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+    
+    .transactions-table th {
+        background: #2a2a2a;
+        padding: 15px;
+        text-align: left;
+        border-bottom: 2px solid #444;
+        font-weight: bold;
+    }
+    
+    .transactions-table td {
+        padding: 15px;
+        border-bottom: 1px solid #333;
+    }
+    
+    .tx-type {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .tx-deposit {
+        background: #1b5e20;
+        color: #4CAF50;
+    }
+    
+    .tx-withdrawal {
+        background: #b71c1c;
+        color: #f44336;
+    }
+    
+    .tx-purchase {
+        background: #1a237e;
+        color: #3f51b5;
+    }
+    
+    .tx-refund {
+        background: #e65100;
+        color: #ff9800;
+    }
+    
+    .amount {
+        font-weight: bold;
+        font-family: monospace;
+    }
+    
+    .amount.positive {
+        color: #4CAF50;
+    }
+    
+    .amount.negative {
+        color: #f44336;
+    }
+    
+    .currency {
+        font-weight: bold;
+    }
+    
+    .currency-BTC {
+        color: #f7931a;
+    }
+    
+    .currency-XMR {
+        color: #ff6600;
+    }
+    
+    .status {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-confirmed {
+        background: #1b5e20;
+        color: #4CAF50;
+    }
+    
+    .status-pending {
+        background: #f57c00;
+        color: #fff;
+    }
+    
+    .status-failed {
+        background: #b71c1c;
+        color: #f44336;
+    }
+    
+    .tx-hash {
+        font-family: monospace;
+        font-size: 12px;
+        color: #888;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    
+    .page-link {
+        color: #4CAF50;
+        padding: 8px 16px;
+        text-decoration: none;
+        border: 1px solid #444;
+        border-radius: 5px;
+        background: #2a2a2a;
+    }
+    
+    .page-link:hover {
+        background: #333;
+        border-color: #4CAF50;
+    }
+    
+    .page-current {
+        padding: 8px 16px;
+        color: #e0e0e0;
+        font-weight: bold;
+    }
+    
+    .empty-transactions {
+        text-align: center;
+        padding: 60px;
+        color: #888;
+    }
+    
+    .empty-transactions h3 {
+        margin-bottom: 15px;
+        color: #fff;
+    }
+    
+    .empty-transactions p {
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
