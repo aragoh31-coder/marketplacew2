@@ -5,12 +5,12 @@
 
 {% if messages %}
     {% for message in messages %}
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">{{ message.title }}</h3>
-            <small>{{ message.created_at|date:"M d, Y H:i" }} - Target: {{ message.get_target_group_display }}</small>
+    <div class="bg-white p-6 rounded shadow mb-6">
+        <div class="border-b pb-4 mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">{{ message.title }}</h3>
+            <small class="text-gray-500">{{ message.created_at|date:"M d, Y H:i" }} - Target: {{ message.get_target_group_display }}</small>
         </div>
-        <div class="card-body">
+        <div class="text-gray-700">
             <p>{{ message.content|linebreaks }}</p>
         </div>
     </div>

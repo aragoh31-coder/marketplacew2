@@ -5,7 +5,7 @@
 {% block content %}
 <h1>Two-Factor Authentication Setup</h1>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>📱 Scan QR Code</h2>
     
     <div class="text-center mb-4">
@@ -44,17 +44,17 @@
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 Verify and Enable 2FA
             </button>
-            <a href="{% url 'wallets:security_settings' %}" class="btn btn-secondary">
+            <a href="{% url 'wallets:security_settings' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                 Cancel
             </a>
         </div>
     </form>
 </div>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>⚠️ Important Security Notes</h2>
     <ul>
         <li><strong>Save your secret key:</strong> Store the secret key in a safe place as backup</li>

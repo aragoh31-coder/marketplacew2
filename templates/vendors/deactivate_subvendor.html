@@ -24,8 +24,8 @@
         <form method="post" class="confirmation-form">
             {% csrf_token %}
             <div class="form-actions">
-                <button type="submit" class="btn btn-danger">Yes, Deactivate Account</button>
-                <a href="{% url 'vendors:manage_subvendors' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Yes, Deactivate Account</button>
+                <a href="{% url 'vendors:manage_subvendors' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</a>
             </div>
         </form>
     </div>

@@ -8,7 +8,7 @@
         <p>Sub-vendor accounts allow you to give limited access to trusted team members for customer support tasks.</p>
         
         {% if can_create_more %}
-            <a href="{% url 'vendors:create_subvendor' %}" class="btn btn-primary">
+            <a href="{% url 'vendors:create_subvendor' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 ➕ Create Sub-Vendor Account
             </a>
         {% else %}
@@ -58,10 +58,10 @@
                 </div>
                 
                 <div class="actions">
-                    <a href="{% url 'vendors:edit_subvendor' subvendor.id %}" class="btn btn-secondary">Edit</a>
+                    <a href="{% url 'vendors:edit_subvendor' subvendor.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Edit</a>
                     <a href="{% url 'vendors:subvendor_activity_log' subvendor.id %}" class="btn btn-info">Activity Log</a>
                     {% if subvendor.is_active %}
-                        <a href="{% url 'vendors:deactivate_subvendor' subvendor.id %}" class="btn btn-danger">Deactivate</a>
+                        <a href="{% url 'vendors:deactivate_subvendor' subvendor.id %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Deactivate</a>
                     {% endif %}
                 </div>
             </div>
@@ -71,7 +71,7 @@
         <div class="empty-state">
             <p>No sub-vendor accounts created yet.</p>
             {% if can_create_more %}
-                <a href="{% url 'vendors:create_subvendor' %}" class="btn btn-primary">Create Your First Sub-Vendor</a>
+                <a href="{% url 'vendors:create_subvendor' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Create Your First Sub-Vendor</a>
             {% endif %}
         </div>
     {% endif %}

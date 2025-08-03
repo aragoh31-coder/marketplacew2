@@ -31,7 +31,7 @@
                         <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>
                     </select>
                     
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Apply Filters</button>
                 </div>
             </details>
         </form>
@@ -98,15 +98,15 @@
                 <form method="post" action="{% url 'orders:add_to_cart' product.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="honeypot_field" class="honeypot">
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Add to Cart
                     </button>
                 </form>
                 {% else %}
-                <button class="btn btn-secondary" disabled>Out of Stock</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" disabled>Out of Stock</button>
                 {% endif %}
                 
-                <a href="{% url 'products:detail' product.id %}" class="btn btn-secondary">
+                <a href="{% url 'products:detail' product.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                     View Details
                 </a>
             </div>
@@ -114,7 +114,7 @@
         {% empty %}
         <div class="empty-state">
             <p>No products found</p>
-            <a href="{% url 'products:list' %}" class="btn btn-primary">Clear Filters</a>
+            <a href="{% url 'products:list' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Clear Filters</a>
         </div>
         {% endfor %}
     </div>
@@ -123,7 +123,7 @@
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">
+            <a href="?page={{ page_obj.previous_page_number }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                 ← Previous
             </a>
         {% endif %}
@@ -133,7 +133,7 @@
         </span>
         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">
+            <a href="?page={{ page_obj.next_page_number }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                 Next →
             </a>
         {% endif %}

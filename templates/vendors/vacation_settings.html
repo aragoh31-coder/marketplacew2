@@ -41,7 +41,7 @@
         
         <div class="form-actions">
             {% if vendor.is_on_vacation %}
-                <button type="submit" name="action" value="deactivate" class="btn btn-primary">
+                <button type="submit" name="action" value="deactivate" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     🏪 End Vacation Mode
                 </button>
                 <p class="warning-text">
@@ -56,7 +56,7 @@
                 </p>
             {% endif %}
             
-            <a href="{% url 'vendors:dashboard' %}" class="btn btn-secondary">Cancel</a>
+            <a href="{% url 'vendors:dashboard' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Cancel</a>
         </div>
     </form>
     

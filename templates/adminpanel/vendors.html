@@ -3,7 +3,7 @@
 {% block title %}Vendors - Admin Panel{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>Vendors</h2>
     <table>
         <thead><tr><th>Username</th><th>Trust Level</th><th>Approved</th><th>Actions</th></tr></thead>
@@ -15,7 +15,7 @@
                 <td>{{ vendor.is_approved }}</td>
                 <td>
                     {% if not vendor.is_approved %}
-                    <a href="{% url 'adminpanel:approve_vendor' vendor.id %}" class="btn">Approve</a>
+                    <a href="{% url 'adminpanel:approve_vendor' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Approve</a>
                     {% endif %}
                 </td>
             </tr>

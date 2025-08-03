@@ -6,7 +6,7 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-5">
-            <div class="card">
+            <div class="bg-white p-6 rounded shadow mb-6">
                 <div class="card-header">
                     <h3>⚠️ Disable Two-Factor Authentication</h3>
                 </div>
@@ -56,10 +56,10 @@
                             </div>
                             
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-danger">
+                                <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                                     🔓 Disable Two-Factor Authentication
                                 </button>
-                                <a href="{% url 'accounts:totp_settings' %}" class="btn btn-secondary">
+                                <a href="{% url 'accounts:totp_settings' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                                     Cancel
                                 </a>
                             </div>

@@ -2,7 +2,7 @@
 {% block title %}Wallet Dashboard{% endblock %}
 {% block content %}
 <h1>Your Wallet</h1>
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <div class="card-body">
         <h3>Balances</h3>
         <p><strong>BTC Balance:</strong> {{ wallet.btc_balance }} BTC</p>
@@ -11,7 +11,7 @@
     </div>
 </div>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <div class="card-body">
         <h3>Request Withdrawal</h3>
         <form method="post" action="{% url 'wallets:withdraw' %}">
@@ -31,12 +31,12 @@
                 <label for="address">Withdrawal Address:</label>
                 <input type="text" name="address" id="address" class="form-control" required>
             </div>
-            <button type="submit" class="btn btn-primary">Submit Withdrawal Request</button>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Withdrawal Request</button>
         </form>
     </div>
 </div>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <div class="card-body">
         <h3>Recent Withdrawal Requests</h3>
         {% if withdrawals %}

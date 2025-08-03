@@ -5,7 +5,7 @@
 {% block content %}
 <h1>Security Settings</h1>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>🔒 Wallet Security Configuration</h2>
     
     <form method="post" action="{% url 'wallets:security_settings' %}">
@@ -123,17 +123,17 @@
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                 Save Security Settings
             </button>
-            <a href="{% url 'wallets:dashboard' %}" class="btn btn-secondary">
+            <a href="{% url 'wallets:dashboard' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                 Cancel
             </a>
         </div>
     </form>
 </div>
 
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>🛡️ Security Recommendations</h2>
     <ul>
         <li><strong>Enable 2FA:</strong> Use an authenticator app like Google Authenticator or Authy</li>

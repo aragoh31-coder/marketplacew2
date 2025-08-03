@@ -6,7 +6,7 @@
 <div class="container">
     <div class="message-header">
         <h1>Message from {{ message.sender.username }}</h1>
-        <a href="{% url 'messaging:list' %}" class="btn btn-secondary">← Back to Messages</a>
+        <a href="{% url 'messaging:list' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">← Back to Messages</a>
     </div>
     
     <div class="message-detail">
@@ -51,8 +51,8 @@
         </div>
         
         <div class="message-actions">
-            <a href="{% url 'messaging:compose' %}?reply_to={{ message.id }}" class="btn btn-primary">Reply</a>
-            <a href="{% url 'messaging:list' %}" class="btn btn-secondary">Back to Inbox</a>
+            <a href="{% url 'messaging:compose' %}?reply_to={{ message.id }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Reply</a>
+            <a href="{% url 'messaging:list' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Back to Inbox</a>
         </div>
     </div>
 </div>

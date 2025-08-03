@@ -258,13 +258,13 @@
                     {% if request.status == 'pending' %}
                     <form method="post" action="{% url 'wallets:cancel_withdrawal' request.id %}" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-danger">
+                        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                             Cancel Request
                         </button>
                     </form>
                     {% endif %}
                     
-                    <a href="{% url 'wallets:withdrawal_detail' request.id %}" class="btn btn-secondary">
+                    <a href="{% url 'wallets:withdrawal_detail' request.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         View Details
                     </a>
                 </div>
@@ -273,8 +273,8 @@
         {% endfor %}
         
         <div style="text-align: center; margin-top: 30px;">
-            <a href="{% url 'wallets:withdraw' %}" class="btn btn-primary">New Withdrawal Request</a>
-            <a href="{% url 'wallets:dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
+            <a href="{% url 'wallets:withdraw' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">New Withdrawal Request</a>
+            <a href="{% url 'wallets:dashboard' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Back to Dashboard</a>
         </div>
         
     {% else %}
@@ -282,7 +282,7 @@
             <div class="empty-icon">📤</div>
             <h3>No Withdrawal Requests</h3>
             <p>You haven't made any withdrawal requests yet.</p>
-            <a href="{% url 'wallets:withdraw' %}" class="btn btn-primary">Make Your First Withdrawal</a>
+            <a href="{% url 'wallets:withdraw' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Make Your First Withdrawal</a>
         </div>
     {% endif %}
 </div>

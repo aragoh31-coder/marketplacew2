@@ -30,8 +30,8 @@
                     <option value="non_vendors" {% if vendor_filter == 'non_vendors' %}selected{% endif %}>Non-Vendors</option>
                 </select>
                 
-                <button type="submit" class="btn btn-primary">🔍 Search</button>
-                <a href="{% url 'adminpanel:users' %}" class="btn btn-secondary">Clear</a>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">🔍 Search</button>
+                <a href="{% url 'adminpanel:users' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Clear</a>
             </div>
         </form>
     </div>

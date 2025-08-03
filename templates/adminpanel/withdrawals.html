@@ -3,7 +3,7 @@
 {% block title %}Withdrawals - Admin Panel{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>Pending Withdrawals</h2>
     <table>
         <thead><tr><th>User</th><th>Amount</th><th>Currency</th><th>Transaction ID</th><th>Actions</th></tr></thead>
@@ -15,7 +15,7 @@
                 <td>{{ withdrawal.wallet.currency }}</td>
                 <td>{{ withdrawal.txid|truncatechars:20|default:"Pending" }}</td>
                 <td>
-                    <a href="{% url 'adminpanel:approve_withdrawal' withdrawal.id %}" class="btn">Approve</a>
+                    <a href="{% url 'adminpanel:approve_withdrawal' withdrawal.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Approve</a>
                 </td>
             </tr>
             {% endfor %}

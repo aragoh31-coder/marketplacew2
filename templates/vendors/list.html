@@ -36,8 +36,8 @@
             </div>
             
             <div class="vendor-actions">
-                <a href="{% url 'vendors:detail' vendor.id %}" class="btn btn-primary">View Store</a>
-                <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="btn btn-secondary">Message</a>
+                <a href="{% url 'vendors:detail' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Store</a>
+                <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Message</a>
             </div>
         </div>
         {% empty %}

@@ -4,7 +4,7 @@
 <div class="container">
     <div class="page-header">
         <h1>Manage Products</h1>
-        <a href="{% url 'vendors:create_product' %}" class="btn btn-primary">
+        <a href="{% url 'vendors:create_product' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             ➕ Add New Product
         </a>
     </div>
@@ -21,8 +21,8 @@
                 <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
             </select>
             
-            <button type="submit" class="btn">Filter</button>
-            <a href="{% url 'vendors:products' %}" class="btn btn-secondary">Clear</a>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Filter</button>
+            <a href="{% url 'vendors:products' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Clear</a>
         </form>
     </div>
     

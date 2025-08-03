@@ -3,7 +3,7 @@
 {% block title %}Disputes - Admin Panel{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>Disputes</h2>
     <table>
         <thead><tr><th>Order ID</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
@@ -21,7 +21,7 @@
                             <option value="buyer">Favor Buyer</option>
                             <option value="vendor">Favor Vendor</option>
                         </select>
-                        <button type="submit" class="btn">Resolve</button>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Resolve</button>
                     </form>
                     {% endif %}
                 </td>

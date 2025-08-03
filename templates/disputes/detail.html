@@ -40,9 +40,9 @@
         </div>
         
         <div class="dispute-actions">
-            <a href="{% url 'disputes:list' %}" class="btn btn-secondary">Back to Disputes</a>
+            <a href="{% url 'disputes:list' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Back to Disputes</a>
             {% if user.is_superuser %}
-            <a href="#" class="btn btn-primary">Resolve Dispute</a>
+            <a href="#" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Resolve Dispute</a>
             {% endif %}
         </div>
     </div>

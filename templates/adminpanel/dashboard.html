@@ -3,18 +3,18 @@
 {% block title %}Admin Dashboard - Secure Marketplace{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="bg-white p-6 rounded shadow mb-6">
     <h2>Admin Dashboard</h2>
     
     <div class="admin-nav">
-        <a href="{% url 'adminpanel:users' %}" class="btn btn-secondary">👥 Users</a>
-        <a href="{% url 'adminpanel:vendors' %}" class="btn btn-secondary">🏪 Vendors</a>
-        <a href="{% url 'adminpanel:products' %}" class="btn btn-secondary">📦 Products</a>
-        <a href="{% url 'adminpanel:orders' %}" class="btn btn-secondary">📋 Orders</a>
-        <a href="{% url 'adminpanel:disputes' %}" class="btn btn-secondary">⚖️ Disputes</a>
-        <a href="{% url 'adminpanel:withdrawals' %}" class="btn btn-secondary">💸 Withdrawals</a>
-        <a href="{% url 'adminpanel:logs' %}" class="btn btn-secondary">📊 Logs</a>
-        <a href="{% url 'adminpanel:image_settings' %}" class="btn btn-secondary">🖼️ Image Settings</a>
+        <a href="{% url 'adminpanel:users' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">👥 Users</a>
+        <a href="{% url 'adminpanel:vendors' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">🏪 Vendors</a>
+        <a href="{% url 'adminpanel:products' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📦 Products</a>
+        <a href="{% url 'adminpanel:orders' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📋 Orders</a>
+        <a href="{% url 'adminpanel:disputes' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">⚖️ Disputes</a>
+        <a href="{% url 'adminpanel:withdrawals' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">💸 Withdrawals</a>
+        <a href="{% url 'adminpanel:logs' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📊 Logs</a>
+        <a href="{% url 'adminpanel:image_settings' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">🖼️ Image Settings</a>
     </div>
     <div class="metrics">
         <div>Users: {{ users_count }} (Active: {{ active_users }})</div>
@@ -48,17 +48,17 @@
     <form method="post" action="{% url 'adminpanel:maintenance' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="vacuum">
-        <button type="submit" class="btn">Run VACUUM</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Run VACUUM</button>
     </form>
     <form method="post" action="{% url 'adminpanel:maintenance' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="reconcile">
-        <button type="submit" class="btn">Reconcile Wallets</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Reconcile Wallets</button>
     </form>
     <form method="post" action="{% url 'adminpanel:maintenance' %}">
         {% csrf_token %}
         <input type="hidden" name="action" value="expire">
-        <button type="submit" class="btn">Expire Data</button>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Expire Data</button>
     </form>
 </div>
 

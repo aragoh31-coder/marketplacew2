@@ -10,7 +10,7 @@
             
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="card text-center">
+                    <div class="bg-white p-6 rounded shadow mb-6 text-center">
                         <div class="card-body">
                             <h5 class="card-title">Total Wallets</h5>
                             <h3 class="text-primary">{{ total_wallets }}</h3>
@@ -18,7 +18,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-center">
+                    <div class="bg-white p-6 rounded shadow mb-6 text-center">
                         <div class="card-body">
                             <h5 class="card-title">Total BTC</h5>
                             <h3 class="text-warning">{{ total_balances.total_btc|default:"0.00000000" }}</h3>
@@ -26,7 +26,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-center">
+                    <div class="bg-white p-6 rounded shadow mb-6 text-center">
                         <div class="card-body">
                             <h5 class="card-title">Total XMR</h5>
                             <h3 class="text-info">{{ total_balances.total_xmr|default:"0.000000000000" }}</h3>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-center">
+                    <div class="bg-white p-6 rounded shadow mb-6 text-center">
                         <div class="card-body">
                             <h5 class="card-title">Pending Withdrawals</h5>
                             <h3 class="text-danger">{{ withdrawal_stats.pending_count|default:"0" }}</h3>

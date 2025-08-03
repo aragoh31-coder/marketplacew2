@@ -8,7 +8,7 @@
     
     <div class="messaging-wrapper">
         <div class="message-actions">
-            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">New Message</a>
+            <a href="{% url 'messaging:compose' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">New Message</a>
         </div>
         
         {% if messages %}
@@ -81,7 +81,7 @@
         <div class="empty-messages">
             <h3>No messages</h3>
             <p>You don't have any messages yet. Start a conversation with a vendor or another user.</p>
-            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">Send a Message</a>
+            <a href="{% url 'messaging:compose' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Send a Message</a>
         </div>
         {% endif %}
     </div>

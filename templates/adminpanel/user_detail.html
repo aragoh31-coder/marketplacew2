@@ -10,7 +10,7 @@
             <form method="post" action="{% url 'adminpanel:user_action' user.username %}" style="display: inline;">
                 {% csrf_token %}
                 {% if user.is_active %}
-                    <button type="submit" name="action" value="ban" class="btn btn-danger">
+                    <button type="submit" name="action" value="ban" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
                         🚫 Ban User
                     </button>
                 {% else %}
@@ -24,7 +24,7 @@
                         ⭐ Make Staff
                     </button>
                 {% else %}
-                    <button type="submit" name="action" value="remove_staff" class="btn btn-secondary">
+                    <button type="submit" name="action" value="remove_staff" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         ❌ Remove Staff
                     </button>
                 {% endif %}

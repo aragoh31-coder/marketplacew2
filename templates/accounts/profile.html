@@ -19,7 +19,7 @@
     
     <!-- Account Section -->
     <div id="account" class="profile-section">
-        <div class="card">
+        <div class="bg-white p-6 rounded shadow mb-6">
             <div class="card-header">
                 <h2>🔐 Account Settings</h2>
             </div>
@@ -58,10 +58,10 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="{% url 'accounts:change_password' %}" class="btn btn-secondary">
+                    <a href="{% url 'accounts:change_password' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         Change Password
                     </a>
-                    <a href="{% url 'accounts:profile_settings' %}" class="btn btn-primary">
+                    <a href="{% url 'accounts:profile_settings' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Edit Settings
                     </a>
                 </div>
@@ -71,7 +71,7 @@
     
     <!-- Security Section -->
     <div id="security" class="profile-section">
-        <div class="card">
+        <div class="bg-white p-6 rounded shadow mb-6">
             <div class="card-header">
                 <h2>🔒 Security Options</h2>
             </div>
@@ -96,10 +96,10 @@
                 {% endif %}
                 
                 <div class="action-buttons">
-                    <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-primary">
+                    <a href="{% url 'accounts:pgp_settings' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Configure PGP
                     </a>
-                    <a href="{% url 'accounts:login_history' %}" class="btn btn-secondary">
+                    <a href="{% url 'accounts:login_history' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         Login History
                     </a>
                 </div>
@@ -121,7 +121,7 @@
     
     <!-- Wallet Section -->
     <div id="wallet" class="profile-section">
-        <div class="card">
+        <div class="bg-white p-6 rounded shadow mb-6">
             <div class="card-header">
                 <h2>💰 Wallet Balance</h2>
             </div>
@@ -141,10 +141,10 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="{% url 'wallets:deposit' %}" class="btn btn-primary">
+                    <a href="{% url 'wallets:deposit' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                         Deposit
                     </a>
-                    <a href="{% url 'wallets:withdraw' %}" class="btn btn-secondary">
+                    <a href="{% url 'wallets:withdraw' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         Withdraw
                     </a>
                 </div>
@@ -154,7 +154,7 @@
     
     <!-- Stats Section -->
     <div id="stats" class="profile-section">
-        <div class="card">
+        <div class="bg-white p-6 rounded shadow mb-6">
             <div class="card-header">
                 <h2>⚖️ Trust & Reputation</h2>
             </div>
@@ -210,7 +210,7 @@
     <div class="danger-zone">
         <h3>🚨 Danger Zone</h3>
         <p class="text-muted">Irreversible account actions</p>
-        <a href="{% url 'accounts:delete_account' %}" class="btn btn-danger">
+        <a href="{% url 'accounts:delete_account' %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
             Delete Account
         </a>
     </div>

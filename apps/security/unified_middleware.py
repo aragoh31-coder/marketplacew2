@@ -49,7 +49,7 @@ class UnifiedSecurityMiddleware:
         if request.path.startswith('/anti_ddos/'):
             return self.get_response(request)
         
-        if request.user.is_authenticated and request.user.is_staff:
+        if hasattr(request, 'user') and request.user.is_authenticated and request.user.is_staff:
             return self.get_response(request)
         
         client_id = self.get_client_identifier(request)

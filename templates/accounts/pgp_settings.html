@@ -24,10 +24,10 @@
                 <form method="post" action="{% url 'accounts:pgp_remove' %}" style="display:inline;">
                     {% csrf_token %}
                     <details>
-                        <summary class="btn btn-danger">Remove Key</summary>
+                        <summary class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Remove Key</summary>
                         <div class="confirm-removal">
                             <input type="password" name="password" placeholder="Enter password to confirm" required>
-                            <button type="submit" class="btn btn-danger inline-block px-6 py-3 text-white font-semibold rounded-md transition-all duration-200 hover:transform hover:scale-105">Confirm Removal</button>
+                            <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 inline-block px-6 py-3 text-white font-semibold rounded-md transition-all duration-200 hover:transform hover:scale-105">Confirm Removal</button>
                         </div>
                     </details>
                 </form>
@@ -85,7 +85,7 @@
                     <button type="submit" class="btn btn-primary inline-block px-6 py-3 text-white font-semibold rounded-md transition-all duration-200 hover:transform hover:scale-105">
                         🔍 Verify Key
                     </button>
-                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                    <a href="{% url 'accounts:profile' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
                         Cancel
                     </a>
                 </div>
