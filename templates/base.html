@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50 dark:bg-secondary dark:text-neutral">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link href="{% static 'css/tailwind.css' %}" rel="stylesheet"/>
+
+  <style>
+    .card {
+      background-color: #1F2937;
+      color: #F1F5F9;
+    }
+    .btn {
+      background-color: #FBBF24;
+      color: #000000;
+    }
+
+    #sidebar-toggle, #user-menu-toggle { display: none; }
+    .sidebar { transform: translateX(-100%); transition: transform .3s ease; }
+    #sidebar-toggle:checked ~ .sidebar { transform: translateX(0); }
+    .overlay { pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+    #sidebar-toggle:checked ~ .overlay { pointer-events: auto; opacity: .5; }
+    .dropdown { display: none; }
+    input.dropdown-toggle:checked + label + .dropdown { display: block; }
+  </style>
+</head>
+<body class="min-h-full flex flex-col bg-gray-900 text-white">
+<input type="checkbox" id="sidebar-toggle" />
+<input type="checkbox" id="dark-toggle" class="hidden peer" checked />
+
+<!-- Overlay -->
+<label for="sidebar-toggle" class="overlay fixed inset-0 bg-black"></label>
+
+<!-- Sidebar -->
+<aside class="sidebar fixed inset-y-0 left-0 w-64 bg-gray-800 text-white p-6 z-20 flex flex-col space-y-4">
+  <label for="sidebar-toggle" class="flex items-center cursor-pointer hover:text-gray-300 mb-4">
+    ✕ <span class="ml-2">Close</span>
+  </label>
+  <nav class="space-y-2">
+    <a href="{% url 'accounts:home' %}" class="block px-3 py-2 rounded hover:bg-gray-700">Home</a>
+    <a href="{% url 'products:list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">Products</a>
+    <a href="{% url 'orders:list' %}" class="block px-3 py-2 rounded hover:bg-gray-700">My Orders</a>
+    <a href="{% url 'wallets:dashboard' %}" class="block px-3 py-2 rounded hover:bg-gray-700">Wallet</a>
+    <a href="{% url 'support:home' %}" class="block px-3 py-2 rounded hover:bg-gray-700">Help</a>
+  </nav>
+</aside>
+
+<!-- Header -->
+<header class="bg-gray-800 shadow p-4 flex justify-between items-center">
+  <div class="flex items-center space-x-4">
+    <label for="sidebar-toggle" class="cursor-pointer text-white">☰</label>
+    <a href="{% url 'accounts:home' %}" class="text-2xl font-semibold text-white">SecureMarket</a>
+  </div>
+  <div class="flex items-center space-x-4">
+    <label for="dark-toggle" class="ml-4 cursor-pointer text-white dark-toggle-label">
+      🌙
+    </label>
+    {% if user.is_authenticated %}
+    <div>
+      <input type="checkbox" id="user-menu-toggle" class="dropdown-toggle"/>
+      <label for="user-menu-toggle" class="cursor-pointer">{{ user.username }} ▾</label>
+      <div class="dropdown absolute bg-white shadow rounded mt-2 py-2">
+        <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-100">Logout</a>
+      </div>
+    </div>
+    {% else %}
+      <a href="{% url 'accounts:login' %}" class="text-blue-600">Login</a>
+      <a href="{% url 'accounts:register' %}" class="text-blue-600">Register</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Main -->
+<main class="flex-1 container mx-auto p-4 bg-gray-900 text-white">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="bg-gray-800 p-4 text-center text-sm text-gray-300">
+  © Secure Marketplace
+</footer>
+</body>
+</html>
