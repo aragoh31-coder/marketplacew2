@@ -56,7 +56,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_ratelimit.middleware.RatelimitMiddleware",
     "wallets.middleware.WalletSecurityMiddleware",
-    "core.middleware.TorSecurityMiddleware",
+    "core.middleware.security.TorSecurityMiddleware",
+    "core.middleware.security.AntiReplayMiddleware",
 ]
 
 ROOT_URLCONF = "marketplace.urls"
@@ -185,8 +186,10 @@ RATELIMIT_VIEW = "django.http.HttpResponseTooManyRequests"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
-SECURE_REFERRER_POLICY = "same-origin"
-USE_X_FORWARDED_HOST = True
+SECURE_REFERRER_POLICY = "no-referrer"  # Critical for Tor
+USE_X_FORWARDED_HOST = False  # Never trust forwarded headers on Tor
+USE_X_FORWARDED_PORT = False
+SECURE_PROXY_SSL_HEADER = None  # No proxy headers on Tor
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Strict"
@@ -307,7 +310,9 @@ PGP_2FA_TIMEOUT = 15  # minutes
 SESSION_SAVE_EVERY_REQUEST = (
     False  # Don't refresh on every request for better 2FA experience
 )
-SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_AGE = 900  # 15 minutes for Tor security
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Don't use cookies for session data
 
 CSRF_COOKIE_AGE = 3600  # 1 hour for CSRF tokens
 CSRF_USE_SESSIONS = False  # Use cookie-based CSRF for better compatibility

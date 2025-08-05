@@ -69,21 +69,38 @@
 
     <!-- Mobile Navigation (CSS-only) -->
     <input type="checkbox" id="menu-toggle" class="hidden">
+    <style>
+        /* Mobile menu toggle functionality */
+        #menu-toggle:checked ~ #main-menu {
+            display: block !important;
+        }
+        
+        /* Ensure proper touch targets */
+        @media (max-width: 768px) {
+            .mobile-nav-link {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+            }
+        }
+    </style>
     <nav id="main-menu" class="hidden md:hidden bg-gray-800 w-full z-50">
-        <a href="/" class="block px-4 py-2 hover:bg-gray-700 text-white">Home</a>
-        <a href="{% url 'products:list' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Products</a>
+        <a href="/" class="mobile-nav-link hover:bg-gray-700 text-white">Home</a>
+        <a href="{% url 'products:list' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Products</a>
         {% if user.is_authenticated %}
-            <a href="{% url 'orders:list' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Orders</a>
-            <a href="{% url 'wallets:dashboard' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Wallet</a>
-            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Profile</a>
-            <a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Settings</a>
-            <a href="{% url 'messaging:list' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Messages</a>
-            <a href="{% url 'support:home' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Support</a>
-            <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-700 text-red-400">Logout</a>
+            <a href="{% url 'orders:list' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Orders</a>
+            <a href="{% url 'wallets:dashboard' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Wallet</a>
+            <a href="{% url 'accounts:profile' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Profile</a>
+            <a href="{% url 'accounts:profile_settings' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Settings</a>
+            <a href="{% url 'messaging:list' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Messages</a>
+            <a href="{% url 'support:home' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Support</a>
+            <a href="{% url 'logout' %}" class="mobile-nav-link hover:bg-gray-700 text-red-400">Logout</a>
         {% else %}
-            <a href="{% url 'accounts:login' %}" class="block px-4 py-2 hover:bg-gray-700 text-white">Login</a>
-            <a href="{% url 'accounts:register' %}" class="block px-4 py-2 hover:bg-gray-700 text-blue-400">Register</a>
+            <a href="{% url 'accounts:login' %}" class="mobile-nav-link hover:bg-gray-700 text-white">Login</a>
+            <a href="{% url 'accounts:register' %}" class="mobile-nav-link hover:bg-gray-700 text-blue-400">Register</a>
         {% endif %}
+    </nav>
     </nav>
 
     <!-- Main Content -->
