@@ -53,7 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.security.TorSecurityMiddleware",
     "core.middleware.security.AntiReplayMiddleware",
-    "core.middleware.error_handling.SecurityErrorHandlingMiddleware",
+    "core.middleware.error_handling.EnhancedErrorHandlingMiddleware",
 ]
 
 ROOT_URLCONF = "marketplace.urls"
@@ -431,3 +431,5 @@ SECURE_REFERRER_POLICY = "no-referrer"
 CIRCUIT_FINGERPRINT_SECRET = (
     b"super-secret-key-for-circuit-fingerprinting-change-in-production"
 )
+
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="default-field-encryption-key-change-in-production")

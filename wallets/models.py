@@ -1,8 +1,8 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.db import models
-from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField, transaction
+from django.db import models, transaction
+from encrypted_model_fields.fields import EncryptedCharField, EncryptedTextField
 from django.utils import timezone
 
 
