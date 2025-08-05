@@ -2,8 +2,8 @@
   "name": "marketplace",
   "version": "1.0.0",
   "scripts": {
-    "build-css": "tailwindcss -i ./assets/css/input.css -o ./static/css/output.css --watch",
-    "build-css-prod": "tailwindcss -i ./assets/css/input.css -o ./static/css/output.css --minify"
+    "build-css": "tailwindcss -i ./assets/css/input.css -o ./static/css/tailwind.css --watch",
+    "build-css-prod": "tailwindcss -i ./assets/css/input.css -o ./static/css/tailwind.css --minify"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",

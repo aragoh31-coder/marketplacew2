@@ -1,41 +1,28 @@
-# Environment variables
-.env
-
-# Database
-db.sqlite3
-*.sqlite3
-
-# Python cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+*.py[cod]
+*$py.class
 
-# Virtual environment
-venv/
-env/
-ENV/
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
 
-# Static files
-staticfiles/
+# Logs and reports
+*.log
+*.txt
+*.json
+CAPTCHA_STRESS_TEST_REPORT.*
+FINAL_STRESS_TEST_SUMMARY.txt
+ANTI_EVASION_IMPLEMENTATION_LOG.txt
+COMPREHENSIVE_ANTI_DDOS_IMPLEMENTATION_LOG.txt
 
-# IDE
-.vscode/
-.idea/
+# Backups and temp
 *.swp
 *.swo
+.theme_migration_backup_dir/
+=5.8.0/
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
-
-# Media files
-media/
-
-# Docker
-.dockerignore
-node_modules/
+# Environments
+.env
+.venv/
