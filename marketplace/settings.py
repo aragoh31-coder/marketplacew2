@@ -424,10 +424,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "no-referrer"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# try:
-#     from .settings.local import *
-# except ImportError:
-#     pass
+try:
+    from .settings.local import *
+except ImportError:
+    pass
 
 
 CIRCUIT_FINGERPRINT_SECRET = (
