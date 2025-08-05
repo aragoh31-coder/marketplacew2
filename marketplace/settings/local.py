@@ -1,12 +1,15 @@
 import os
 from pathlib import Path
+
 from django.core.exceptions import ImproperlyConfigured
+
 
 def get_env_var(var_name):
     try:
         return os.environ[var_name]
     except KeyError:
         raise ImproperlyConfigured(f"Set the {var_name} environment variable.")
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
