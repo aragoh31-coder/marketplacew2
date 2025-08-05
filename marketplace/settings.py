@@ -44,7 +44,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.anti_ddos.middleware.AntiDDoSMiddleware",
     "apps.security.openresty_middleware.OpenRestyIntegrationMiddleware",
@@ -422,12 +421,12 @@ SESSION_COOKIE_SECURE = True
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "no-referrer"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-try:
-    from .settings.local import *
-except ImportError:
-    pass
+# try:
+#     from .settings.local import *
+# except ImportError:
+#     pass
 
 
 CIRCUIT_FINGERPRINT_SECRET = (
