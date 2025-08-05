@@ -1,13 +1,13 @@
-<aside class="hidden md:block w-64 bg-gray-900 text-white h-screen fixed top-0 left-0 z-40" style="position: fixed !important; top: 0 !important; left: 0 !important; height: 100vh !important; width: 16rem !important;">
-  <div class="p-4 text-2xl font-bold border-b border-gray-700">Dashboard</div>
-  <nav class="mt-4">
-    <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Profile</a>
-    <a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Settings</a>
-    <a href="{% url 'orders:list' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">My Orders</a>
-    <a href="{% url 'wallets:dashboard' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Wallet</a>
-    <a href="{% url 'vendors:dashboard' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Vendor Dashboard</a>
-    <a href="{% url 'messaging:list' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Messages</a>
-    <a href="{% url 'support:tickets' %}" class="block px-4 py-2 hover:bg-gray-800 transition-colors">Support</a>
-    <a href="{% url 'logout' %}" class="block px-4 py-2 text-red-400 hover:bg-gray-800 transition-colors">Logout</a>
+<div class="hidden md:block" style="position: fixed; top: 64px; left: 0; width: 16rem; height: calc(100vh - 64px); background-color: #1f2937; color: white; z-index: 40; overflow-y: auto;">
+  <div style="padding: 1rem; font-size: 1.5rem; font-weight: bold; border-bottom: 1px solid #374151;">Dashboard</div>
+  <nav style="margin-top: 1rem;">
+    <a href="{% url 'accounts:profile' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Profile</a>
+    <a href="{% url 'accounts:profile_settings' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Settings</a>
+    <a href="{% url 'orders:list' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">My Orders</a>
+    <a href="{% url 'wallets:dashboard' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Wallet</a>
+    <a href="{% url 'vendors:dashboard' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Vendor Dashboard</a>
+    <a href="{% url 'messaging:list' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Messages</a>
+    <a href="{% url 'support:tickets' %}" style="display: block; padding: 0.5rem 1rem; color: white; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Support</a>
+    <a href="{% url 'logout' %}" style="display: block; padding: 0.5rem 1rem; color: #f87171; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#1f2937'" onmouseout="this.style.backgroundColor='transparent'">Logout</a>
   </nav>
-</aside>
+</div>
