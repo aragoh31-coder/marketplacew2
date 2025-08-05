@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS-only mobile navigation */
+#menu-toggle:checked + label + nav {
+    display: block !important;
+}
+
+@media (max-width: 768px) {
+    #main-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: #1f2937;
+        padding: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    #menu-toggle:checked ~ #main-menu {
+        display: block !important;
+    }
+}

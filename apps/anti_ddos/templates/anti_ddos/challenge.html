@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Anti-DDoS Challenge</title>
+  <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+</head>
+<body class="flex items-center justify-center h-screen">
+  <div class="p-6 bg-white shadow rounded">
+    <h2 class="text-xl mb-4">Verify to Continue</h2>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">I'm Human</button>
+      <input type="hidden" name="next" value="{{ next }}">
+    </form>
+  </div>
+</body>
+</html>
