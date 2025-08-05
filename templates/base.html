@@ -9,10 +9,46 @@
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
 </head>
 <body class="bg-gray-100 text-gray-900">
+    <style>
+        /* CSS-only mobile navigation */
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        #mobile-nav-toggle:checked + .mobile-menu {
+            max-height: 500px;
+            display: block !important;
+        }
+        
+        /* Ensure mobile menu is properly positioned */
+        .navbar-container {
+            position: relative;
+        }
+        
+        /* Fix mobile navigation visibility */
+        @media (max-width: 768px) {
+            .mobile-menu {
+                position: relative;
+                width: 100%;
+                z-index: 50;
+            }
+            
+            /* Ensure hamburger menu is visible and clickable */
+            label[for="mobile-nav-toggle"] {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+    </style>
 
     <!-- NAVBAR -->
     <nav class="bg-gray-900 text-white shadow-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="navbar-container max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
@@ -25,7 +61,7 @@
                     <a href="{% url 'orders:list' %}" class="hover:text-gray-300">Orders</a>
                     <a href="{% url 'wallets:dashboard' %}" class="hover:text-gray-300">Wallet</a>
 
-                    <!-- Dropdown without JS -->
+                    <!-- Dropdown (CSS-only with group hover) -->
                     <div class="relative group">
                         <button class="inline-flex items-center">
                             Account
@@ -34,7 +70,7 @@
                             </svg>
                         </button>
                         <!-- Dropdown Menu -->
-                        <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 invisible group-hover:visible">
+                        <div class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity duration-200">
                             <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 hover:bg-gray-700">Profile</a>
                             <a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-700">Settings</a>
                             <a href="{% url 'messaging:list' %}" class="block px-4 py-2 hover:bg-gray-700">Messages</a>
@@ -44,10 +80,9 @@
                     </div>
                 </div>
 
-                <!-- Mobile Toggle -->
+                <!-- Mobile Toggle (CSS-only) -->
                 <div class="flex md:hidden items-center">
-                    <input type="checkbox" id="menu-toggle" class="peer hidden">
-                    <label for="menu-toggle" class="cursor-pointer">
+                    <label for="mobile-nav-toggle" class="cursor-pointer p-2 text-white">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
@@ -55,19 +90,21 @@
                 </div>
             </div>
         </div>
-
-        <!-- Mobile Menu -->
-        <div class="hidden peer-checked:block bg-gray-800 md:hidden">
-            <a href="{% url 'products:list' %}" class="block px-4 py-2 hover:bg-gray-700">Products</a>
-            <a href="{% url 'orders:list' %}" class="block px-4 py-2 hover:bg-gray-700">Orders</a>
-            <a href="{% url 'wallets:dashboard' %}" class="block px-4 py-2 hover:bg-gray-700">Wallet</a>
-            <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 hover:bg-gray-700">Profile</a>
-            <a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-700">Settings</a>
-            <a href="{% url 'messaging:list' %}" class="block px-4 py-2 hover:bg-gray-700">Messages</a>
-            <a href="{% url 'support:home' %}" class="block px-4 py-2 hover:bg-gray-700">Support</a>
-            <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-700 text-red-400">Logout</a>
-        </div>
     </nav>
+
+    <!-- Mobile Navigation (CSS-only) -->
+    <input type="checkbox" id="mobile-nav-toggle" class="hidden">
+    <div class="mobile-menu bg-gray-800 md:hidden w-full">
+        <a href="/" class="block px-4 py-2 hover:bg-gray-700">Home</a>
+        <a href="{% url 'products:list' %}" class="block px-4 py-2 hover:bg-gray-700">Products</a>
+        <a href="{% url 'orders:list' %}" class="block px-4 py-2 hover:bg-gray-700">Orders</a>
+        <a href="{% url 'wallets:dashboard' %}" class="block px-4 py-2 hover:bg-gray-700">Wallet</a>
+        <a href="{% url 'accounts:profile' %}" class="block px-4 py-2 hover:bg-gray-700">Profile</a>
+        <a href="{% url 'accounts:profile_settings' %}" class="block px-4 py-2 hover:bg-gray-700">Settings</a>
+        <a href="{% url 'messaging:list' %}" class="block px-4 py-2 hover:bg-gray-700">Messages</a>
+        <a href="{% url 'support:home' %}" class="block px-4 py-2 hover:bg-gray-700">Support</a>
+        <a href="{% url 'logout' %}" class="block px-4 py-2 hover:bg-gray-700 text-red-400">Logout</a>
+    </div>
 
     <!-- Main Content -->
     <main class="container mx-auto p-4">
