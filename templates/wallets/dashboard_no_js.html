@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Wallet Dashboard{% endblock %}
+{% block content %}
+<h1>Your Wallet</h1>
+<div class="bg-white p-6 rounded shadow mb-6">
+    <div class="card-body">
+        <h3>Balances</h3>
+        <p><strong>BTC Balance:</strong> {{ wallet.btc_balance }} BTC</p>
+        <p><strong>XMR Balance:</strong> {{ wallet.xmr_balance }} XMR</p>
+        <p><strong>Escrow Balance:</strong> {{ wallet.escrow_balance }} BTC</p>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded shadow mb-6">
+    <div class="card-body">
+        <h3>Request Withdrawal</h3>
+        <form method="post" action="{% url 'wallets:withdraw' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="currency">Currency:</label>
+                <select name="currency" id="currency" class="form-control" required>
+                    <option value="btc">Bitcoin (BTC)</option>
+                    <option value="xmr">Monero (XMR)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="amount">Amount:</label>
+                <input type="number" step="0.00000001" name="amount" id="amount" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Withdrawal Address:</label>
+                <input type="text" name="address" id="address" class="form-control" required>
+            </div>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Submit Withdrawal Request</button>
+        </form>
+    </div>
+</div>
+
+<div class="bg-white p-6 rounded shadow mb-6">
+    <div class="card-body">
+        <h3>Recent Withdrawal Requests</h3>
+        {% if withdrawals %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Amount</th>
+                        <th>Currency</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td>{{ withdrawal.amount }}</td>
+                        <td>{{ withdrawal.currency|upper }}</td>
+                        <td>{{ withdrawal.status|title }}</td>
+                        <td>{{ withdrawal.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No withdrawal requests found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

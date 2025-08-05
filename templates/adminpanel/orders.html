@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded shadow mb-6">
+    <h2>Orders</h2>
+    <table>
+        <thead><tr><th>ID</th><th>Buyer</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody>
+            {% for order in orders %}
+            <tr><td>{{ order.id }}</td><td>{{ order.buyer.username }}</td><td>{% if order.total_btc > 0 %}₿ {{ order.total_btc|floatformat:8 }}{% else %}ɱ {{ order.total_xmr|floatformat:4 }}{% endif %}</td><td>{{ order.status }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

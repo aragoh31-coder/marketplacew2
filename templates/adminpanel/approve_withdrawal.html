@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Approve Withdrawal - Secure Marketplace</title>
+<style>
+body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); font-family: Arial, sans-serif; min-height: 100vh; margin: 0; padding: 20px; }
+.container { max-width: 500px; margin: 80px auto; background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+button { background: #6a11cb; color: #fff; padding: 12px; border: none; width: 100%; border-radius: 5px; font-size: 16px; cursor: pointer; margin: 5px; }
+button:hover { background: #5a0fb8; }
+input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+h3 { color: #333; text-align: center; margin-bottom: 30px; }
+.info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+.info p { margin: 5px 0; color: #555; }
+.captcha-section { margin: 20px 0; text-align: center; }
+.captcha-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.captcha-buttons button { width: auto; min-width: 120px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h3>Approve Withdrawal</h3>
+<div class="info">
+<p><strong>User:</strong> {{ withdrawal.user.username }}</p>
+<p><strong>Amount:</strong> {{ withdrawal.amount }}</p>
+<p><strong>Address:</strong> {{ withdrawal.address }}</p>
+</div>
+<form method="post">
+    {% csrf_token %}
+    <label>TOTP Code:</label>
+    <input type="text" name="totp_code" placeholder="Enter TOTP" required>
+    <input type="hidden" name="honeypot" value="">
+    <div>
+        <p>Click on the circle with a cut/notch to verify you're human:</p>
+        <input type="image" 
+               src="data:image/png;base64,{{ captcha_img }}" 
+               name="captcha_click" 
+               alt="Click on the cut circle"
+               style="border:2px solid #ddd;cursor:pointer;margin:10px 0;"
+               title="Click on the circle with a cut">
+        <br>
+        <small style="color:#666;">No JavaScript required - just click on the circle with a visible cut.</small>
+    </div>
+        <style>
+            .captcha-container{ position:relative; width:200px; height:200px; margin: 0 auto; }
+            .slice-btn{ position:absolute; top:50%; left:50%; width:90px; height:90px; background:transparent; border:0; transform-origin:0 0; cursor:pointer; }
+            .slice-0{ transform:rotate(0deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-1{ transform:rotate(30deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-2{ transform:rotate(60deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-3{ transform:rotate(90deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-4{ transform:rotate(120deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-5{ transform:rotate(150deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-6{ transform:rotate(180deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-7{ transform:rotate(210deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-8{ transform:rotate(240deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-9{ transform:rotate(270deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-10{ transform:rotate(300deg); clip-path:polygon(0 0,50% 0,0 50%); }
+            .slice-11{ transform:rotate(330deg); clip-path:polygon(0 0,50% 0,0 50%); }
+        </style>
+    </div>
+    <button type="submit">Approve Withdrawal</button>
+    {% if error %}
+    <div style="color: red; text-align: center; margin-top: 10px;">{{ error }}</div>
+    {% endif %}
+</form>
+</div>
+</body>
+</html>

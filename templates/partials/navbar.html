@@ -1,0 +1,18 @@
+<nav class="navbar">
+  <a class="navbar-brand" href="{% url 'accounts:home' %}">Purple Market</a>
+  <div class="nav-links">
+    {% if user.is_authenticated %}
+      <a class="nav-link" href="{% url 'products:list' %}">Products</a>
+      <a class="nav-link" href="{% url 'vendors:list' %}">Vendors</a>
+      <a class="nav-link" href="{% url 'cart:view' %}">Cart</a>
+      <a class="nav-link" href="{% url 'messages:inbox' %}">Messages</a>
+      {% if user.is_staff %}
+      <a class="nav-link" href="{% url 'adminpanel:dashboard' %}">Admin</a>
+      {% endif %}
+      <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+    {% else %}
+      <a class="nav-link" href="{% url 'accounts:login' %}">Login</a>
+      <a class="nav-link" href="{% url 'accounts:register' %}">Register</a>
+    {% endif %}
+  </div>
+</nav>
