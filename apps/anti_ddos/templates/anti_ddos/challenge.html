@@ -3,16 +3,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Anti-DDoS Challenge</title>
+  <title>Security Verification</title>
   <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #0a0f1b 0%, #1a1a2e 100%);
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+    }
+    .challenge-container {
+      background: rgba(26, 26, 46, 0.9);
+      border: 1px solid #333;
+      backdrop-filter: blur(10px);
+    }
+    .btn-verify {
+      background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-verify:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+  </style>
 </head>
-<body class="flex items-center justify-center h-screen">
-  <div class="p-6 bg-white shadow rounded">
-    <h2 class="text-xl mb-4">Verify to Continue</h2>
-    <form method="post">
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="challenge-container p-8 rounded-lg shadow-2xl max-w-md w-full">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold mb-2">🛡️ Security Verification</h2>
+      <p class="text-gray-400">Please complete this verification to continue</p>
+    </div>
+    
+    <form method="post" class="space-y-4">
       {% csrf_token %}
-      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">I'm Human</button>
-      <input type="hidden" name="next" value="{{ next }}">
+      
+      <input type="hidden" name="nonce" value="{{ nonce }}">
+      <input type="hidden" name="ts" value="{{ ts }}">
+      <input type="hidden" name="sig" value="{{ sig }}">
+      <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
+      
+      <div style="position: absolute; left: -9999px;">
+        <input type="text" name="hp_field" value="" tabindex="-1">
+      </div>
+      
+      <div class="text-center">
+        <button type="submit" class="btn-verify w-full py-3 px-6 rounded-lg font-semibold text-white">
+          ✓ Verify & Continue
+        </button>
+      </div>
+      
+      <div class="text-xs text-gray-500 text-center mt-4">
+        <p>This verification helps protect against automated attacks</p>
+        <p>No personal information is collected</p>
+      </div>
     </form>
   </div>
 </body>

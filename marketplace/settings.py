@@ -46,18 +46,14 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "apps.anti_ddos.middleware.AntiDDoSMiddleware",
-    "apps.security.openresty_middleware.OpenRestyIntegrationMiddleware",
-    "apps.security.unified_middleware.UnifiedSecurityMiddleware",
-    "apps.security.circuit_limiter.TorCircuitLimiter",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_ratelimit.middleware.RatelimitMiddleware",
-    "wallets.middleware.WalletSecurityMiddleware",
     "core.middleware.security.TorSecurityMiddleware",
     "core.middleware.security.AntiReplayMiddleware",
+    "core.middleware.error_handling.SecurityErrorHandlingMiddleware",
 ]
 
 ROOT_URLCONF = "marketplace.urls"
@@ -186,19 +182,17 @@ RATELIMIT_VIEW = "django.http.HttpResponseTooManyRequests"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = "DENY"
-SECURE_REFERRER_POLICY = "no-referrer"  # Critical for Tor
-USE_X_FORWARDED_HOST = False  # Never trust forwarded headers on Tor
+SECURE_REFERRER_POLICY = "no-referrer"
+USE_X_FORWARDED_HOST = False
 USE_X_FORWARDED_PORT = False
-SECURE_PROXY_SSL_HEADER = None  # No proxy headers on Tor
+SECURE_PROXY_SSL_HEADER = None
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Strict"
 CSRF_COOKIE_SECURE = True
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_SSL_REDIRECT = False
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = "Strict"
+SECURE_HSTS_SECONDS = 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
