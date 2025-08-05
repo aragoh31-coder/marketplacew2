@@ -20,7 +20,7 @@
                 </div>
 
                 <!-- Desktop Menu -->
-                <div class="hidden md:flex items-center space-x-6">
+                <div class="items-center space-x-6 flex-row" style="display: flex;">
                     <a href="{% url 'products:list' %}" class="hover:text-gray-300">Products</a>
                     {% if user.is_authenticated %}
                         <a href="{% url 'orders:list' %}" class="hover:text-gray-300">Orders</a>
