@@ -4,7 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#16213e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <title>{% block title %}Secure Marketplace{% endblock %}</title>
+    
+    <!-- Load mobile-optimized CSS first -->
+    <link rel="stylesheet" href="{% static 'css/mobile-optimized.css' %}">
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
     <style>
         :root {
@@ -204,10 +211,49 @@
     </nav>
     
     <main class="main-content" style="margin-top: 80px;">
-        {% block content %}{% endblock %}
+        <div class="container">
+            {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
     </main>
     
-    <footer class="footer">
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-nav mobile-only" role="navigation" aria-label="Mobile navigation">
+        <a href="/" class="mobile-nav-item touchable {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <span class="mobile-nav-icon">🏠</span>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'products:list' %}" class="mobile-nav-item touchable {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
+            <span class="mobile-nav-icon">🛍️</span>
+            <span>Products</span>
+        </a>
+        <a href="{% url 'wallets:dashboard' %}" class="mobile-nav-item touchable {% if 'wallet' in request.resolver_match.url_name %}active{% endif %}">
+            <span class="mobile-nav-icon">💰</span>
+            <span>Wallet</span>
+        </a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'accounts:profile' %}" class="mobile-nav-item touchable {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="mobile-nav-icon">👤</span>
+                <span>Profile</span>
+            </a>
+        {% else %}
+            <a href="{% url 'accounts:login' %}" class="mobile-nav-item touchable {% if 'login' in request.resolver_match.url_name %}active{% endif %}">
+                <span class="mobile-nav-icon">🔐</span>
+                <span>Login</span>
+            </a>
+        {% endif %}
+    </nav>
+    
+    <footer class="footer no-print">
         <p>&copy; 2025 Secure Marketplace - Privacy First</p>
         <p class="text-xs mt-2">Tor-optimized • No JavaScript • No tracking</p>
     </footer>
