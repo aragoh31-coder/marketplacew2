@@ -1,0 +1,10 @@
+SocksPort 0.0.0.0:9050
+DataDirectory /var/lib/tor
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 172.18.0.5:8000
+Log notice stdout
+RunAsDaemon 0
+
+# Control port for PoW launcher
+ControlPort 9051
+HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C
