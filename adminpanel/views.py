@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 import random
 import secrets
 import time
@@ -24,6 +25,7 @@ from django_ratelimit.decorators import ratelimit
 from accounts.models import User
 from core.audit_logger import log_admin_action
 from core.security.captcha_cutcircle import init_captcha_session, validate_captcha
+from core.security.sanitization import UniversalSanitizer
 from orders.models import Order
 from products.models import Product
 from vendors.models import Vendor
@@ -57,8 +59,8 @@ def admin_login(request):
         if "pgp_challenge_response" in request.POST:
             return handle_triple_auth(request)
 
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         if not click_x or not click_y:
             img_b64 = init_captcha_session(request)
@@ -94,8 +96,8 @@ def admin_login(request):
 
         form = AdminLoginForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = UniversalSanitizer.sanitize_text(form.cleaned_data["username"])
+            password = UniversalSanitizer.sanitize_text(form.cleaned_data["password"])
 
             user = authenticate(request, username=username, password=password)
             if user and user.is_superuser:
@@ -209,7 +211,7 @@ def handle_triple_auth(request):
     if form.is_valid():
         authenticator = TripleAuthenticator()
 
-        secondary_password = form.cleaned_data["secondary_password"]
+        secondary_password = UniversalSanitizer.sanitize_text(form.cleaned_data["secondary_password"])
         if not authenticator.verify_secondary_password(secondary_password):
             messages.error(request, "Invalid secondary password.")
             return render(
@@ -223,7 +225,7 @@ def handle_triple_auth(request):
                 },
             )
 
-        pgp_response = form.cleaned_data["pgp_challenge_response"]
+        pgp_response = UniversalSanitizer.sanitize_text(form.cleaned_data["pgp_challenge_response"])
         if pgp_response != auth_data["challenge_text"]:
             messages.error(request, "Invalid PGP challenge response.")
             return render(
@@ -286,9 +288,13 @@ def secondary_auth(request):
     if request.method == "POST":
         form = SecondaryAuthForm(request.POST)
         if form.is_valid():
-            secondary_password = form.cleaned_data["secondary_password"]
+            secondary_password = UniversalSanitizer.sanitize_text(form.cleaned_data["secondary_password"])
 
-            expected_secondary = hashlib.sha256(b"SecureAdmin2024!").hexdigest()
+            expected_secondary = os.environ.get('ADMIN_SECONDARY_PASSWORD_HASH')
+            if not expected_secondary:
+                messages.error(request, "Admin secondary password not configured.")
+                return redirect("adminpanel:admin_login")
+            
             provided_hash = hashlib.sha256(secondary_password.encode()).hexdigest()
 
             if provided_hash == expected_secondary:
@@ -350,7 +356,7 @@ def pgp_verify(request):
     if request.method == "POST":
         form = AdminPGPChallengeForm(request.POST)
         if form.is_valid():
-            signed_response = form.cleaned_data["signed_challenge"]
+            signed_response = UniversalSanitizer.sanitize_text(form.cleaned_data["signed_challenge"])
             challenge = request.session.get("admin_pgp_challenge")
 
             if challenge:
@@ -811,8 +817,8 @@ def approve_withdrawal(request, withdrawal_id):
     )
 
     if request.method == "POST":
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         if (
             not click_x
@@ -830,7 +836,7 @@ def approve_withdrawal(request, withdrawal_id):
                 },
             )
 
-        totp_code = request.POST.get("totp_code")
+        totp_code = UniversalSanitizer.sanitize_text(request.POST.get("totp_code", ""))
         if not request.user.verify_totp(totp_code):
             messages.error(request, "Invalid TOTP")
             return redirect("adminpanel:withdrawals")
@@ -867,7 +873,7 @@ def admin_user_action(request, username):
         return redirect("adminpanel:login")
 
     user = get_object_or_404(User, username=username)
-    action = request.POST.get("action")
+    action = UniversalSanitizer.sanitize_text(request.POST.get("action", ""))
 
     if request.method == "POST":
         if action == "ban":
@@ -1023,7 +1029,7 @@ def resolve_dispute(request, dispute_id):
 
     dispute = Dispute.objects.get(id=dispute_id)
     if request.method == "POST":
-        resolution = request.POST.get("resolution")
+        resolution = UniversalSanitizer.sanitize_text(request.POST.get("resolution", ""))
         dispute.resolution = resolution
         dispute.status = "resolved"
         dispute.resolved_at = timezone.now()
@@ -1156,8 +1162,8 @@ def withdrawal_approve(request, withdrawal_id):
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
 
     if request.method == "POST":
-        pgp_response = request.POST.get("pgp_response", "").strip()
-        challenge_id = request.POST.get("challenge_id")
+        pgp_response = UniversalSanitizer.sanitize_text(request.POST.get("pgp_response", "").strip())
+        challenge_id = UniversalSanitizer.sanitize_text(request.POST.get("challenge_id", ""))
         expected_challenge = request.session.get(
             f"withdrawal_challenge_{withdrawal_id}"
         )
@@ -1314,7 +1320,7 @@ def withdrawal_add_notes(request, withdrawal_id):
 
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
 
-    admin_notes = request.POST.get("admin_notes", "").strip()
+    admin_notes = UniversalSanitizer.sanitize_text(request.POST.get("admin_notes", "").strip())
     withdrawal.admin_notes = admin_notes
     withdrawal.save()
 
@@ -1342,8 +1348,8 @@ def admin_withdrawal_detail(request, withdrawal_id):
     withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
 
     if request.method == "POST":
-        action = request.POST.get("action")
-        admin_notes = request.POST.get("admin_notes", "")
+        action = UniversalSanitizer.sanitize_text(request.POST.get("action", ""))
+        admin_notes = UniversalSanitizer.sanitize_text(request.POST.get("admin_notes", ""))
 
         if action == "approve":
             withdrawal.status = "approved"
@@ -1484,7 +1490,7 @@ def trigger_maintenance(request):
         return redirect("accounts:home")
 
     if request.method == "POST":
-        action = request.POST.get("action")
+        action = UniversalSanitizer.sanitize_text(request.POST.get("action", ""))
         if action == "vacuum":
             messages.success(request, "Database vacuum task triggered.")
         elif action == "reconcile":
@@ -1504,11 +1510,11 @@ def image_settings(request):
     from django.conf import settings
 
     if request.method == "POST":
-        storage_backend = request.POST.get("storage_backend", "local")
-        jpeg_quality = int(request.POST.get("jpeg_quality", 85))
-        thumbnail_quality = int(request.POST.get("thumbnail_quality", 75))
-        uploads_per_hour = int(request.POST.get("uploads_per_hour", 10))
-        uploads_per_day = int(request.POST.get("uploads_per_day", 50))
+        storage_backend = UniversalSanitizer.sanitize_text(request.POST.get("storage_backend", "local"))
+        jpeg_quality = int(UniversalSanitizer.sanitize_text(request.POST.get("jpeg_quality", "85")))
+        thumbnail_quality = int(UniversalSanitizer.sanitize_text(request.POST.get("thumbnail_quality", "75")))
+        uploads_per_hour = int(UniversalSanitizer.sanitize_text(request.POST.get("uploads_per_hour", "10")))
+        uploads_per_day = int(UniversalSanitizer.sanitize_text(request.POST.get("uploads_per_day", "50")))
 
         if not 50 <= jpeg_quality <= 95:
             jpeg_quality = 85

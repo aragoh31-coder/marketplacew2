@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.models import User
+from core.security.sanitization import UniversalSanitizer
 
 from .models import Message
 
@@ -59,9 +60,9 @@ def message_list(request):
 @login_required
 def compose_message(request):
     if request.method == "POST":
-        recipient_username = request.POST.get("recipient", "").strip()
-        subject = request.POST.get("subject", "").strip()
-        content = request.POST.get("content", "").strip()
+        recipient_username = UniversalSanitizer.sanitize_text(request.POST.get("recipient", "").strip())
+        subject = UniversalSanitizer.sanitize_text(request.POST.get("subject", "").strip())
+        content = UniversalSanitizer.sanitize_text(request.POST.get("content", "").strip())
         encrypt = request.POST.get("encrypt") == "on"
 
         if not recipient_username:
@@ -208,7 +209,7 @@ def conversation_view(request, user_id):
 def send_message(request, user_id):
     if request.method == "POST":
         recipient = get_object_or_404(User, id=user_id)
-        content = request.POST.get("content", "").strip()
+        content = UniversalSanitizer.sanitize_text(request.POST.get("content", "").strip())
         encrypt = request.POST.get("encrypt") == "on"
 
         if not content:

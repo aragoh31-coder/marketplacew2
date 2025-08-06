@@ -13,6 +13,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_protect
 
 from adminpanel.models import AdminLog
+from core.security.sanitization import UniversalSanitizer
 
 
 @login_required
@@ -125,7 +126,7 @@ def bot_challenge(request):
 def captcha_challenge(request):
     """Handle CAPTCHA challenge"""
     if request.method == "POST":
-        user_answer = request.POST.get("captcha_answer", "").strip()
+        user_answer = UniversalSanitizer.sanitize_text(request.POST.get("captcha_answer", "").strip())
         expected_answer = request.session.get("captcha_answer", "")
 
         if request.POST.get("website") or request.POST.get("email_address"):
@@ -279,7 +280,7 @@ def security_verification(request):
     ).timestamp()
 
     if request.method == "POST":
-        submitted_code = request.POST.get("verification_code", "").strip().upper()
+        submitted_code = UniversalSanitizer.sanitize_text(request.POST.get("verification_code", "").strip().upper())
         stored_code = request.session.get("security_verification_code")
         expires = request.session.get("security_verification_expires")
 

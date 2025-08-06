@@ -11,6 +11,7 @@ from django.utils.dateparse import parse_datetime
 
 from .forms import PGPKeyForm
 from .pgp_service import PGPService
+from core.security.sanitization import UniversalSanitizer
 
 
 @login_required
@@ -22,7 +23,7 @@ def pgp_settings(request):
 
         form = PGPKeyForm(request.POST)
         if form.is_valid():
-            request.session["temp_pgp_key"] = form.cleaned_data["pgp_public_key"]
+            request.session["temp_pgp_key"] = UniversalSanitizer.sanitize_text(form.cleaned_data["pgp_public_key"])
             request.session["temp_pgp_fingerprint"] = form.fingerprint
             request.session["temp_pgp_login_enabled"] = form.cleaned_data[
                 "enable_pgp_login"
@@ -89,7 +90,7 @@ def pgp_settings(request):
 def pgp_verify_key(request):
     """Verify PGP key by checking decryption capability"""
     if request.method == "POST":
-        submitted_code = request.POST.get("verify_code", "").strip()
+        submitted_code = UniversalSanitizer.sanitize_text(request.POST.get("verify_code", "").strip())
 
         stored_code_hash = request.session.get("pgp_verification_code_hash")
         expires = request.session.get("pgp_verification_expires")

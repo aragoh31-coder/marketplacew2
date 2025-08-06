@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
+from core.security.sanitization import UniversalSanitizer
 from .models import BroadcastMessage, Wallet, WalletAuditLog, WithdrawalRequest
 
 
@@ -25,9 +26,9 @@ def dashboard(request):
 @transaction.atomic
 def request_withdrawal(request):
     if request.method == "POST":
-        amount = Decimal(request.POST.get("amount"))
-        currency = request.POST.get("currency")
-        address = request.POST.get("address")
+        amount = Decimal(UniversalSanitizer.sanitize_text(request.POST.get("amount", "0")))
+        currency = UniversalSanitizer.sanitize_text(request.POST.get("currency", ""))
+        address = UniversalSanitizer.sanitize_text(request.POST.get("address", ""))
         wallet, created = Wallet.objects.get_or_create(user=request.user)
         if getattr(wallet, f"{currency}_balance") < amount:
             messages.error(request, "Insufficient balance")

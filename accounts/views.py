@@ -36,6 +36,7 @@ from PIL import Image, ImageDraw
 
 from core.logging.audit_logger import audit_logger
 from core.security.pow import validate_pow
+from core.security.sanitization import UniversalSanitizer
 from core.utils.cache import log_event
 from products.models import Product
 
@@ -300,8 +301,8 @@ def register_view(request):
         print(f"DEBUG: POST data keys: {list(request.POST.keys())}", flush=True)
         print(f"DEBUG: POST data: {dict(request.POST)}", flush=True)
 
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         print(f"DEBUG: Extracted coordinates - X: {click_x}, Y: {click_y}", flush=True)
 
@@ -341,8 +342,8 @@ def register_view(request):
 
         form = RegistrationForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = UniversalSanitizer.sanitize_text(form.cleaned_data["username"])
+            password = UniversalSanitizer.sanitize_text(form.cleaned_data["password"])
             user = User.objects.create_user(username=username, password=password)
             messages.success(
                 request, "Account created successfully! You can now log in."
@@ -392,8 +393,8 @@ def login_view(request):
         print(f"DEBUG: POST data keys: {list(request.POST.keys())}", flush=True)
         print(f"DEBUG: POST data: {dict(request.POST)}", flush=True)
 
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         print(f"DEBUG: Extracted coordinates - X: {click_x}, Y: {click_y}", flush=True)
 
@@ -439,8 +440,8 @@ def login_view(request):
 
         form = LoginForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = UniversalSanitizer.sanitize_text(form.cleaned_data["username"])
+            password = UniversalSanitizer.sanitize_text(form.cleaned_data["password"])
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)
@@ -474,7 +475,7 @@ def old_login_view(request):
     if request.method == "POST":
         form = LoginForm(request.POST)
 
-        user_answer = request.POST.get("captcha", "").strip()
+        user_answer = UniversalSanitizer.sanitize_text(request.POST.get("captcha", "").strip())
 
         captcha_data = CaptchaSessionManager.get_captcha(request)
         print(
@@ -505,8 +506,8 @@ def old_login_view(request):
         CaptchaSessionManager.clear_captcha(request)
 
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = UniversalSanitizer.sanitize_text(form.cleaned_data["username"])
+            password = UniversalSanitizer.sanitize_text(form.cleaned_data["password"])
 
             user = authenticate(request, username=username, password=password)
             if user is not None:
@@ -761,7 +762,7 @@ def pgp_settings(request):
 
         form = PGPKeyForm(request.POST, instance=request.user)
         if form.is_valid():
-            request.session["temp_pgp_key"] = form.cleaned_data["pgp_public_key"]
+            request.session["temp_pgp_key"] = UniversalSanitizer.sanitize_text(form.cleaned_data["pgp_public_key"])
             request.session["temp_pgp_fingerprint"] = getattr(form, "fingerprint", None)
             request.session["temp_pgp_login_enabled"] = form.cleaned_data[
                 "enable_pgp_login"
@@ -776,7 +777,7 @@ def pgp_settings(request):
             pgp_service = PGPService()
 
             import_result = pgp_service.import_public_key(
-                form.cleaned_data["pgp_public_key"]
+                UniversalSanitizer.sanitize_text(form.cleaned_data["pgp_public_key"])
             )
             if not import_result["success"]:
                 messages.error(
@@ -876,7 +877,7 @@ def pgp_settings(request):
 def pgp_verify_key(request):
     """Verify PGP key by checking decryption capability"""
     if request.method == "POST":
-        submitted_code = request.POST.get("verify_code", "").strip()
+        submitted_code = UniversalSanitizer.sanitize_text(request.POST.get("verify_code", "").strip())
 
         stored_code = request.session.get("pgp_verification_code")
         expires = request.session.get("pgp_verification_expires")
@@ -969,7 +970,7 @@ def pgp_remove_key(request):
     if request.method == "POST":
         from django.contrib.auth import authenticate
 
-        password = request.POST.get("password")
+        password = UniversalSanitizer.sanitize_text(request.POST.get("password", ""))
 
         if authenticate(username=request.user.username, password=password):
             request.user.pgp_public_key = ""
@@ -989,7 +990,7 @@ def delete_account(request):
     if request.method == "POST":
         form = DeleteAccountForm(request.POST)
         if form.is_valid():
-            if not request.user.check_password(form.cleaned_data["password"]):
+            if not request.user.check_password(UniversalSanitizer.sanitize_text(form.cleaned_data["password"])):
                 messages.error(request, "Incorrect password")
                 return render(request, "accounts/delete_account.html", {"form": form})
 
@@ -1112,7 +1113,7 @@ def pgp_challenge_view(request):
     time_remaining = 15 - int((timezone.now() - session_time).total_seconds() / 60)
 
     if request.method == "POST":
-        decrypted_response = request.POST.get("decrypted_response", "").strip()
+        decrypted_response = UniversalSanitizer.sanitize_text(request.POST.get("decrypted_response", "").strip())
 
         if not decrypted_response:
             messages.error(request, "Please provide the decrypted challenge")
@@ -1186,7 +1187,7 @@ def totp_settings(request):
     user = request.user
 
     if request.method == "POST":
-        action = request.POST.get("action")
+        action = UniversalSanitizer.sanitize_text(request.POST.get("action", ""))
 
         if action == "generate":
             if not getattr(user, "totp_enabled", False):
@@ -1199,7 +1200,7 @@ def totp_settings(request):
                 return redirect("accounts:totp_setup")
 
         elif action == "disable":
-            password = request.POST.get("password")
+            password = UniversalSanitizer.sanitize_text(request.POST.get("password", ""))
             if user.check_password(password):
                 user.totp_enabled = False
                 user.totp_secret = None
@@ -1237,7 +1238,7 @@ def totp_setup(request):
         return redirect("accounts:totp_settings")
 
     if request.method == "POST":
-        code = request.POST.get("code", "").strip()
+        code = UniversalSanitizer.sanitize_text(request.POST.get("code", "").strip())
 
         if TOTPManager.verify_code(user.totp_secret, code):
             user.totp_enabled = True
@@ -1303,8 +1304,8 @@ def verify_totp(request):
         return render(request, "accounts/verify_totp.html", {"locked": True})
 
     if request.method == "POST":
-        code = request.POST.get("code", "").strip()
-        use_backup = request.POST.get("use_backup") == "1"
+        code = UniversalSanitizer.sanitize_text(request.POST.get("code", "").strip())
+        use_backup = UniversalSanitizer.sanitize_text(request.POST.get("use_backup", "")) == "1"
 
         verified = False
 

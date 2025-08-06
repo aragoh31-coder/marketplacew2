@@ -6,6 +6,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from core.security.sanitization import UniversalSanitizer
 from .dispute_forms import (
     AdminDisputeResolutionForm,
     DisputeEvidenceForm,
@@ -164,9 +165,9 @@ def admin_dispute_resolution(request, dispute_id):
     if request.method == "POST":
         form = AdminDisputeResolutionForm(request.POST, dispute=dispute)
         if form.is_valid():
-            resolution_type = form.cleaned_data["resolution_type"]
-            resolution_notes = form.cleaned_data["resolution_notes"]
-            admin_notes = form.cleaned_data["admin_notes"]
+            resolution_type = UniversalSanitizer.sanitize_text(form.cleaned_data["resolution_type"])
+            resolution_notes = UniversalSanitizer.sanitize_text(form.cleaned_data["resolution_notes"])
+            admin_notes = UniversalSanitizer.sanitize_text(form.cleaned_data["admin_notes"])
             refund_amount = form.cleaned_data.get("refund_amount")
 
             dispute.mark_resolved(

@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 
 from core.logging.audit_logger import audit_logger
+from core.security.sanitization import UniversalSanitizer
 
 from .totp_forms import (
     BackupCodesRegenerateForm,
@@ -36,8 +37,8 @@ def totp_setup(request):
             validate_captcha,
         )
 
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         if (
             not click_x
@@ -238,7 +239,7 @@ def test_totp(request):
         messages.error(request, "TOTP not configured")
         return redirect("accounts:totp_setup")
 
-    token = request.POST.get("token", "").strip()
+    token = UniversalSanitizer.sanitize_text(request.POST.get("token", "").strip())
 
     if len(token) != 6 or not token.isdigit():
         messages.error(request, "Invalid token format")

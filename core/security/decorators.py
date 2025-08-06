@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import redirect
 
+from core.security.sanitization import UniversalSanitizer
+
 
 def require_vendor(view_func):
     @wraps(view_func)
@@ -31,7 +33,7 @@ def require_2fa(view_func):
     @wraps(view_func)
     def wrapper(self, request, *args, **kwargs):
         if hasattr(request.user, "wallet") and request.user.wallet.two_fa_enabled:
-            two_fa_code = request.POST.get("two_fa_code")
+            two_fa_code = UniversalSanitizer.sanitize_text(request.POST.get("two_fa_code", "").strip())
             if not two_fa_code:
                 messages.error(request, "2FA code required for this action")
                 return redirect(request.META.get("HTTP_REFERER", "/admin/"))

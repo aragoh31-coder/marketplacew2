@@ -11,6 +11,7 @@ from django.views.decorators.http import require_http_methods
 from django_ratelimit.decorators import ratelimit
 
 from core.security.captcha_cutcircle import init_captcha_session, validate_captcha
+from core.security.sanitization import UniversalSanitizer
 from wallets.models import Wallet, WithdrawalRequest
 
 
@@ -39,8 +40,8 @@ def dashboard(request):
 @ratelimit(key="user", rate="3/m", block=True)
 def request_withdrawal(request):
     if request.method == "POST":
-        click_x = request.POST.get("captcha_click.x")
-        click_y = request.POST.get("captcha_click.y")
+        click_x = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.x", ""))
+        click_y = UniversalSanitizer.sanitize_text(request.POST.get("captcha_click.y", ""))
 
         if (
             not click_x
@@ -54,8 +55,8 @@ def request_withdrawal(request):
                 {"captcha_img": img_b64, "error": "Captcha failed"},
             )
 
-        amount = Decimal(request.POST.get("amount"))
-        address = request.POST.get("address")
+        amount = Decimal(UniversalSanitizer.sanitize_text(request.POST.get("amount", "0")))
+        address = UniversalSanitizer.sanitize_text(request.POST.get("address", ""))
         
         from django.conf import settings
         from django.core.cache import cache
@@ -68,7 +69,7 @@ def request_withdrawal(request):
                 messages.error(request, "2FA must be enabled for withdrawals above $100")
                 return redirect("accounts:totp_setup")
             
-            totp_code = request.POST.get("totp_code")
+            totp_code = UniversalSanitizer.sanitize_text(request.POST.get("totp_code", ""))
             if not totp_code:
                 img_b64 = init_captcha_session(request)
                 return render(
@@ -125,9 +126,9 @@ def request_withdrawal(request):
 def convert(request):
     """Handle currency conversion with atomic transactions"""
     if request.method == "POST":
-        from_currency = request.POST.get("from_currency")
-        to_currency = request.POST.get("to_currency")
-        amount = Decimal(request.POST.get("amount", "0"))
+        from_currency = UniversalSanitizer.sanitize_text(request.POST.get("from_currency", ""))
+        to_currency = UniversalSanitizer.sanitize_text(request.POST.get("to_currency", ""))
+        amount = Decimal(UniversalSanitizer.sanitize_text(request.POST.get("amount", "0")))
 
         if amount <= 0:
             messages.error(request, "Invalid amount")
@@ -144,7 +145,7 @@ def convert(request):
                 messages.error(request, "2FA must be enabled for conversions above $100")
                 return redirect("accounts:totp_setup")
             
-            totp_code = request.POST.get("totp_code")
+            totp_code = UniversalSanitizer.sanitize_text(request.POST.get("totp_code", ""))
             if not totp_code:
                 wallet = get_object_or_404(Wallet, user=request.user)
                 return render(

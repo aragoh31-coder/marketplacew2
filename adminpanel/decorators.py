@@ -7,6 +7,8 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse
 
+from core.security.sanitization import UniversalSanitizer
+
 logger = logging.getLogger("marketplace.admin")
 
 
@@ -21,7 +23,7 @@ def require_2fa(view_func):
 
         cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
         if not cache.get(cache_key):
-            totp_code = request.POST.get("totp_code")
+            totp_code = UniversalSanitizer.sanitize_text(request.POST.get("totp_code", "").strip())
             if not totp_code:
                 messages.error(request, "Please verify 2FA before performing this action")
                 return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/admin/"))
@@ -52,9 +54,9 @@ def require_triple_auth(view_func):
             
             if admin_config.get('REQUIRE_TRIPLE_AUTH', True):
                 if request.method == 'POST':
-                    password = request.POST.get('admin_password')
-                    totp_code = request.POST.get('totp_code')
-                    pgp_response = request.POST.get('pgp_response')
+                    password = UniversalSanitizer.sanitize_text(request.POST.get('admin_password', '').strip())
+                    totp_code = UniversalSanitizer.sanitize_text(request.POST.get('totp_code', '').strip())
+                    pgp_response = UniversalSanitizer.sanitize_text(request.POST.get('pgp_response', '').strip())
                     
                     if not password or not request.user.check_password(password):
                         messages.error(request, "Invalid admin password")

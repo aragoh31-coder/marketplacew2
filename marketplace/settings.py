@@ -386,7 +386,7 @@ SECURITY_CONFIG = {
     },
     "ADMIN_SECURITY": {
         "require_triple_auth": True,
-        "secondary_password": "admin_secure_2024!",
+        "secondary_password": env("ADMIN_SECONDARY_PASSWORD", default=""),
         "pgp_required": True,
         "session_timeout_minutes": 30,
         "max_failed_attempts": 3,
@@ -406,7 +406,7 @@ try:
     from config.admin_config import ADMIN_PANEL_CONFIG, ADMIN_PGP_CONFIG
 except ImportError:
     ADMIN_PANEL_CONFIG = {
-        "SECONDARY_PASSWORD": "admin_secure_2024!",
+        "SECONDARY_PASSWORD": env("ADMIN_SECONDARY_PASSWORD", default=""),
         "REQUIRE_PGP_AFTER_AUTH": True,
         "MAX_FAILED_ATTEMPTS": 3,
         "LOCKOUT_DURATION": 900,  # 15 minutes
@@ -419,11 +419,15 @@ except ImportError:
 -----END PGP PUBLIC KEY BLOCK-----""",
     }
 
-CSRF_COOKIE_SECURE = False  # Allow HTTP for local development  
-SESSION_COOKIE_SECURE = False  # Allow HTTP for local development
+CSRF_COOKIE_SECURE = not DEBUG  # Secure in production, allow HTTP in development
+SESSION_COOKIE_SECURE = not DEBUG  # Secure in production, allow HTTP in development
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "no-referrer"
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
 # STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # try:
@@ -432,13 +436,11 @@ SECURE_REFERRER_POLICY = "no-referrer"
 #     pass
 
 
-CIRCUIT_FINGERPRINT_SECRET = (
-    b"super-secret-key-for-circuit-fingerprinting-change-in-production"
-)
+CIRCUIT_FINGERPRINT_SECRET = env("CIRCUIT_FINGERPRINT_SECRET").encode()
 
-FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="default-field-encryption-key-change-in-production")
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY")
 
-TOTP_ENCRYPTION_KEY = env("TOTP_ENCRYPTION_KEY", default="totp-encryption-key-for-2fa-secrets")
+TOTP_ENCRYPTION_KEY = env("TOTP_ENCRYPTION_KEY")
 
 TWO_FACTOR_AUTH = {
     "TOTP_ISSUER_NAME": "Tor Marketplace",

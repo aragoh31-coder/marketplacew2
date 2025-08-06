@@ -20,6 +20,7 @@ from .forms import (
 )
 from .models import SubVendor, SubVendorActivityLog, Vendor
 from core.utils.security import get_session_hash
+from core.security.sanitization import UniversalSanitizer
 
 
 from django.contrib.auth import get_user_model
@@ -499,14 +500,14 @@ def vacation_settings(request):
     vendor = request.user.vendor
 
     if request.method == "POST":
-        action = request.POST.get("action")
+        action = UniversalSanitizer.sanitize_text(request.POST.get("action", "").strip())
 
         if action == "activate":
             form = VacationModeForm(request.POST)
             if form.is_valid():
                 vendor.activate_vacation_mode(
-                    message=form.cleaned_data.get("vacation_message", ""),
-                    ends_at=form.cleaned_data.get("vacation_ends"),
+                    message=UniversalSanitizer.sanitize_text(form.cleaned_data.get("vacation_message", "")),
+                    ends_at=form.cleaned_data.get("vacation_ends"),  # DateTime, no sanitization needed
                 )
                 messages.success(
                     request,
@@ -576,8 +577,8 @@ def create_subvendor(request):
     if request.method == "POST":
         form = SubVendorForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data["username"]
-            password = form.cleaned_data["password"]
+            username = UniversalSanitizer.sanitize_text(form.cleaned_data["username"])
+            password = form.cleaned_data["password"]  # Don't sanitize passwords
 
             full_username = f"{vendor.vendor_name.lower()}_{username}"
 
@@ -595,11 +596,11 @@ def create_subvendor(request):
                 main_vendor=vendor,
                 user=sub_user,
                 created_by=request.user,
-                can_view_orders=form.cleaned_data["can_view_orders"],
-                can_respond_messages=form.cleaned_data["can_respond_messages"],
-                can_update_tracking=form.cleaned_data["can_update_tracking"],
-                can_process_refunds=form.cleaned_data["can_process_refunds"],
-                daily_message_limit=form.cleaned_data["daily_message_limit"],
+                can_view_orders=form.cleaned_data["can_view_orders"],  # Boolean, no sanitization needed
+                can_respond_messages=form.cleaned_data["can_respond_messages"],  # Boolean, no sanitization needed
+                can_update_tracking=form.cleaned_data["can_update_tracking"],  # Boolean, no sanitization needed
+                can_process_refunds=form.cleaned_data["can_process_refunds"],  # Boolean, no sanitization needed
+                daily_message_limit=form.cleaned_data["daily_message_limit"],  # Integer, no sanitization needed
             )
 
             SubVendorActivityLog.objects.create(

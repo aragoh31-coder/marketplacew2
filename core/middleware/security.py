@@ -62,7 +62,8 @@ class AntiReplayMiddleware:
             return self.get_response(request)
             
         if request.method == 'POST':
-            nonce = request.POST.get('_nonce')
+            from core.security.sanitization import UniversalSanitizer
+            nonce = UniversalSanitizer.sanitize_text(request.POST.get('_nonce', '').strip())
             if not nonce:
                 from django.http import HttpResponseForbidden
                 return HttpResponseForbidden('Missing nonce')

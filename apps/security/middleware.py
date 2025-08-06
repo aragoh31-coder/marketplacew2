@@ -56,7 +56,8 @@ class TwoFactorAuthMiddleware(MiddlewareMixin):
             cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
             if not cache.get(cache_key):
                 if request.method == "POST" and "totp_code" in request.POST:
-                    totp_code = request.POST.get("totp_code")
+                    from core.security.sanitization import UniversalSanitizer
+                    totp_code = UniversalSanitizer.sanitize_text(request.POST.get("totp_code", "").strip())
                     if request.user.verify_totp(totp_code):
                         cache.set(cache_key, True, 300)  # 5 minutes
                         return None
