@@ -4,258 +4,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#16213e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>{% block title %}SecureMarket - Tor Marketplace{% endblock %}</title>
     
-    <title>{% block title %}Secure Marketplace{% endblock %}</title>
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
     
-    <!-- Load mobile-optimized CSS first -->
-    <link rel="stylesheet" href="{% static 'css/mobile-optimized.css' %}">
-    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}">
-    <style>
-        :root {
-            --bg-primary: #0a0f1b;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #b0b0b0;
-            --accent-primary: #667eea;
-            --accent-secondary: #764ba2;
-            --border-color: #333;
-        }
-        
-        body {
-            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
-            color: var(--text-primary);
-            font-family: 'Courier New', monospace;
-            min-height: 100vh;
-        }
-        
-        .navbar-glass {
-            background: rgba(26, 26, 46, 0.9);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .mobile-nav-toggle {
-            display: none;
-        }
-        
-        .mobile-nav-menu {
-            display: none;
-            position: fixed;
-            top: 64px;
-            left: 0;
-            right: 0;
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--border-color);
-            z-index: 1000;
-        }
-        
-        .mobile-nav-toggle:checked ~ .mobile-nav-menu {
-            display: block;
-        }
-        
-        .mobile-nav-link {
-            display: block;
-            padding: 16px 24px;
-            color: var(--text-primary);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 44px;
-            transition: background-color 0.3s ease;
-        }
-        
-        .mobile-nav-link:hover {
-            background: rgba(102, 126, 234, 0.2);
-        }
-        
-        .dropdown {
-            position: relative;
-        }
-        
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 100%;
-            background: rgba(26, 26, 46, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            min-width: 200px;
-            z-index: 1000;
-        }
-        
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-        
-        .dropdown-link {
-            display: block;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        
-        .dropdown-link:hover {
-            background: rgba(102, 126, 234, 0.2);
-        }
-        
-        @media (max-width: 768px) {
-            .desktop-nav {
-                display: none;
-            }
-            
-            .mobile-nav-toggle-label {
-                display: block;
-                cursor: pointer;
-                padding: 8px;
-                color: var(--text-primary);
-                border: 1px solid var(--border-color);
-                border-radius: 4px;
-                transition: background-color 0.3s ease;
-            }
-            
-            .mobile-nav-toggle-label:hover {
-                background: rgba(102, 126, 234, 0.2);
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .mobile-nav-toggle-label {
-                display: none;
-            }
-        }
-        
-        .main-content {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .footer {
-            background: rgba(26, 26, 46, 0.9);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--border-color);
-            padding: 20px;
-            text-align: center;
-            color: var(--text-secondary);
-            margin-top: auto;
-        }
-    </style>
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <nav class="navbar-glass fixed top-0 left-0 right-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex-shrink-0">
-                    <a href="/" class="text-xl font-bold text-white">🛡️ SecureMarket</a>
-                </div>
-                
-                <div class="desktop-nav flex items-center space-x-6">
-                    <a href="{% url 'products:list' %}" class="text-white hover:text-blue-300 transition-colors">Products</a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'orders:list' %}" class="text-white hover:text-blue-300 transition-colors">Orders</a>
-                        <a href="{% url 'wallets:dashboard' %}" class="text-white hover:text-blue-300 transition-colors">Wallet</a>
-                        
-                        <div class="dropdown">
-                            <button class="text-white hover:text-blue-300 transition-colors flex items-center">
-                                Account
-                                <svg class="ml-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                            <div class="dropdown-content">
-                                <a href="{% url 'accounts:profile' %}" class="dropdown-link">Profile</a>
-                                <a href="{% url 'accounts:profile_settings' %}" class="dropdown-link">Settings</a>
-                                <a href="{% url 'messaging:list' %}" class="dropdown-link">Messages</a>
-                                <a href="{% url 'support:home' %}" class="dropdown-link">Support</a>
-                                <a href="{% url 'logout' %}" class="dropdown-link text-red-400">Logout</a>
-                            </div>
-                        </div>
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}" class="text-white hover:text-blue-300 transition-colors">Login</a>
-                        <a href="{% url 'accounts:register' %}" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition-colors">Register</a>
-                    {% endif %}
-                </div>
-                
-                <label for="mobile-nav-toggle" class="mobile-nav-toggle-label">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </label>
-            </div>
+    <!-- Neon Menu System -->
+    <input type="checkbox" id="menu-toggle">
+    
+    <!-- Menu Icon -->
+    <label for="menu-toggle" class="menu-icon-neon">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </label>
+    
+    <!-- Overlay -->
+    <label for="menu-toggle" class="menu-overlay"></label>
+    
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu">
+        <div class="menu-header">
+            <h2>🛡️ SecureMarket</h2>
         </div>
-    </nav>
-    
-    <input type="checkbox" id="mobile-nav-toggle" class="mobile-nav-toggle">
-    <nav class="mobile-nav-menu">
-        <a href="/" class="mobile-nav-link">Home</a>
-        <a href="{% url 'products:list' %}" class="mobile-nav-link">Products</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'orders:list' %}" class="mobile-nav-link">Orders</a>
-            <a href="{% url 'wallets:dashboard' %}" class="mobile-nav-link">Wallet</a>
-            <a href="{% url 'accounts:profile' %}" class="mobile-nav-link">Profile</a>
-            <a href="{% url 'accounts:profile_settings' %}" class="mobile-nav-link">Settings</a>
-            <a href="{% url 'messaging:list' %}" class="mobile-nav-link">Messages</a>
-            <a href="{% url 'support:home' %}" class="mobile-nav-link">Support</a>
-            <a href="{% url 'logout' %}" class="mobile-nav-link text-red-400">Logout</a>
-        {% else %}
-            <a href="{% url 'accounts:login' %}" class="mobile-nav-link">Login</a>
-            <a href="{% url 'accounts:register' %}" class="mobile-nav-link">Register</a>
-        {% endif %}
-    </nav>
-    
-    <main class="main-content" style="margin-top: 80px;">
-        <div class="container">
-            {% if messages %}
-                <div class="mb-6">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+        
+        <div class="menu-nav">
+            <a href="{% url 'accounts:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="menu-item-icon">🏠</span>
+                Home
+            </a>
             
-            {% block content %}{% endblock %}
+            <a href="{% url 'products:list' %}" class="menu-item {% if 'products' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">📦</span>
+                Products
+            </a>
+            
+            <a href="{% url 'orders:list' %}" class="menu-item {% if 'orders' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">🛒</span>
+                Orders
+            </a>
+            
+            <a href="{% url 'wallets:dashboard' %}" class="menu-item {% if 'wallets' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">💰</span>
+                Wallet
+            </a>
+            
+            <div class="menu-separator"></div>
+            
+            <a href="{% url 'accounts:profile' %}" class="menu-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <span class="menu-item-icon">👤</span>
+                Profile
+            </a>
+            
+            <a href="{% url 'accounts:profile_settings' %}" class="menu-item {% if request.resolver_match.url_name == 'profile_settings' %}active{% endif %}">
+                <span class="menu-item-icon">⚙️</span>
+                Settings
+            </a>
+            
+            <a href="{% url 'messaging:list' %}" class="menu-item {% if 'messaging' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">💬</span>
+                Messages
+            </a>
+            
+            <a href="{% url 'support:home' %}" class="menu-item {% if 'support' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">🆘</span>
+                Support
+            </a>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:logout' %}" class="menu-item menu-item-logout">
+                    <span class="menu-item-icon">🚪</span>
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="menu-item">
+                    <span class="menu-item-icon">🔐</span>
+                    Login
+                </a>
+            {% endif %}
         </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
     </main>
     
-    <!-- Mobile Bottom Navigation -->
-    <nav class="mobile-nav mobile-only" role="navigation" aria-label="Mobile navigation">
-        <a href="/" class="mobile-nav-item touchable {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-            <span class="mobile-nav-icon">🏠</span>
-            <span>Home</span>
-        </a>
-        <a href="{% url 'products:list' %}" class="mobile-nav-item touchable {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
-            <span class="mobile-nav-icon">🛍️</span>
-            <span>Products</span>
-        </a>
-        <a href="{% url 'wallets:dashboard' %}" class="mobile-nav-item touchable {% if 'wallet' in request.resolver_match.url_name %}active{% endif %}">
-            <span class="mobile-nav-icon">💰</span>
-            <span>Wallet</span>
-        </a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'accounts:profile' %}" class="mobile-nav-item touchable {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
-                <span class="mobile-nav-icon">👤</span>
-                <span>Profile</span>
-            </a>
-        {% else %}
-            <a href="{% url 'accounts:login' %}" class="mobile-nav-item touchable {% if 'login' in request.resolver_match.url_name %}active{% endif %}">
-                <span class="mobile-nav-icon">🔐</span>
-                <span>Login</span>
-            </a>
-        {% endif %}
-    </nav>
-    
-    <footer class="footer no-print">
-        <p>&copy; 2025 Secure Marketplace - Privacy First</p>
-        <p class="text-xs mt-2">Tor-optimized • No JavaScript • No tracking</p>
-    </footer>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

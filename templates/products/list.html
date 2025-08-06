@@ -1,128 +1,138 @@
-{% extends "base.html" %}
-{% block title %}Products{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - SecureMarket{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1>Gift Cards</h1>
+<div class="products-container">
+    <!-- Header -->
+    <div class="products-header">
+        <h1 class="category-title">
+            {% if category == 'gift-cards' %}
+                🎁 Gift Cards
+            {% elif category == 'digital' %}
+                💿 Digital Products
+            {% elif category == 'physical' %}
+                📦 Physical Products
+            {% else %}
+                🛍️ All Products
+            {% endif %}
+        </h1>
+    </div>
     
-    <!-- Mobile Search/Filter -->
-    <div class="mobile-search">
-        <form method="get" class="search-form">
+    <!-- Search Bar -->
+    <div class="search-container">
+        <form method="get" action="{% url 'products:list' %}">
             <input type="text" 
-                   name="q" 
+                   name="search" 
+                   class="search-input" 
                    placeholder="Search products..." 
-                   value="{{ request.GET.q }}"
-                   class="search-input">
-            
-            <details class="filter-dropdown">
-                <summary class="filter-toggle">⚙️ Filters</summary>
-                <div class="filter-content">
-                    <select name="category" class="mb-1">
-                        <option value="">All Categories</option>
-                        <option value="amazon" {% if request.GET.category == 'amazon' %}selected{% endif %}>Amazon</option>
-                        <option value="steam" {% if request.GET.category == 'steam' %}selected{% endif %}>Steam</option>
-                        <option value="google" {% if request.GET.category == 'google' %}selected{% endif %}>Google Play</option>
-                        <option value="apple" {% if request.GET.category == 'apple' %}selected{% endif %}>Apple</option>
-                    </select>
-                    
-                    <select name="sort" class="mb-1">
-                        <option value="">Sort by</option>
-                        <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
-                        <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
-                        <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Newest First</option>
-                    </select>
-                    
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Apply Filters</button>
-                </div>
-            </details>
+                   value="{{ search_query }}">
+            <input type="hidden" name="category" value="{{ category }}">
         </form>
     </div>
     
-    <!-- Mobile Product Cards -->
-    <div class="product-grid">
-        {% for product in page_obj %}
-        <div class="product-card">
-            {% if product.thumbnail_url %}
-            <div class="product-image">
-                <img src="{{ product.thumbnail_url }}" 
-                     alt="{{ product.name }}" 
-                     loading="lazy">
-            </div>
-            {% endif %}
-            
-            <div class="product-header">
-                <h3>{{ product.name|truncatechars:40 }}</h3>
-                <span class="product-price">₿{{ product.price_btc }}</span>
-            </div>
-            
-            <div class="product-details">
-                <div class="detail-row">
-                    <span class="label">Vendor:</span>
-                    <span class="value">
-                        <a href="{% url 'vendors:detail' product.vendor.id %}">
-                            {{ product.vendor.vendor_name }}
-                        </a>
-                        {% if product.vendor.trust_level > 80 %}
-                            <span class="trust-badge">✓</span>
-                        {% endif %}
-                    </span>
+    <!-- Filters -->
+    <div class="filters-container">
+        <button class="filters-btn" id="filterToggle">
+            ⚙️ Filters
+        </button>
+        
+        <div id="filtersPanel" class="filters-panel">
+            <form method="get" action="{% url 'products:list' %}">
+                <div class="filter-group">
+                    <label>Category</label>
+                    <select name="category" class="filter-select">
+                        <option value="">All Categories</option>
+                        <option value="gift-cards" {% if category == 'gift-cards' %}selected{% endif %}>Gift Cards</option>
+                        <option value="digital" {% if category == 'digital' %}selected{% endif %}>Digital</option>
+                        <option value="physical" {% if category == 'physical' %}selected{% endif %}>Physical</option>
+                    </select>
                 </div>
                 
-                <div class="detail-row">
-                    <span class="label">Stock:</span>
-                    <span class="value {% if product.stock_quantity == 0 %}text-danger{% else %}text-success{% endif %}">
-                        {{ product.stock_quantity }} available
-                    </span>
+                <div class="filter-group">
+                    <label>Price Range</label>
+                    <select name="price_range" class="filter-select">
+                        <option value="">All Prices</option>
+                        <option value="0-50">$0 - $50</option>
+                        <option value="50-100">$50 - $100</option>
+                        <option value="100-500">$100 - $500</option>
+                        <option value="500+">$500+</option>
+                    </select>
                 </div>
                 
-                <div class="detail-row">
-                    <span class="label">Category:</span>
-                    <span class="value">{{ product.category.name }}</span>
+                <div class="filter-group">
+                    <label>Sort By</label>
+                    <select name="sort" class="filter-select">
+                        <option value="newest">Newest First</option>
+                        <option value="price_low">Price: Low to High</option>
+                        <option value="price_high">Price: High to Low</option>
+                        <option value="popular">Most Popular</option>
+                    </select>
                 </div>
                 
-                <div class="detail-row">
-                    <span class="label">Type:</span>
-                    <span class="value">{{ product.get_product_type_display }}</span>
-                </div>
-            </div>
-            
-            <div class="product-actions">
-                {% if product.vendor.is_on_vacation %}
-                <div class="vacation-status">
-                    <span class="vacation-badge">🏖️ On Vacation Listing</span>
-                    {% if product.vendor.vacation_message %}
-                    <p class="vacation-message">{{ product.vendor.vacation_message }}</p>
-                    {% endif %}
-                </div>
-                {% elif product.stock_quantity > 0 and product.is_available %}
-                <form method="post" action="{% url 'orders:add_to_cart' product.id %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="honeypot_field" class="honeypot">
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                        Add to Cart
-                    </button>
-                </form>
-                {% else %}
-                <button class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700" disabled>Out of Stock</button>
-                {% endif %}
-                
-                <a href="{% url 'products:detail' product.id %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                    View Details
-                </a>
-            </div>
+                <button type="submit" class="btn">Apply Filters</button>
+            </form>
         </div>
-        {% empty %}
-        <div class="empty-state">
-            <p>No products found</p>
-            <a href="{% url 'products:list' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Clear Filters</a>
-        </div>
-        {% endfor %}
     </div>
     
-    <!-- Mobile Pagination -->
+    <!-- Products Grid -->
+    <div class="products-grid">
+        {% if page_obj %}
+            {% for product in page_obj %}
+            <div class="product-card">
+                <div class="product-image">
+                    <div class="product-placeholder">
+                        {% if product.category.slug == 'gift-cards' %}
+                            🎁
+                        {% elif product.category.slug == 'digital' %}
+                            💿
+                        {% else %}
+                            📦
+                        {% endif %}
+                    </div>
+                    {% if product.is_featured %}
+                        <span class="product-badge">Featured</span>
+                    {% endif %}
+                </div>
+                
+                <div class="product-info">
+                    <h3 class="product-name">{{ product.name }}</h3>
+                    <p class="product-vendor">by {{ product.vendor.vendor_name }}</p>
+                    
+                    <div class="product-price">
+                        <span class="price-btc">₿ {{ product.price_btc }}</span>
+                        <span class="price-usd">${{ product.price_usd|default:"0.00" }}</span>
+                    </div>
+                    
+                    <div class="product-rating">
+                        ⭐ {{ product.rating|default:"4.5" }}/5
+                        <span>({{ product.sales_count|default:"0" }} sales)</span>
+                    </div>
+                    
+                    <a href="{% url 'products:detail' product.pk %}" class="product-btn">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-products">
+                <div class="no-products-icon">🔍</div>
+                <h2>No products found</h2>
+                <p>Try adjusting your filters or search terms</p>
+                <a href="{% url 'products:list' %}" class="btn">
+                    Clear Filters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn">
                 ← Previous
             </a>
         {% endif %}
@@ -132,7 +142,7 @@
         </span>
         
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
+            <a href="?page={{ page_obj.next_page_number }}" class="btn">
                 Next →
             </a>
         {% endif %}
@@ -140,226 +150,11 @@
     {% endif %}
 </div>
 
-<style>
-    .mobile-search {
-        margin-bottom: 20px;
-    }
-    
-    .search-input {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    
-    .filter-dropdown {
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 8px;
-        padding: 0;
-    }
-    
-    .filter-toggle {
-        padding: 12px 15px;
-        cursor: pointer;
-        display: block;
-        width: 100%;
-        text-align: left;
-        background: none;
-        border: none;
-        color: #e0e0e0;
-        font-size: 16px;
-    }
-    
-    .filter-toggle::-webkit-details-marker {
-        display: none;
-    }
-    
-    .filter-content {
-        padding: 15px;
-        border-top: 1px solid #333;
-    }
-    
-    .product-grid {
-        display: grid;
-        gap: 15px;
-        margin-bottom: 30px;
-    }
-    
-    .product-card {
-        background: #1a1a1a;
-        border: 1px solid #333;
-        border-radius: 8px;
-        padding: 15px;
-    }
-    
-    .product-image {
-        margin-bottom: 15px;
-        text-align: center;
-    }
-    
-    .product-image img {
-        max-width: 100%;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 6px;
-        border: 1px solid #444;
-    }
-    
-    .product-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        margin-bottom: 15px;
-    }
-    
-    .product-header h3 {
-        flex: 1;
-        margin: 0;
-        font-size: 16px;
-        line-height: 1.4;
-    }
-    
-    .product-price {
-        font-size: 20px;
-        font-weight: bold;
-        color: #4CAF50;
-        margin-left: 10px;
-    }
-    
-    .product-details {
-        margin-bottom: 15px;
-    }
-    
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        font-size: 14px;
-    }
-    
-    .detail-row .label {
-        color: #888;
-    }
-    
-    .detail-row .value {
-        text-align: right;
-    }
-    
-    .trust-badge {
-        display: inline-block;
-        background: #4CAF50;
-        color: white;
-        width: 16px;
-        height: 16px;
-        border-radius: 50%;
-        text-align: center;
-        line-height: 16px;
-        font-size: 10px;
-        margin-left: 5px;
-    }
-    
-    .product-actions {
-        display: flex;
-        gap: 10px;
-    }
-    
-    .product-actions .btn {
-        flex: 1;
-        margin: 0;
-    }
-    
-    .empty-state {
-        text-align: center;
-        padding: 40px 20px;
-        background: #1a1a1a;
-        border-radius: 8px;
-    }
-    
-    .pagination {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .page-info {
-        text-align: center;
-        color: #888;
-        font-size: 14px;
-    }
-    
-    /* Tablet and Desktop */
-    @media (min-width: 768px) {
-        .product-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .filter-dropdown {
-            display: none !important;
-        }
-        
-        .search-form {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
-        }
-        
-        .search-input {
-            flex: 1;
-            margin-bottom: 0;
-        }
-        
-        /* Show desktop-style filters instead */
-        .desktop-filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
-        .desktop-filters select {
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: #e0e0e0;
-            padding: 8px 12px;
-            border-radius: 5px;
-        }
-    }
-    
-    /* Mobile-first: Show filter dropdown by default */
-    .filter-dropdown {
-        display: block;
-    }
-    
-    .desktop-filters {
-        display: none;
-    }
-    
-    @media (min-width: 1200px) {
-        .product-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-    
-    .vacation-status {
-        text-align: center;
-        padding: 15px;
-        background: #2a2a2a;
-        border: 1px solid #ff9800;
-        border-radius: 6px;
-    }
-    
-    .vacation-badge {
-        display: block;
-        color: #ff9800;
-        font-weight: bold;
-        font-size: 14px;
-        margin-bottom: 8px;
-    }
-    
-    .vacation-message {
-        color: #ccc;
-        font-size: 12px;
-        margin: 0;
-    }
-</style>
+<script>
+// Simple toggle for filters (no-JS fallback: filters always visible)
+document.getElementById('filterToggle').addEventListener('click', function() {
+    var panel = document.getElementById('filtersPanel');
+    panel.classList.toggle('show');
+});
+</script>
 {% endblock %}
