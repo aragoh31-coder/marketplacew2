@@ -106,8 +106,8 @@ class User(AbstractUser, PrivacyModel):
         """Get encryption key for TOTP secrets"""
         key = getattr(settings, "TOTP_ENCRYPTION_KEY", None)
         if not key:
-            key = Fernet.generate_key()
-        return key
+            raise ValueError("TOTP_ENCRYPTION_KEY not configured in settings")
+        return key.encode() if isinstance(key, str) else key
 
     def _encrypt_secret(self, secret):
         """Encrypt TOTP secret"""

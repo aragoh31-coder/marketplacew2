@@ -258,6 +258,7 @@ def home(request):
     return render(request, "home.html", {"featured_products": featured_products})
 
 
+@csrf_exempt
 def register_view(request):
     print(f"DEBUG: register_view START with method: {request.method}", flush=True)
 

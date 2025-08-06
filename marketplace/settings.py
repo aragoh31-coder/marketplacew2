@@ -312,7 +312,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Don't use cookies for 
 
 CSRF_COOKIE_AGE = 3600  # 1 hour for CSRF tokens
 CSRF_USE_SESSIONS = False  # Use cookie-based CSRF for better compatibility
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000', 'http://django:8000']
 CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 IMAGE_UPLOAD_SETTINGS = {

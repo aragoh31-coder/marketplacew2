@@ -58,7 +58,7 @@ class AntiReplayMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith("/anti_ddos/"):
+        if request.path.startswith("/anti_ddos/") or request.path in ["/register/", "/login/"]:
             return self.get_response(request)
             
         if request.method == 'POST':
