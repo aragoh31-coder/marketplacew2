@@ -54,6 +54,9 @@ class BotDetectionMiddleware:
 
         client_id = self.get_client_identifier(request)
 
+        if request.path.startswith("/anti_ddos/"):
+            return None
+            
         if self.is_blocked(client_id):
             logger.warning(f"Blocked request from {client_id}")
             return HttpResponseForbidden("Access denied")

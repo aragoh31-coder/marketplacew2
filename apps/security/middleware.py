@@ -19,6 +19,55 @@ from core.utils.security import get_session_hash
 logger = logging.getLogger("wallet.security")
 
 
+class TwoFactorAuthMiddleware(MiddlewareMixin):
+    """Middleware to enforce 2FA for sensitive operations"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        super().__init__(get_response)
+
+    def process_request(self, request):
+        if request.path.startswith("/static/"):
+            return None
+            
+        if request.path.startswith("/anti_ddos/"):
+            return None
+            
+        if not hasattr(request, 'user') or not request.user.is_authenticated:
+            return None
+
+        sensitive_paths = [
+            "/wallets/withdraw/",
+            "/wallets/security/",
+            "/adminpanel/",
+        ]
+
+        if any(request.path.startswith(path) for path in sensitive_paths):
+            from django.conf import settings
+            from django.core.cache import cache
+            
+            if not getattr(request.user, 'totp_enabled', False):
+                if request.path.startswith("/wallets/"):
+                    from django.contrib import messages
+                    from django.shortcuts import redirect
+                    messages.error(request, "2FA must be enabled for wallet operations")
+                    return redirect("accounts:totp_setup")
+
+            cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
+            if not cache.get(cache_key):
+                if request.method == "POST" and "totp_code" in request.POST:
+                    totp_code = request.POST.get("totp_code")
+                    if request.user.verify_totp(totp_code):
+                        cache.set(cache_key, True, 300)  # 5 minutes
+                        return None
+                
+                if request.path.startswith("/adminpanel/"):
+                    from django.shortcuts import redirect
+                    return redirect("adminpanel:triple_auth")
+
+        return None
+
+
 class WalletSecurityMiddleware(MiddlewareMixin):
     """Enhanced wallet security middleware with comprehensive protection"""
 
@@ -487,3 +536,67 @@ class EnhancedSecurityMiddleware:
         else:
             ip = request.META.get("REMOTE_ADDR")
         return ip
+
+
+class SuspiciousActivityMiddleware(MiddlewareMixin):
+    """Middleware to detect and handle suspicious activity"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        super().__init__(get_response)
+
+    def process_request(self, request):
+        if request.path.startswith("/static/"):
+            return None
+            
+        if request.path.startswith("/anti_ddos/"):
+            return None
+
+        if self._is_suspicious_request(request):
+            logger.warning(f"Suspicious activity detected: {request.path}")
+            return HttpResponseForbidden("Access denied")
+
+        return None
+
+    def _is_suspicious_request(self, request):
+        """Check for suspicious request patterns"""
+        suspicious_patterns = [
+            "/admin/",
+            "/wp-admin/",
+            "/.env",
+            "/.git/",
+            "/config/",
+            "/backup/",
+        ]
+        
+        for pattern in suspicious_patterns:
+            if pattern in request.path.lower():
+                return True
+        
+        return False
+
+
+class TorSecurityHeadersMiddleware(MiddlewareMixin):
+    """Middleware to add Tor-specific security headers"""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        super().__init__(get_response)
+
+    def process_response(self, request, response):
+        if response is None:
+            return response
+            
+        tor_headers = {
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block", 
+            "Referrer-Policy": "no-referrer",
+            "Content-Security-Policy": "default-src 'self'; script-src 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self';",
+            "Permissions-Policy": "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=()",
+        }
+
+        for header, value in tor_headers.items():
+            response[header] = value
+
+        return response

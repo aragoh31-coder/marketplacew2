@@ -51,3 +51,11 @@ def calculate_user_security_score(user):
         score += 5
 
     return max(0, min(100, score))
+
+
+def captcha_data(request):
+    """Add CAPTCHA-related context data"""
+    return {
+        'captcha_enabled': True,
+        'captcha_timeout': 300,
+    }

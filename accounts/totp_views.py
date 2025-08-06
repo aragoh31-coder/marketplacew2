@@ -20,7 +20,7 @@ from .totp_forms import (
 
 
 @login_required
-@ratelimit(key="ip", rate="5/m", block=True)
+@ratelimit(key="user", rate="5/m", block=True)
 def totp_setup(request):
     if request.user.totp_enabled:
         messages.info(request, "Two-factor authentication is already enabled.")
@@ -231,20 +231,22 @@ def totp_verify(request):
 @require_http_methods(["POST"])
 @login_required
 def test_totp(request):
-    """Test TOTP token (AJAX endpoint)"""
+    """Test TOTP token (non-AJAX endpoint for Tor compatibility)"""
     if not request.user.totp_secret:
-        return JsonResponse({"valid": False, "error": "TOTP not configured"})
+        messages.error(request, "TOTP not configured")
+        return redirect("accounts:totp_setup")
 
     token = request.POST.get("token", "").strip()
 
     if len(token) != 6 or not token.isdigit():
-        return JsonResponse({"valid": False, "error": "Invalid token format"})
+        messages.error(request, "Invalid token format")
+        return redirect("accounts:totp_setup")
 
     is_valid = request.user.verify_totp(token)
 
-    return JsonResponse(
-        {
-            "valid": is_valid,
-            "message": "Token is valid!" if is_valid else "Invalid token",
-        }
-    )
+    if is_valid:
+        messages.success(request, "Token is valid!")
+    else:
+        messages.error(request, "Invalid token")
+    
+    return redirect("accounts:totp_setup")

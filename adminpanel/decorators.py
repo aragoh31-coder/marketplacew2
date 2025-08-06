@@ -15,19 +15,22 @@ def require_2fa(view_func):
 
     @wraps(view_func)
     def wrapped_view(self, request, *args, **kwargs):
-        if (
-            not hasattr(request.user, "wallet")
-            or not request.user.wallet.two_fa_enabled
-        ):
+        if not request.user.totp_enabled:
             messages.error(request, "2FA must be enabled for this action")
-            return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/admin/"))
+            return HttpResponseRedirect(reverse("accounts:totp_setup"))
 
-        cache_key = f"2fa_verified:{request.user.id}"
+        cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
         if not cache.get(cache_key):
-            messages.error(request, "Please verify 2FA before performing this action")
-            return HttpResponseRedirect(
-                reverse("adminpanel:verify_2fa") + f"?next={request.path}"
-            )
+            totp_code = request.POST.get("totp_code")
+            if not totp_code:
+                messages.error(request, "Please verify 2FA before performing this action")
+                return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/admin/"))
+            
+            if not request.user.verify_totp(totp_code):
+                messages.error(request, "Invalid 2FA code")
+                return HttpResponseRedirect(request.META.get("HTTP_REFERER", "/admin/"))
+            
+            cache.set(cache_key, True, 300)
 
         return view_func(self, request, *args, **kwargs)
 
@@ -42,10 +45,35 @@ def require_triple_auth(view_func):
         if not request.user.is_authenticated or not request.user.is_superuser:
             return redirect("adminpanel:login")
 
-        cache_key = f"triple_auth_verified:{request.user.id}"
+        cache_key = f"triple_auth_verified:{request.user.id}:{request.session.session_key}"
         if not cache.get(cache_key):
-            messages.warning(request, "Triple authentication required for this action.")
-            return redirect("adminpanel:triple_auth")
+            from django.conf import settings
+            admin_config = getattr(settings, 'ADMIN_SECURITY', {})
+            
+            if admin_config.get('REQUIRE_TRIPLE_AUTH', True):
+                if request.method == 'POST':
+                    password = request.POST.get('admin_password')
+                    totp_code = request.POST.get('totp_code')
+                    pgp_response = request.POST.get('pgp_response')
+                    
+                    if not password or not request.user.check_password(password):
+                        messages.error(request, "Invalid admin password")
+                        return redirect("adminpanel:triple_auth")
+                    
+                    if request.user.totp_enabled:
+                        if not totp_code or not request.user.verify_totp(totp_code):
+                            messages.error(request, "Invalid 2FA code")
+                            return redirect("adminpanel:triple_auth")
+                    
+                    if request.user.pgp_public_key and admin_config.get('PGP_CHALLENGE_REQUIRED', True):
+                        if not pgp_response or not request.user.verify_pgp_challenge(pgp_response):
+                            messages.error(request, "Invalid PGP challenge response")
+                            return redirect("adminpanel:triple_auth")
+                    
+                    cache.set(cache_key, True, admin_config.get('SESSION_TIMEOUT_MINUTES', 15) * 60)
+                else:
+                    messages.warning(request, "Triple authentication required for this action.")
+                    return redirect("adminpanel:triple_auth")
 
         return view_func(request, *args, **kwargs)
 

@@ -1,0 +1,54 @@
+{% if notices %}
+<div class="security-notices">
+    {% for notice in notices %}
+    <div class="alert alert-{{ notice.type }}">
+        <span class="notice-message">{{ notice.message }}</span>
+        {% if notice.action_url %}
+        <a href="{{ notice.action_url }}" class="notice-action">{{ notice.action_text }}</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+.security-notices {
+    margin-bottom: 20px;
+}
+
+.security-notices .alert {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border-left: 4px solid;
+}
+
+.alert-warning {
+    background: rgba(255, 152, 0, 0.1);
+    border-left-color: #ff9800;
+    color: #ff9800;
+}
+
+.alert-info {
+    background: rgba(33, 150, 243, 0.1);
+    border-left-color: #2196f3;
+    color: #2196f3;
+}
+
+.notice-action {
+    background: rgba(255, 255, 255, 0.1);
+    color: inherit;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.notice-action:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+</style>
+{% endif %}

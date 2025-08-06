@@ -1,0 +1,44 @@
+<div class="2fa-status">
+    {% if user.is_authenticated %}
+        {% if totp_enabled %}
+            <span class="status-badge success">
+                <i class="icon-shield"></i> 2FA Enabled
+            </span>
+        {% else %}
+            <span class="status-badge warning">
+                <i class="icon-warning"></i> 2FA Disabled
+            </span>
+        {% endif %}
+        
+        {% if pgp_enabled %}
+            <span class="status-badge success">
+                <i class="icon-key"></i> PGP Enabled
+            </span>
+        {% endif %}
+    {% endif %}
+</div>
+
+<style>
+.2fa-status {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status-badge.success {
+    background: #22c55e;
+    color: white;
+}
+
+.status-badge.warning {
+    background: #f59e0b;
+    color: white;
+}
+</style>
