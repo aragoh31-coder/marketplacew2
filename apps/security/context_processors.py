@@ -17,15 +17,22 @@ def security_context(request):
         "rate_limiting_enabled": getattr(settings, "SECURITY_SETTINGS", {}).get(
             "ENABLE_RATE_LIMITING", True
         ),
+        "two_factor_auth": getattr(settings, 'TWO_FACTOR_AUTH', {}),
+        "wallet_security": getattr(settings, 'WALLET_SECURITY', {}),
+        "admin_security": getattr(settings, 'ADMIN_SECURITY', {}),
     }
 
     if hasattr(request, "user") and request.user.is_authenticated:
+        from django.core.cache import cache
+        cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
         context.update(
             {
                 "user_security_score": calculate_user_security_score(request.user),
                 "has_2fa": hasattr(request.user, "totp_enabled")
                 and request.user.totp_enabled,
                 "has_pgp": bool(getattr(request.user, "pgp_public_key", "")),
+                "user_2fa_verified": cache.get(cache_key, False),
+                "user_is_admin": request.user.is_superuser,
             }
         )
 

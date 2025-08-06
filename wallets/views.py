@@ -133,6 +133,51 @@ def convert(request):
             messages.error(request, "Invalid amount")
             return redirect("wallets:convert")
 
+        from django.conf import settings
+        from django.core.cache import cache
+        
+        wallet_config = getattr(settings, 'WALLET_SECURITY', {})
+        threshold_usd = wallet_config.get('REQUIRE_2FA_ABOVE_USD', 100)
+        
+        if float(amount) >= threshold_usd:
+            if not request.user.totp_enabled:
+                messages.error(request, "2FA must be enabled for conversions above $100")
+                return redirect("accounts:totp_setup")
+            
+            totp_code = request.POST.get("totp_code")
+            if not totp_code:
+                wallet = get_object_or_404(Wallet, user=request.user)
+                return render(
+                    request,
+                    "wallets/convert.html",
+                    {
+                        "wallet": wallet,
+                        "require_2fa": True,
+                        "from_currency": from_currency,
+                        "to_currency": to_currency,
+                        "amount": amount,
+                    },
+                )
+            
+            if not request.user.verify_totp(totp_code):
+                messages.error(request, "Invalid 2FA code")
+                wallet = get_object_or_404(Wallet, user=request.user)
+                return render(
+                    request,
+                    "wallets/convert.html",
+                    {
+                        "wallet": wallet,
+                        "require_2fa": True,
+                        "from_currency": from_currency,
+                        "to_currency": to_currency,
+                        "amount": amount,
+                        "error": "Invalid 2FA code",
+                    },
+                )
+            
+            cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
+            cache.set(cache_key, True, 300)
+
         with transaction.atomic():
             wallet = Wallet.objects.select_for_update().get(user=request.user)
 

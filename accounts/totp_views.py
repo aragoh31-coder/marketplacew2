@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django_ratelimit.decorators import ratelimit
 
 from core.logging.audit_logger import audit_logger
@@ -21,6 +22,7 @@ from .totp_forms import (
 
 @login_required
 @ratelimit(key="user", rate="5/m", block=True)
+@csrf_exempt
 def totp_setup(request):
     if request.user.totp_enabled:
         messages.info(request, "Two-factor authentication is already enabled.")
@@ -84,7 +86,7 @@ def totp_setup(request):
 
     from core.security.captcha_cutcircle import init_captcha_session, validate_captcha
 
-    img_b64, _ = init_captcha_session(request)
+    img_b64 = init_captcha_session(request)
     return render(
         request,
         "accounts/totp_setup.html",

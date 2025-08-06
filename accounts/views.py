@@ -366,6 +366,7 @@ from django_ratelimit.decorators import ratelimit
 
 
 @ratelimit(key="ip", rate="5/m", block=True)
+@csrf_exempt
 def login_view(request):
     from django.contrib.auth import authenticate, login
     from django.shortcuts import redirect, render
