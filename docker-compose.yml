@@ -68,7 +68,7 @@ services:
       - .env.docker
     environment:
       - DATABASE_URL=postgresql://marketplace:marketplace_password@db:5432/marketplace
-      - ALLOWED_HOSTS=*.onion,localhost,127.0.0.1,django,172.18.0.6,openresty
+      - ALLOWED_HOSTS=*.onion,localhost,127.0.0.1,django,openresty,bitcoind,monerod,monero-wallet-rpc,172.18.0.0/16
     volumes:
       - .:/app
       - ./secure_uploads:/app/secure_uploads
@@ -131,6 +131,81 @@ services:
     networks:
       - tor-net
 
+  bitcoind:
+    image: ruimarinho/bitcoin-core:latest
+    container_name: bitcoind_rpc
+    ports:
+      - "8332:8332"
+      - "8333:8333"
+    volumes:
+      - bitcoin_data:/home/bitcoin/.bitcoin
+    environment:
+      - BITCOIN_DATA=/home/bitcoin/.bitcoin
+    command: >
+      bitcoind
+      -server=1
+      -rpcallowip=0.0.0.0/0
+      -rpcbind=0.0.0.0:8332
+      -rpcuser=bitcoin_user
+      -rpcpassword=bitcoin_password
+      -txindex=1
+      -testnet=0
+      -printtoconsole=1
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-rpcuser=bitcoin_user", "-rpcpassword=bitcoin_password", "getblockchaininfo"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tor-net
+
+  monerod:
+    image: sethsimmons/simple-monerod:latest
+    container_name: monero_daemon
+    ports:
+      - "18081:18081"
+    volumes:
+      - monero_data:/home/monero/.bitmonero
+    command: >
+      monerod
+      --rpc-bind-ip=0.0.0.0
+      --rpc-bind-port=18081
+      --confirm-external-bind
+      --non-interactive
+      --log-level=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18081/get_info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tor-net
+
+  monero-wallet-rpc:
+    image: sethsimmons/simple-monerod:latest
+    container_name: monero_wallet_rpc
+    ports:
+      - "18088:18088"
+    volumes:
+      - monero_wallet_data:/home/monero/wallet
+    depends_on:
+      - monerod
+    command: >
+      monero-wallet-rpc
+      --daemon-address=monerod:18081
+      --rpc-bind-ip=0.0.0.0
+      --rpc-bind-port=18088
+      --confirm-external-bind
+      --non-interactive
+      --log-level=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:18088/json_rpc"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - tor-net
+
 networks:
   tor-net:
     driver: bridge
@@ -138,3 +213,6 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  bitcoin_data:
+  monero_data:
+  monero_wallet_data:
