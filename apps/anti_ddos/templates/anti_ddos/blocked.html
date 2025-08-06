@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Access Blocked - Security Protection</title>
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <style>
+    body { 
+      background: linear-gradient(135deg, #0a0f1b 0%, #1a1a2e 100%);
+      color: #e0e0e0;
+      font-family: 'Courier New', monospace;
+    }
+    .blocked-container {
+      background: rgba(26, 26, 46, 0.9);
+      border: 1px solid #dc3545;
+      backdrop-filter: blur(10px);
+    }
+    .blocked-icon {
+      color: #dc3545;
+      font-size: 3rem;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+  <div class="blocked-container p-8 rounded-lg shadow-2xl max-w-md w-full text-center">
+    <div class="blocked-icon mb-4">🚫</div>
+    <h2 class="text-2xl font-bold mb-4 text-red-500">Access Temporarily Blocked</h2>
+    <p class="text-gray-300 mb-6">
+      {{ reason }}
+    </p>
+    
+    <div class="bg-gray-800 p-4 rounded-lg mb-6">
+      <p class="text-sm text-gray-400">If you believe this is an error, please contact support.</p>
+    </div>
+    
+    <div class="text-xs text-gray-500">
+      <p>This security measure protects our marketplace from automated attacks.</p>
+    </div>
+  </div>
+</body>
+</html>

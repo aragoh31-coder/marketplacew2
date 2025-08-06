@@ -1,4 +1,5 @@
 import random
+import os
 from decimal import Decimal
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
@@ -54,8 +55,10 @@ class Command(BaseCommand):
             )
             
             if created:
-                user.set_password('testpass123')
+                test_password = os.environ.get('TEST_USER_PASSWORD', f'test_{random.randint(10000, 99999)}')
+                user.set_password(test_password)
                 user.save()
+                self.stdout.write(f'Created user {username} with password: {test_password}')
             
             vendor, created = Vendor.objects.get_or_create(
                 user=user,
@@ -124,8 +127,10 @@ class Command(BaseCommand):
             )
             
             if created:
-                user.set_password('testpass123')
+                test_password = os.environ.get('TEST_USER_PASSWORD', f'test_{random.randint(10000, 99999)}')
+                user.set_password(test_password)
                 user.save()
+                self.stdout.write(f'Created user {username} with password: {test_password}')
             
             Wallet.objects.get_or_create(
                 user=user,

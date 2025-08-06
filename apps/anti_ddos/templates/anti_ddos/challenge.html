@@ -36,18 +36,30 @@
     <form method="post" class="space-y-4">
       {% csrf_token %}
       
-      <input type="hidden" name="nonce" value="{{ nonce }}">
-      <input type="hidden" name="ts" value="{{ ts }}">
-      <input type="hidden" name="sig" value="{{ sig }}">
       <input type="hidden" name="next" value="{{ request.GET.next|default:'/' }}">
       
+      <!-- Honeypot field for bot detection -->
       <div style="position: absolute; left: -9999px;">
         <input type="text" name="hp_field" value="" tabindex="-1">
       </div>
       
+      <!-- Math Challenge -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium mb-2">Solve this math problem:</label>
+        <div class="text-center mb-4">
+          <span class="text-2xl font-bold text-blue-400">{{ math_question }}</span>
+        </div>
+        <input type="number" 
+               name="math_answer" 
+               class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none" 
+               placeholder="Enter your answer"
+               required
+               autocomplete="off">
+      </div>
+      
       <div class="text-center">
         <button type="submit" class="btn-verify w-full py-3 px-6 rounded-lg font-semibold text-white">
-          ✓ Verify & Continue
+          ✓ Submit Answer
         </button>
       </div>
       

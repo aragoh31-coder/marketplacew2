@@ -2,7 +2,8 @@ import hashlib
 import hmac
 import time
 
-SECRET = b"super-secret-key-for-circuit-fingerprinting-change-in-production"
+import os
+SECRET = os.environ.get('CIRCUIT_FINGERPRINT_SECRET', 'fallback-secret-change-in-production').encode()
 
 
 def get_session_hash(request):

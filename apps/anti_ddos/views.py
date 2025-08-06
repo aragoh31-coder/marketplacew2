@@ -1,11 +1,15 @@
 import hmac
 import hashlib
 import time
+import random
+import logging
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from core.utils.security import get_session_hash
 from core.security.sanitization import UniversalSanitizer
+
+logger = logging.getLogger(__name__)
 
 
 def generate_nonce():
@@ -14,42 +18,83 @@ def generate_nonce():
 
 @csrf_exempt
 def challenge(request):
+    """
+    Handle the anti-DDoS challenge page with math CAPTCHA.
+    """
     if request.method == 'POST':
         hp = UniversalSanitizer.sanitize_text(request.POST.get('hp_field', ''))
         if hp:
-            return render(request, 'anti_ddos/denied.html')
+            logger.warning("Honeypot triggered")
+            return render(request, 'anti_ddos/denied.html', status=403)
         
-        nonce = UniversalSanitizer.sanitize_text(request.POST.get('nonce', ''))
-        if not nonce:
+        submitted_answer = request.POST.get('math_answer', '').strip()
+        correct_answer = request.session.get('math_answer')
+        
+        if not correct_answer or not submitted_answer:
             return render(request, 'anti_ddos/challenge.html', {
-                'error': 'Missing nonce',
-                'nonce': generate_nonce(),
-                'ts': int(time.time()),
-                'sig': '',
+                'math_question': _generate_math_challenge(request),
+                'error': 'Please solve the math problem.'
             })
         
-        ts = int(request.POST.get('ts', '0'))
-        if time.time() - ts < 0:  # Changed from 3 to 0 to fix timing issue
-            return render(request, 'anti_ddos/too_fast.html')
-        
-        sig = UniversalSanitizer.sanitize_text(request.POST.get('sig', ''))
-        msg = f"{nonce}|{ts}|{get_session_hash(request)}".encode()
-        expected = hmac.new(settings.SECRET_KEY.encode(), msg, hashlib.sha256).hexdigest()
-        
-        if not hmac.compare_digest(expected, sig):
-            return render(request, 'anti_ddos/denied.html')
-        
-        resp = redirect(request.GET.get('next', '/'))
-        token = hmac.new(settings.SECRET_KEY.encode(), msg, hashlib.sha256).hexdigest()
-        resp.set_cookie('ad_token', token, max_age=900, httponly=True, secure=True)
-        return resp
+        try:
+            if int(submitted_answer) == int(correct_answer):
+                request.session["ddos_passed"] = True
+                next_url = request.GET.get("next", "/")
+                
+                response = redirect(next_url)
+                session_hash = get_session_hash(request)
+                token_data = f"verified|{session_hash}".encode()
+                token = hmac.new(
+                    settings.SECRET_KEY.encode(),
+                    token_data,
+                    hashlib.sha256
+                ).hexdigest()
+                
+                response.set_cookie(
+                    'ad_token',
+                    token,
+                    max_age=3600,
+                    secure=not settings.DEBUG,
+                    httponly=True,
+                    samesite='Strict'
+                )
+                return response
+            else:
+                return render(request, 'anti_ddos/challenge.html', {
+                    'math_question': _generate_math_challenge(request),
+                    'error': 'Incorrect answer. Please try again.'
+                })
+        except (ValueError, TypeError):
+            return render(request, 'anti_ddos/challenge.html', {
+                'math_question': _generate_math_challenge(request),
+                'error': 'Please enter a valid number.'
+            })
+    
+    math_question = _generate_math_challenge(request)
+    
+    context = {
+        "math_question": math_question,
+    }
+    
+    return render(request, "anti_ddos/challenge.html", context)
+
+
+def _generate_math_challenge(request):
+    """Generate math challenge similar to NoJSCaptchaMixin"""
+    num1 = random.randint(1, 20)
+    num2 = random.randint(1, 20)
+    operation = random.choice(['+', '-', '*'])
+    
+    if operation == '+':
+        answer = num1 + num2
+        question = f"{num1} + {num2}"
+    elif operation == '-':
+        answer = num1 - num2
+        question = f"{num1} - {num2}"
     else:
-        ts = int(time.time())
-        nonce = generate_nonce()
-        msg = f"{nonce}|{ts}|{get_session_hash(request)}".encode()
-        sig = hmac.new(settings.SECRET_KEY.encode(), msg, hashlib.sha256).hexdigest()
-        return render(request, 'anti_ddos/challenge.html', {
-            'nonce': nonce,
-            'ts': ts,
-            'sig': sig,
-        })
+        answer = num1 * num2
+        question = f"{num1} × {num2}"
+    
+    request.session['math_answer'] = answer
+    request.session['math_question'] = question
+    return question
