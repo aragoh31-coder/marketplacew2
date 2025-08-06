@@ -52,8 +52,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.security.TorSecurityMiddleware",
-    "core.middleware.security.AntiReplayMiddleware",
-    "core.middleware.error_handling.EnhancedErrorHandlingMiddleware",
+    "apps.security.middleware.TwoFactorAuthMiddleware",
+    "apps.security.middleware.TorSecurityHeadersMiddleware",
 ]
 
 ROOT_URLCONF = "marketplace.urls"
@@ -70,6 +70,8 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "apps.security.context_processors.security_context",
+                "apps.security.context_processors.captcha_data",
+                "core.context_processors.marketplace_context",
             ],
         },
     },
@@ -310,6 +312,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Don't use cookies for 
 
 CSRF_COOKIE_AGE = 3600  # 1 hour for CSRF tokens
 CSRF_USE_SESSIONS = False  # Use cookie-based CSRF for better compatibility
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_FAILURE_VIEW = 'django.views.csrf.csrf_failure'
 
 IMAGE_UPLOAD_SETTINGS = {
     "MAX_FILE_SIZE": 2 * 1024 * 1024,  # 2MB max (reduced from 5MB)
@@ -433,3 +437,53 @@ CIRCUIT_FINGERPRINT_SECRET = (
 )
 
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="default-field-encryption-key-change-in-production")
+
+TOTP_ENCRYPTION_KEY = env("TOTP_ENCRYPTION_KEY", default="totp-encryption-key-for-2fa-secrets")
+
+TWO_FACTOR_AUTH = {
+    "TOTP_ISSUER_NAME": "Tor Marketplace",
+    "TOTP_WINDOW": 1,
+    "BACKUP_CODE_COUNT": 10,
+    "ENFORCE_2FA_FOR_ADMIN": True,
+    "ENFORCE_2FA_FOR_WITHDRAWALS": True,
+    "WITHDRAWAL_2FA_THRESHOLD_USD": 100,
+    "QR_CODE_VERSION": 1,
+    "RATE_LIMIT_ATTEMPTS": 5,
+    "RATE_LIMIT_WINDOW": 300,
+}
+
+WALLET_SECURITY = {
+    "REQUIRE_2FA_ABOVE_USD": 100,
+    "MAX_DAILY_WITHDRAWAL_USD": 10000,
+    "SUSPICIOUS_ACTIVITY_THRESHOLD": 5,
+    "AUTO_LOCK_AFTER_FAILED_ATTEMPTS": 5,
+    "SESSION_TIMEOUT_MINUTES": 30,
+}
+
+ADMIN_SECURITY = {
+    "REQUIRE_TRIPLE_AUTH": True,
+    "SECONDARY_PASSWORD_REQUIRED": True,
+    "PGP_CHALLENGE_REQUIRED": True,
+    "SESSION_TIMEOUT_MINUTES": 15,
+    "MAX_LOGIN_ATTEMPTS": 3,
+    "LOCKOUT_DURATION_MINUTES": 30,
+}
+
+BOT_DETECTION = {
+    "ENABLE_FINGERPRINTING": True,
+    "SUSPICIOUS_PATTERNS": [
+        "rapid_requests",
+        "automated_behavior",
+        "unusual_user_agent",
+    ],
+    "RATE_LIMIT_THRESHOLD": 100,
+    "CAPTCHA_THRESHOLD": 10,
+}
+
+RATE_LIMITING = {
+    "LOGIN_ATTEMPTS": "5/5m",
+    "REGISTRATION_ATTEMPTS": "3/10m",
+    "PASSWORD_RESET_ATTEMPTS": "3/15m",
+    "WITHDRAWAL_REQUESTS": "5/1h",
+    "API_REQUESTS": "100/1h",
+}

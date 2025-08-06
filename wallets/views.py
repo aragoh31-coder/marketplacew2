@@ -56,6 +56,49 @@ def request_withdrawal(request):
 
         amount = Decimal(request.POST.get("amount"))
         address = request.POST.get("address")
+        
+        from django.conf import settings
+        from django.core.cache import cache
+        
+        wallet_config = getattr(settings, 'WALLET_SECURITY', {})
+        threshold_usd = wallet_config.get('REQUIRE_2FA_ABOVE_USD', 100)
+        
+        if float(amount) >= threshold_usd:
+            if not request.user.totp_enabled:
+                messages.error(request, "2FA must be enabled for withdrawals above $100")
+                return redirect("accounts:totp_setup")
+            
+            totp_code = request.POST.get("totp_code")
+            if not totp_code:
+                img_b64 = init_captcha_session(request)
+                return render(
+                    request,
+                    "wallets/withdraw.html",
+                    {
+                        "captcha_img": img_b64,
+                        "require_2fa": True,
+                        "amount": amount,
+                        "address": address,
+                    },
+                )
+            
+            if not request.user.verify_totp(totp_code):
+                messages.error(request, "Invalid 2FA code")
+                img_b64 = init_captcha_session(request)
+                return render(
+                    request,
+                    "wallets/withdraw.html",
+                    {
+                        "captcha_img": img_b64,
+                        "require_2fa": True,
+                        "amount": amount,
+                        "address": address,
+                        "error": "Invalid 2FA code",
+                    },
+                )
+            
+            cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
+            cache.set(cache_key, True, 300)
 
         with transaction.atomic():
             wallet = Wallet.objects.select_for_update().get(user=request.user)
@@ -159,10 +202,36 @@ def deposit_info(request, currency):
 @login_required
 def security_settings(request):
     """Manage wallet security settings"""
+    from django.core.cache import cache
+    
+    if request.method == "POST":
+        if not request.user.totp_enabled:
+            messages.error(request, "2FA must be enabled to change security settings")
+            return redirect("accounts:totp_setup")
+        
+        totp_code = request.POST.get("totp_code")
+        if not totp_code:
+            messages.error(request, "2FA verification required for security changes")
+            return redirect("wallets:security_settings")
+        
+        if not request.user.verify_totp(totp_code):
+            messages.error(request, "Invalid 2FA code")
+            return redirect("wallets:security_settings")
+        
+        cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
+        cache.set(cache_key, True, 300)
+        
+        messages.success(request, "Security settings updated successfully")
+        return redirect("wallets:security_settings")
+    
     wallet = get_object_or_404(Wallet, user=request.user)
+    
+    cache_key = f"2fa_verified:{request.user.id}:{request.session.session_key}"
+    is_2fa_verified = cache.get(cache_key, False)
 
     context = {
         "wallet": wallet,
+        "require_2fa": not is_2fa_verified and request.user.totp_enabled,
     }
 
     return render(request, "wallets/security_settings.html", context)

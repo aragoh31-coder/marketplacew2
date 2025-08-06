@@ -26,6 +26,26 @@ label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
     <label>Address:</label>
     <input type="text" name="address" placeholder="Address" required>
     <input type="hidden" name="honeypot" value="">
+    
+    {% if requires_2fa %}
+    <div class="security-notice" style="background: rgba(255, 152, 0, 0.1); border: 1px solid #ff9800; border-radius: 6px; padding: 15px; margin: 15px 0;">
+        <h4 style="color: #ff9800; margin: 0 0 10px 0;">🔐 2FA Verification Required</h4>
+        <p style="color: #ccc; margin: 5px 0;">This withdrawal ({{ usd_value|floatformat:2 }} USD) exceeds the security threshold of ${{ threshold }} USD.</p>
+        <p style="color: #ccc; margin: 5px 0;">Please enter your 6-digit authenticator code to proceed.</p>
+        
+        <label style="margin-top: 15px;">Authenticator Code:</label>
+        <input type="text" name="totp_code" 
+               style="width: 150px; text-align: center; font-size: 18px; letter-spacing: 2px;"
+               placeholder="000000" 
+               maxlength="6" 
+               pattern="[0-9]{6}"
+               autocomplete="off"
+               inputmode="numeric"
+               required>
+        <small style="color:#999; display: block; margin-top: 5px;">Enter the 6-digit code from your authenticator app</small>
+    </div>
+    {% endif %}
+    
     <div>
         <p>Click on the circle with a cut/notch to verify you're human:</p>
         <input type="image" 
@@ -54,7 +74,13 @@ label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
             .slice-11{ transform:rotate(330deg); clip-path:polygon(0 0,50% 0,0 50%); }
         </style>
     </div>
-    <button type="submit">Submit Withdrawal</button>
+    <button type="submit">
+        {% if requires_2fa %}
+            Verify & Submit Withdrawal
+        {% else %}
+            Submit Withdrawal
+        {% endif %}
+    </button>
     {% if error %}
     <div style="color: red; text-align: center; margin-top: 10px;">{{ error }}</div>
     {% endif %}

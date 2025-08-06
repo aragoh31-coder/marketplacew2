@@ -58,6 +58,9 @@ class AntiReplayMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith("/anti_ddos/"):
+            return self.get_response(request)
+            
         if request.method == 'POST':
             nonce = request.POST.get('_nonce')
             if not nonce:
@@ -86,6 +89,9 @@ class TorSecurityMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+
+        if response is None:
+            return response
 
         response["Content-Security-Policy"] = (
             "default-src 'self'; "
