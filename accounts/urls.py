@@ -20,8 +20,8 @@ urlpatterns = [
     path("pgp-challenge/", views.pgp_challenge_view, name="pgp_challenge"),
     path("pgp-login/", views.pgp_challenge_view, name="pgp_login"),
     path("test-pgp/", views.test_pgp_encryption, name="test_pgp"),
-    path("settings/totp/", views.totp_settings, name="totp_settings"),
-    path("settings/totp/setup/", views.totp_setup, name="totp_setup"),
+    path("settings/totp/", views.totp_settings, name="legacy_totp_settings"),
+    path("settings/totp/setup/", views.totp_setup, name="legacy_totp_setup"),
     path(
         "settings/totp/backup-codes/", views.totp_backup_codes, name="totp_backup_codes"
     ),
