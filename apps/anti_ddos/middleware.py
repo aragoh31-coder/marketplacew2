@@ -57,7 +57,7 @@ class AntiDDoSMiddleware:
     def _is_internal_request(self, request):
         """Check if request is from internal network"""
         remote_addr = request.META.get("REMOTE_ADDR", "")
-        return remote_addr.startswith("172.18.")
+        return False
 
     def _has_valid_token(self, request):
         """Verify HMAC token from cookie"""
