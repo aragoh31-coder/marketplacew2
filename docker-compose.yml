@@ -120,7 +120,7 @@ services:
     ports:
       - "9051:9050"
     volumes:
-      - /opt/tor/hidden_service:/var/lib/tor/hidden_service
+      - tor_hidden_service:/var/lib/tor/hidden_service
       - ./torrc:/etc/tor/torrc
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://127.0.0.1:9050 > /dev/null || exit 1"]
@@ -160,19 +160,21 @@ services:
       - tor-net
 
   monerod:
-    image: sethsimmons/simple-monerod:latest
+    image: kannix/monero-full-node:latest
     container_name: monero_daemon
     ports:
       - "18081:18081"
     volumes:
-      - monero_data:/home/monero/.bitmonero
+      - monero_data:/root/.bitmonero
+    environment:
+      - DAEMON_HOST=0.0.0.0
+      - DAEMON_PORT=18081
     command: >
-      monerod
       --rpc-bind-ip=0.0.0.0
       --rpc-bind-port=18081
       --confirm-external-bind
-      --non-interactive
       --log-level=1
+      --non-interactive
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18081/get_info"]
       interval: 30s
@@ -181,30 +183,36 @@ services:
     networks:
       - tor-net
 
-  monero-wallet-rpc:
-    image: sethsimmons/simple-monerod:latest
-    container_name: monero_wallet_rpc
-    ports:
-      - "18088:18088"
-    volumes:
-      - monero_wallet_data:/home/monero/wallet
-    depends_on:
-      - monerod
-    command: >
-      monero-wallet-rpc
-      --daemon-address=monerod:18081
-      --rpc-bind-ip=0.0.0.0
-      --rpc-bind-port=18088
-      --confirm-external-bind
-      --non-interactive
-      --log-level=1
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:18088/json_rpc"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - tor-net
+  # Note: monero-wallet-rpc temporarily disabled as kannix/monero-full-node:latest 
+  # only includes monerod daemon, not wallet RPC binary
+  # monero-wallet-rpc:
+  #   image: kannix/monero-full-node:latest
+  #   container_name: monero_wallet_rpc
+  #   ports:
+  #     - "18088:18088"
+  #   volumes:
+  #     - monero_wallet_data:/home/monero/wallet
+  #   depends_on:
+  #     - monerod
+  #   environment:
+  #     - DAEMON_HOST=monerod
+  #     - DAEMON_PORT=18081
+  #   command: >
+  #     /home/monero/monero-wallet-rpc
+  #     --daemon-address=monerod:18081
+  #     --wallet-dir=/home/monero/wallet
+  #     --rpc-bind-ip=0.0.0.0
+  #     --rpc-bind-port=18088
+  #     --confirm-external-bind
+  #     --log-level=1
+  #     --disable-rpc-login
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:18088/json_rpc"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   networks:
+  #     - tor-net
 
 networks:
   tor-net:
@@ -216,3 +224,4 @@ volumes:
   bitcoin_data:
   monero_data:
   monero_wallet_data:
+  tor_hidden_service:
