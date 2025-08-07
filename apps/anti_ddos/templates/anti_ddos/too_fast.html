@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Too Many Requests</title>
+  <style>
+    body {
+      background: #0d0d1d;
+      color: white;
+      font-family: monospace;
+      text-align: center;
+      padding-top: 10vh;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    .warning {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    .timer {
+      font-size: 24px;
+      margin: 20px 0;
+      color: #4a9df8;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+    .button {
+      display: inline-block;
+      padding: 8px 16px;
+      margin-top: 15px;
+      background-color: #444;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .button:hover {
+      background-color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="warning">Too Many Requests</h2>
+    <p>You're browsing too quickly.</p>
+    
+    <div class="timer">
+      Please wait a moment
+    </div>
+    
+    <p>This helps us distinguish between humans and bots.</p>
+    
+    <a href="javascript:history.back()" class="button">Go Back</a>
+    
+    <div class="footer">
+      <p>This measure helps protect against automated attacks</p>
+      <p>Please try again in a few seconds</p>
+    </div>
+  </div>
+</body>
+</html>

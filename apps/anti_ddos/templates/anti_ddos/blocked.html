@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Access Blocked</title>
+  <style>
+    body {
+      background: #0d0d1d;
+      color: white;
+      font-family: monospace;
+      text-align: center;
+      padding-top: 10vh;
+    }
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    .warning {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+    .reason {
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #2a2a3e;
+      border-radius: 4px;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="warning">Access Blocked</h2>
+    
+    <div class="reason">
+      {{ reason }}
+    </div>
+    
+    <p>Your access has been temporarily restricted.</p>
+    
+    <div class="footer">
+      <p>This measure helps protect against automated attacks</p>
+      <p>Please try again later</p>
+    </div>
+  </div>
+</body>
+</html>
