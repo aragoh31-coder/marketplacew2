@@ -1,0 +1,164 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: marketplace
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_ROOT_PASS:-changeme}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASS:-changeme}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [internal]
+
+  tor:
+    image: alpine:3.20
+    restart: unless-stopped
+    command: |
+      sh -c "
+        apk add --no-cache tor &&
+        cat > /etc/tor/torrc <<EOF
+        DataDirectory /var/lib/tor
+        HiddenServiceDir /var/lib/tor/hidden_service
+        HiddenServiceVersion 3
+        HiddenServicePort 80 marketplace:8080
+        EOF
+        tor -f /etc/tor/torrc
+      "
+    volumes:
+      - tor_data:/var/lib/tor
+    networks: [internal, external]
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  marketplace:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./uploads:/app/uploads
+      - ./backups:/app/backups
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks: [internal]
+
+  bitcoin:
+    image: btcpayserver/bitcoin:25.0
+    restart: unless-stopped
+    environment:
+      BITCOIN_NETWORK: mainnet
+      BITCOIN_RPC_AUTH: ${BTC_RPC_AUTH}
+    volumes:
+      - bitcoin_data:/data
+    networks: [internal]
+
+  # monero:
+  #   image: monero:latest
+  #   restart: unless-stopped
+  #   command: |
+  #     --rpc-bind-ip=0.0.0.0
+  #     --rpc-bind-port=18082
+  #     --confirm-external-bind
+  #     --rpc-login=${XMR_RPC_USER}:${XMR_RPC_PASS}
+  #   volumes:
+  #      # - monero_data:/home/monero/.bitmonero
+  #   networks: [internal]
+
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+    networks: [internal]
+
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASS:-changeme}
+      GF_INSTALL_PLUGINS: redis-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning:ro
+    networks: [internal]
+    depends_on: [prometheus]
+
+  backup:
+    image: alpine:3.20
+    restart: unless-stopped
+    command: |
+      sh -c "
+        apk add --no-cache postgresql-client redis &&
+        while true; do
+          echo 'Running backup...' &&
+          TIMESTAMP=$$(date +%Y%m%d_%H%M%S) &&
+          pg_dump -h postgres -U postgres -d marketplace > /backups/db_$$TIMESTAMP.sql &&
+          redis-cli -h redis --rdb /backups/redis_$$TIMESTAMP.rdb &&
+          find /backups -name '*.sql' -mtime +7 -delete &&
+          find /backups -name '*.rdb' -mtime +7 -delete &&
+          echo 'Backup complete' &&
+          sleep 86400
+        done
+      "
+    environment:
+      PGPASSWORD: ${DB_ROOT_PASS:-changeme}
+      REDISCLI_AUTH: ${REDIS_PASS:-changeme}
+    volumes:
+      - ./backups:/backups
+    networks: [internal]
+
+volumes:
+  pgdata:
+  redis_data:
+  tor_data:
+  bitcoin_data:
+  # monero_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  internal:
+    driver: bridge
+  external:
+    driver: bridge
