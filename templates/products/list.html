@@ -52,8 +52,9 @@
     </form>
   </div>
 
-  <div class="products-grid">
+<div class="products-grid">
     {% for product in page_obj %}
+      {% cache 600 product_card product.pk %}
       <a class="product-card" href="{% url 'products:detail' product.pk %}">
         <div class="thumb">
           {% if product.image %}
@@ -68,6 +69,7 @@
           <div class="vendor">by {{ product.vendor.display_name }}</div>
         </div>
       </a>
+      {% endcache %}
     {% empty %}
       <div class="empty">No products found.</div>
     {% endfor %}

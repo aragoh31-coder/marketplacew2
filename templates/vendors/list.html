@@ -8,8 +8,9 @@
 <div class="container">
     <h1>🏪 Verified Vendors</h1>
     
-    <div class="vendors-grid">
+<div class="vendors-grid">
         {% for vendor in vendors %}
+        {% cache 600 vendor_card vendor.id %}
         <div class="vendor-card">
             <div class="vendor-header">
                 <h3><a href="{% url 'vendors:detail' vendor.id %}">{{ vendor.vendor_name }}</a></h3>
@@ -42,6 +43,7 @@
                 <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Message</a>
             </div>
         </div>
+        {% endcache %}
         {% empty %}
         <div class="empty-vendors">
             <h3>No vendors found</h3>

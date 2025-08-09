@@ -59,8 +59,10 @@
             <h2>Products by {{ vendor.vendor_name }}</h2>
             
             {% if vendor.products.all %}
+
             <div class="products-grid">
                 {% for product in vendor.products.all %}
+                {% cache 600 vendor_product_card product.id %}
                 <div class="product-card">
                     <div class="product-header">
                         <h3><a href="{% url 'products:detail' product.id %}">{{ product.name }}</a></h3>
@@ -94,7 +96,9 @@
                             <button disabled class="btn btn-disabled">Unavailable</button>
                         {% endif %}
                     </div>
+
                 </div>
+                {% endcache %}
                 {% endfor %}
             </div>
             {% else %}
