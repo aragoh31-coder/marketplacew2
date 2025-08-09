@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Products - Admin Panel{% endblock %}
 
@@ -9,10 +10,13 @@
         <thead><tr><th>Title</th><th>Vendor</th><th>Price</th><th>Actions</th></tr></thead>
         <tbody>
             {% for product in products %}
+            {% cache_version 'product' as product_ver %}
             <tr>
+                {% cache 600 admin_product_cells product.id product.updated_at|default:product.created_at|date:"U" user.is_staff product_ver %}
                 <td>{{ product.title }}</td>
                 <td>{{ product.vendor.user.username }}</td>
                 <td>{{ product.price }}</td>
+                {% endcache %}
                 <td>
                     <form method="post" action="{% url 'adminpanel:delete_product' product.id %}">
                         {% csrf_token %}

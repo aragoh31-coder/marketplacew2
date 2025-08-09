@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Disputes - Admin Panel{% endblock %}
 
@@ -9,10 +10,13 @@
         <thead><tr><th>Order ID</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
             {% for dispute in disputes %}
+            {% cache_version 'dispute' as dispute_ver %}
             <tr>
+                {% cache 600 admin_dispute_cells dispute.id dispute.updated_at|date:"U" user.is_staff dispute_ver %}
                 <td>{{ dispute.order.id }}</td>
                 <td>{{ dispute.reason|truncatechars:50 }}</td>
                 <td>{{ dispute.status }}</td>
+                {% endcache %}
                 <td>
                     {% if dispute.status == 'open' %}
                     <form method="post" action="{% url 'adminpanel:resolve_dispute' dispute.id %}">

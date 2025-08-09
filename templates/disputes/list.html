@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Disputes - Secure Marketplace{% endblock %}
 
@@ -12,7 +13,10 @@
     
     {% if disputes %}
     <div class="disputes-grid">
+        {% cache_version 'dispute' as dispute_ver %}
         {% for dispute in disputes %}
+{% cache 600 dispute_card dispute.id dispute.updated_at|date:"U" dispute_ver %}
+
         <div class="dispute-card">
             <div class="dispute-header">
                 <h3>Dispute #{{ dispute.id }}</h3>
@@ -36,6 +40,8 @@
             
             <div class="dispute-actions">
                 <a href="{% url 'disputes:detail' dispute.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
+{% endcache %}
+
             </div>
         </div>
         {% endfor %}

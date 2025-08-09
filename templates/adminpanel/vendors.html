@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Vendors - Admin Panel{% endblock %}
 
@@ -9,10 +10,13 @@
         <thead><tr><th>Username</th><th>Trust Level</th><th>Approved</th><th>Actions</th></tr></thead>
         <tbody>
             {% for vendor in vendors %}
+            {% cache_version 'vendor' as vendor_ver %}
             <tr>
+                {% cache 600 admin_vendor_cells vendor.id vendor.updated_at|default:vendor.trust_updated_at|default:vendor.created_at|date:"U" user.is_staff vendor_ver %}
                 <td>{{ vendor.user.username }}</td>
                 <td>{{ vendor.trust_level }}</td>
                 <td>{{ vendor.is_approved }}</td>
+                {% endcache %}
                 <td>
                     {% if not vendor.is_approved %}
                     <a href="{% url 'adminpanel:approve_vendor' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Approve</a>

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Orders - Admin Panel{% endblock %}
 
@@ -9,7 +10,10 @@
         <thead><tr><th>ID</th><th>Buyer</th><th>Total</th><th>Status</th></tr></thead>
         <tbody>
             {% for order in orders %}
+            {% cache_version 'order' as order_ver %}
+            {% cache 600 admin_order_row order.id order.updated_at|default:order.created_at|date:"U" user.is_staff order_ver %}
             <tr><td>{{ order.id }}</td><td>{{ order.buyer.username }}</td><td>{% if order.total_btc > 0 %}₿ {{ order.total_btc|floatformat:8 }}{% else %}ɱ {{ order.total_xmr|floatformat:4 }}{% endif %}</td><td>{{ order.status }}</td></tr>
+            {% endcache %}
             {% endfor %}
         </tbody>
     </table>

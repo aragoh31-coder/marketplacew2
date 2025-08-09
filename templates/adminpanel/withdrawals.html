@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 
 {% block title %}Withdrawals - Admin Panel{% endblock %}
 
@@ -9,11 +10,14 @@
         <thead><tr><th>User</th><th>Amount</th><th>Currency</th><th>Transaction ID</th><th>Actions</th></tr></thead>
         <tbody>
             {% for withdrawal in withdrawals %}
+            {% cache_version 'order' as order_ver %}
             <tr>
+                {% cache 600 admin_withdrawal_cells withdrawal.id withdrawal.updated_at|default:withdrawal.created_at|date:"U" user.is_staff order_ver %}
                 <td>{{ withdrawal.wallet.user.username }}</td>
                 <td>{{ withdrawal.amount }}</td>
                 <td>{{ withdrawal.wallet.currency }}</td>
                 <td>{{ withdrawal.txid|truncatechars:20|default:"Pending" }}</td>
+                {% endcache %}
                 <td>
                     <a href="{% url 'adminpanel:approve_withdrawal' withdrawal.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Approve</a>
                 </td>
