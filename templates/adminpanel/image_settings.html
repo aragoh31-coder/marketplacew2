@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block title %}Image Upload Settings{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Image Upload Settings</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">0</div>
+            <div class="stat-label">Total Images</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">0 MB</div>
+            <div class="stat-label">Storage Used</div>
+        </div>
+    </div>
+    
+    <form method="post" class="settings-form">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h3>Storage Configuration</h3>
+            
+            <div class="form-group">
+                <label for="storage_backend">Storage Backend</label>
+                <select name="storage_backend" id="storage_backend" class="form-input">
+                    <option value="local" {% if current_backend == 'local' %}selected{% endif %}>Local Storage</option>
+                    <option value="remote" {% if current_backend == 'remote' %}selected{% endif %}>Remote SFTP</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Security Settings</h3>
+            
+            <div class="form-group">
+                <label for="max_file_size">Max File Size (MB)</label>
+                <input type="number" name="max_file_size" id="max_file_size" value="2" min="0.5" max="2" step="0.5" class="form-input" readonly>
+                <small>Fixed at 2MB for security</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="jpeg_quality">JPEG Quality (1-100)</label>
+                <input type="number" name="jpeg_quality" id="jpeg_quality" value="{{ current_settings.JPEG_QUALITY|default:85 }}" min="50" max="95" class="form-input">
+                <small>Higher = better quality but larger files</small>
+            </div>
+
+            <div class="form-group">
+                <label for="thumbnail_quality">Thumbnail Quality (1-100)</label>
+                <input type="number" name="thumbnail_quality" id="thumbnail_quality" value="{{ current_settings.THUMBNAIL_QUALITY|default:75 }}" min="50" max="85" class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="uploads_per_hour">Uploads Per Hour (Per User)</label>
+                <input type="number" name="uploads_per_hour" id="uploads_per_hour" value="{{ uploads_per_hour }}" min="1" max="100" class="form-input">
+            </div>
+            
+            <div class="form-group">
+                <label for="uploads_per_day">Uploads Per Day (Per User)</label>
+                <input type="number" name="uploads_per_day" id="uploads_per_day" value="{{ uploads_per_day }}" min="1" max="1000" class="form-input">
+            </div>
+        </div>
+        
+        <div class="security-info">
+            <h4>Security Features (Always Enabled)</h4>
+            <ul>
+                <li>✓ Magic number validation</li>
+                <li>✓ Malicious content scanning</li>
+                <li>✓ Metadata stripping</li>
+                <li>✓ Image re-encoding to JPEG</li>
+                <li>✓ Secure filename generation</li>
+                <li>✓ Rate limiting</li>
+                <li>✓ 2MB maximum file size</li>
+                <li>✓ Automatic compression</li>
+            </ul>
+        </div>
+        
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Settings</button>
+    </form>
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .stat-card {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        text-align: center;
+    }
+    
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+    
+    .stat-label {
+        color: #ccc;
+        margin-top: 5px;
+    }
+    
+    .settings-form {
+        max-width: 800px;
+    }
+    
+    .form-section {
+        background: #2a2a2a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .form-section h3 {
+        margin-top: 0;
+        color: #4CAF50;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #fff;
+        font-weight: 500;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 10px;
+        background: #1a1a1a;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 14px;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+    }
+    
+    .form-group small {
+        display: block;
+        margin-top: 5px;
+        color: #ccc;
+        font-size: 12px;
+    }
+    
+    .security-info {
+        background: #1a4d1a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .security-info h4 {
+        margin-top: 0;
+        color: #4CAF50;
+    }
+    
+    .security-info ul {
+        margin: 10px 0 0 20px;
+    }
+    
+    .security-info li {
+        color: #90EE90;
+        margin-bottom: 5px;
+    }
+    
+    .btn {
+        background: #4CAF50;
+        color: #000;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn:hover {
+        background: #45a049;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}

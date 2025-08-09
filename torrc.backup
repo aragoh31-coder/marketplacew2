@@ -1,0 +1,19 @@
+SocksPort 0.0.0.0:9050
+DataDirectory /var/lib/tor
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServicePort 80 openresty:80
+Log notice stdout
+RunAsDaemon 0
+
+# Hybrid PoW Configuration
+DoSChallengesPerSecMax 100
+DoSArgon2LowRamThreshold 131072
+
+# Enhanced Security
+DoSConnectionEnabled 1
+DoSCircuitCreationEnabled 1
+DoSCircuitCreationMinConnections 3
+DoSCircuitCreationRate 3
+DoSCircuitCreationBurst 90
+DoSConnectionMaxConcurrentCount 100
+DoSRefuseSingleHopClientRendezvous 1

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Proof of Work{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Proof of Work (No‑JS)</h1>
+  <p>Solve the challenge to continue. This protects the site from automated abuse.</p>
+  <form method="post" action="{% url 'anti_ddos:pow' %}">
+    {% csrf_token %}
+    <p>Find any string <em>S</em> such that <code>sha256(S)</code> starts with <code>{{ prefix }}</code>.</p>
+    <label>Solution (S)</label>
+    <input type="text" name="solution" required class="input">
+    <input type="hidden" name="prefix" value="{{ prefix }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <button type="submit" class="btn primary">Submit</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Final Check{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Final Check</h1>
+  <p class="text-muted">
+    Solve this math problem:
+    <strong>{{ challenge_text|default:"(challenge unavailable — refresh)" }}</strong>
+  </p>
+
+  <form method="post" action="{% url 'anti_ddos:captcha' %}">
+    {% csrf_token %}
+    <input type="text" name="answer" id="answer" autocomplete="off" required class="input">
+    <input type="hidden" name="challenge_id" value="{{ challenge_id }}">
+    <button type="submit" class="btn primary">Verify</button>
+  </form>
+
+  {% if error %}
+    <p class="text-error">{{ error }}</p>
+  {% endif %}
+</div>
+{% endblock %}

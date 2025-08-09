@@ -1,0 +1,12 @@
+# Test configuration for hybrid PoW verification with hidden service
+DataDirectory /tmp/tor_test_data
+SocksPort 9150
+ControlPort 9151
+HashedControlPassword 16:872860B76453A77D60CA2BB8C1A7042072093276A3D701AD684053EC4C
+Log notice stdout
+DoSChallengesPerSecMax 100
+DoSArgon2LowRamThreshold 1048576
+
+# Hidden service configuration
+HiddenServiceDir /tmp/tor_test_data/hidden_service/
+HiddenServicePort 80 127.0.0.1:8080

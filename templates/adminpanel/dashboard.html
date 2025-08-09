@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded shadow mb-6">
+    <h2>Admin Dashboard</h2>
+    
+    <div class="admin-nav">
+        <a href="{% url 'adminpanel:users' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">👥 Users</a>
+        <a href="{% url 'adminpanel:vendors' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">🏪 Vendors</a>
+        <a href="{% url 'adminpanel:products' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📦 Products</a>
+        <a href="{% url 'adminpanel:orders' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📋 Orders</a>
+        <a href="{% url 'adminpanel:disputes' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">⚖️ Disputes</a>
+        <a href="{% url 'adminpanel:withdrawals' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">💸 Withdrawals</a>
+        <a href="{% url 'adminpanel:logs' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">📊 Logs</a>
+        <a href="{% url 'adminpanel:image_settings' %}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">🖼️ Image Settings</a>
+    </div>
+    <div class="metrics">
+        <div>Users: {{ users_count }} (Active: {{ active_users }})</div>
+        <div>Vendors: {{ vendors_count }} (Approved: {{ approved_vendors }})</div>
+        <div>Products: {{ products_count }}</div>
+        <div>Orders: {{ orders_count }}</div>
+        <div>Open Disputes: {{ open_disputes }}</div>
+        <div>Total Escrow: {{ total_escrow }}</div>
+        <div>Total Balance: {{ total_balance }}</div>
+        <div>Avg Order Value: {{ avg_order_value }}</div>
+    </div>
+    
+    <h3>Order Status Counts</h3>
+    <table>
+        {% for status in order_status_counts %}
+        <tr><td>{{ status.status }}</td><td>{{ status.count }}</td></tr>
+        {% endfor %}
+    </table>
+    
+    <h3>Recent Orders</h3>
+    <table>
+        <thead><tr><th>ID</th><th>Buyer</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr><td>{{ order.id }}</td><td>{{ order.buyer.username }}</td><td>{% if order.total_btc > 0 %}₿ {{ order.total_btc|floatformat:8 }}{% else %}ɱ {{ order.total_xmr|floatformat:4 }}{% endif %}</td><td>{{ order.status }}</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <h3>Maintenance Actions</h3>
+    <form method="post" action="{% url 'adminpanel:maintenance' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="vacuum">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Run VACUUM</button>
+    </form>
+    <form method="post" action="{% url 'adminpanel:maintenance' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reconcile">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Reconcile Wallets</button>
+    </form>
+    <form method="post" action="{% url 'adminpanel:maintenance' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="expire">
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Expire Data</button>
+    </form>
+</div>
+
+<style>
+    .admin-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin: 20px 0;
+        padding: 20px;
+        background: var(--bg-card);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+    }
+    
+    .admin-nav .btn {
+        text-align: center;
+        padding: 12px;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    
+    .admin-nav .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 255, 136, 0.2);
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Products - SecureMarket{% endblock %}
+{% block content %}
+<div class="products-container">
+  <div class="products-header">
+    <h1 class="category-title">
+      {% if category == 'gift-cards' %} 🎁 Gift Cards
+      {% elif category == 'digital' %} 💿 Digital Products
+      {% elif category == 'physical' %} 📦 Physical Products
+      {% else %} 🛍️ All Products {% endif %}
+    </h1>
+
+    <!-- CSS-only filters toggle (checkbox hack) -->
+    <input id="filtersToggle" type="checkbox" class="sr-only peer">
+    <label for="filtersToggle" class="btn outline mt-2">Filters</label>
+    <style>
+      .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;}
+      #filtersToggle:not(:checked) ~ .filters-panel { display:none; }
+      #filtersToggle:checked ~ .filters-panel { display:block; }
+    </style>
+  </div>
+
+  <div class="filters-panel">
+    <form method="get" action="{% url 'products:list' %}" class="filters-form">
+      <div class="filter-group">
+        <label>Category</label>
+        <select name="category" class="filter-select">
+          <option value="">All Categories</option>
+          <option value="gift-cards" {% if category == 'gift-cards' %}selected{% endif %}>Gift Cards</option>
+          <option value="digital" {% if category == 'digital' %}selected{% endif %}>Digital</option>
+          <option value="physical" {% if category == 'physical' %}selected{% endif %}>Physical</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Search</label>
+        <input type="text" name="q" value="{{ q }}" placeholder="Search products…" class="filter-input">
+      </div>
+      <div class="filter-group">
+        <label>Price (min–max)</label>
+        <div class="row">
+          <input type="number" step="0.01" name="min_price" value="{{ min_price }}" class="filter-input" placeholder="Min">
+          <input type="number" step="0.01" name="max_price" value="{{ max_price }}" class="filter-input" placeholder="Max">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button type="submit" class="btn primary">Apply</button>
+        <a href="{% url 'products:list' %}" class="btn">Clear</a>
+      </div>
+    </form>
+  </div>
+
+  <div class="products-grid">
+    {% for product in page_obj %}
+      <a class="product-card" href="{% url 'products:detail' product.pk %}">
+        <div class="thumb">
+          {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.title }}">
+          {% else %}
+            <div class="placeholder">No Image</div>
+          {% endif %}
+        </div>
+        <div class="meta">
+          <h3>{{ product.title }}</h3>
+          <div class="price">{{ product.price|floatformat:2 }} {{ product.currency|default:"USD" }}</div>
+          <div class="vendor">by {{ product.vendor.display_name }}</div>
+        </div>
+      </a>
+    {% empty %}
+      <div class="empty">No products found.</div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}" class="btn">← Previous</a>
+    {% endif %}
+    <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}" class="btn">Next →</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

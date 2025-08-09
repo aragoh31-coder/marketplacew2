@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SecureMarket - Tor Marketplace{% endblock %}</title>
+    
+    <!-- Tailwind utilities first -->
+    <link rel="stylesheet" href="{% static 'css/tailwind.min.css' %}">
+    <!-- Your theme overrides after -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Neon Menu System -->
+    <input type="checkbox" id="menu-toggle">
+    
+    <!-- Menu Icon -->
+    <label for="menu-toggle" class="menu-icon-neon">
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+    </label>
+    
+    <!-- Overlay -->
+    <label for="menu-toggle" class="menu-overlay"></label>
+    
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu">
+        <div class="menu-header">
+            <h2>🛡️ SecureMarket</h2>
+        </div>
+        
+        <div class="menu-nav">
+            <a href="{% url 'accounts:home' %}" class="menu-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <span class="menu-item-icon">🏠</span>
+                Home
+            </a>
+            
+            <a href="{% url 'products:list' %}" class="menu-item {% if 'products' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">📦</span>
+                Products
+            </a>
+            
+            <a href="{% url 'orders:list' %}" class="menu-item {% if 'orders' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">🛒</span>
+                Orders
+            </a>
+            
+            <a href="{% url 'wallets:dashboard' %}" class="menu-item {% if 'wallets' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">💰</span>
+                Wallet
+            </a>
+            
+            <div class="menu-separator"></div>
+            
+            <a href="{% url 'accounts:profile' %}" class="menu-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                <span class="menu-item-icon">👤</span>
+                Profile
+            </a>
+            
+            <a href="{% url 'accounts:profile_settings' %}" class="menu-item {% if request.resolver_match.url_name == 'profile_settings' %}active{% endif %}">
+                <span class="menu-item-icon">⚙️</span>
+                Settings
+            </a>
+            
+            <a href="{% url 'messaging:list' %}" class="menu-item {% if 'messaging' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">💬</span>
+                Messages
+            </a>
+            
+            <a href="{% url 'support:home' %}" class="menu-item {% if 'support' in request.resolver_match.namespace %}active{% endif %}">
+                <span class="menu-item-icon">🆘</span>
+                Support
+            </a>
+            
+            {% if user.is_authenticated %}
+                <a href="{% url 'accounts:logout' %}" class="menu-item menu-item-logout">
+                    <span class="menu-item-icon">🚪</span>
+                    Logout
+                </a>
+            {% else %}
+                <a href="{% url 'accounts:login' %}" class="menu-item">
+                    <span class="menu-item-icon">🔐</span>
+                    Login
+                </a>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

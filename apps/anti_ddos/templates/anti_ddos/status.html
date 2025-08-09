@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Checking…{% endblock %}
+{% block content %}
+<meta http-equiv="refresh" content="{{ refresh_seconds|default:2 }}">
+<div class="card">
+  <h1>Still checking…</h1>
+  <p>This usually takes a moment on Tor.</p>
+  <p>If this doesn’t complete automatically, you’ll be taken to a quick challenge.</p>
+  <p><a class="btn" href="{% url 'anti_ddos:pow' %}">Continue manually</a></p>
+</div>
+{% endblock %}

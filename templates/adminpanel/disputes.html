@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Disputes - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded shadow mb-6">
+    <h2>Disputes</h2>
+    <table>
+        <thead><tr><th>Order ID</th><th>Reason</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for dispute in disputes %}
+            <tr>
+                <td>{{ dispute.order.id }}</td>
+                <td>{{ dispute.reason|truncatechars:50 }}</td>
+                <td>{{ dispute.status }}</td>
+                <td>
+                    {% if dispute.status == 'open' %}
+                    <form method="post" action="{% url 'adminpanel:resolve_dispute' dispute.id %}">
+                        {% csrf_token %}
+                        <select name="resolution">
+                            <option value="buyer">Favor Buyer</option>
+                            <option value="vendor">Favor Vendor</option>
+                        </select>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Resolve</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

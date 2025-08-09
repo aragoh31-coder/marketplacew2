@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Verifying…{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Hold up—quick check</h1>
+  <p>We’re verifying your request to keep the marketplace fast and safe on Tor.</p>
+  <p><strong>JavaScript is not required.</strong></p>
+  <a href="{% url 'anti_ddos:pow' %}" class="btn primary">Continue</a>
+</div>
+{% endblock %}

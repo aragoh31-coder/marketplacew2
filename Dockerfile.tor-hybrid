@@ -1,0 +1,31 @@
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    libargon2-1 \
+    libevent-2.1-7 \
+    libssl3 \
+    libzstd1 \
+    liblzma5 \
+    libscrypt0 \
+    curl \
+    libc-bin \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd -r -s /bin/false tor && \
+    mkdir -p /var/lib/tor /etc/tor && \
+    chown -R tor:tor /var/lib/tor
+
+COPY tor-hybrid-pow /usr/local/bin/tor
+RUN chmod +x /usr/local/bin/tor
+
+COPY openresty/tor/resolve_and_run.sh /usr/local/bin/resolve_and_run.sh
+RUN chmod +x /usr/local/bin/resolve_and_run.sh
+
+VOLUME ["/var/lib/tor"]
+
+USER tor
+
+EXPOSE 9050
+
+CMD ["/usr/local/bin/resolve_and_run.sh"]

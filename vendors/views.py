@@ -173,7 +173,7 @@ def vendor_products(request):
         return redirect("vendors:apply")
 
     vendor = request.user.vendor
-    products = Product.objects.filter(vendor=vendor).order_by("-created_at")
+    products = Product.objects.filter(vendor=vendor).select_related("vendor", "category").order_by("-created_at")
 
     category = request.GET.get("category")
     status = request.GET.get("status")
@@ -313,6 +313,8 @@ def vendor_orders(request):
 
     orders = (
         Order.objects.filter(items__product__vendor=vendor)
+        .select_related("user")
+        .prefetch_related("items__product", "items__product__vendor")
         .distinct()
         .order_by("-created_at")
     )
@@ -467,7 +469,7 @@ def vendor_apply(request):
 def vendor_profile(request, vendor_id):
     vendor = get_object_or_404(Vendor, id=vendor_id, is_active=True)
 
-    products = Product.objects.filter(vendor=vendor, is_active=True).order_by(
+    products = Product.objects.filter(vendor=vendor, is_active=True).select_related("vendor", "category").order_by(
         "-created_at"
     )
 

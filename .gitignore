@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Logs and reports
+*.log
+*.txt
+*.json
+CAPTCHA_STRESS_TEST_REPORT.*
+FINAL_STRESS_TEST_SUMMARY.txt
+ANTI_EVASION_IMPLEMENTATION_LOG.txt
+COMPREHENSIVE_ANTI_DDOS_IMPLEMENTATION_LOG.txt
+
+# Backups and temp
+*.swp
+*.swo
+.theme_migration_backup_dir/
+=5.8.0/
+
+# Environments
+.env
+.venv/

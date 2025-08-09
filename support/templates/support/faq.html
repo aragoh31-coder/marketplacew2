@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ - Secure Marketplace{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>❓ Frequently Asked Questions</h1>
+    
+    <div class="faq-section">
+        <h2>🔐 Security & Privacy</h2>
+        <div class="faq-item">
+            <h3>How secure is this marketplace?</h3>
+            <p>We use end-to-end encryption, Tor routing, and PGP verification to ensure maximum security and privacy for all users.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>What is PGP and why do I need it?</h3>
+            <p>PGP (Pretty Good Privacy) encrypts your messages and verifies your identity. It's required for secure communication with vendors and support.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>How does Tor protect my privacy?</h3>
+            <p>Tor routes your connection through multiple encrypted layers, making it nearly impossible to trace your activity back to your real IP address.</p>
+        </div>
+    </div>
+    
+    <div class="faq-section">
+        <h2>💰 Payments & Wallets</h2>
+        <div class="faq-item">
+            <h3>What cryptocurrencies do you accept?</h3>
+            <p>We accept Bitcoin (BTC) and Monero (XMR) for maximum privacy and security. Monero provides additional anonymity features.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>How do I fund my wallet?</h3>
+            <p>Navigate to your wallet dashboard and use the provided deposit addresses for BTC or XMR. Always verify the address before sending funds.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>Are there withdrawal fees?</h3>
+            <p>Yes, there are network fees for cryptocurrency withdrawals. These cover blockchain transaction costs and are clearly displayed before confirmation.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>How long do withdrawals take?</h3>
+            <p>Withdrawals are processed within 24-48 hours after admin approval. Network confirmation times vary by cryptocurrency.</p>
+        </div>
+    </div>
+    
+    <div class="faq-section">
+        <h2>🛒 Orders & Shopping</h2>
+        <div class="faq-item">
+            <h3>How do I place an order?</h3>
+            <p>Browse products, add items to your cart, and complete checkout using your wallet balance. Make sure you have sufficient funds before ordering.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>What if my order doesn't arrive?</h3>
+            <p>Contact the vendor first through our messaging system. If unresolved, open a dispute and our admin team will mediate the issue.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>Can I cancel my order?</h3>
+            <p>Orders can only be cancelled before the vendor marks them as shipped. Contact the vendor immediately if you need to cancel.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>How do I track my order?</h3>
+            <p>Check your order history in your account dashboard. Vendors will provide tracking information when available.</p>
+        </div>
+    </div>
+    
+    <div class="faq-section">
+        <h2>👥 Vendor Information</h2>
+        <div class="faq-item">
+            <h3>How do I become a vendor?</h3>
+            <p>Apply through the vendor application page. You'll need to provide verification documents and pay a vendor bond.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>How are vendors verified?</h3>
+            <p>All vendors undergo a thorough verification process including identity checks, product quality reviews, and security assessments.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>What if I have issues with a vendor?</h3>
+            <p>Use our dispute resolution system. Our admin team will investigate and mediate any conflicts between buyers and vendors.</p>
+        </div>
+    </div>
+    
+    <div class="faq-section">
+        <h2>🆘 Support & Help</h2>
+        <div class="faq-item">
+            <h3>How do I contact support?</h3>
+            <p>Use our messaging system to contact support. For urgent issues, mark your message as "URGENT" in the subject line.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>What are your response times?</h3>
+            <p>Live chat: Immediate, Support tickets: 2-24 hours, Complex issues: 1-3 days. Emergency issues are prioritized.</p>
+        </div>
+        
+        <div class="faq-item">
+            <h3>Can I get a refund?</h3>
+            <p>Refunds are handled case-by-case through our dispute system. Valid reasons include non-delivery, wrong items, or quality issues.</p>
+        </div>
+    </div>
+    
+    <div class="support-actions">
+        <h2>Still need help?</h2>
+        <div class="action-buttons">
+            <a href="{% url 'messaging:compose' %}" class="btn btn-primary">Contact Support</a>
+            <a href="{% url 'support:home' %}" class="btn btn-secondary">Back to Support</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .faq-section {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .faq-section h2 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+        font-size: 20px;
+    }
+    
+    .faq-item {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #2a2a2a;
+    }
+    
+    .faq-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .faq-item h3 {
+        color: #4CAF50;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: bold;
+    }
+    
+    .faq-item p {
+        color: #ccc;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+    
+    .support-actions {
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 8px;
+        padding: 30px;
+        text-align: center;
+    }
+    
+    .support-actions h2 {
+        color: #4CAF50;
+        margin-bottom: 20px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        font-size: 14px;
+        transition: background 0.3s;
+    }
+    
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #45a049;
+    }
+    
+    .btn-secondary {
+        background: #666;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: #555;
+    }
+    
+    @media (max-width: 768px) {
+        .faq-section {
+            padding: 20px;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 200px;
+        }
+    }
+</style>
+{% endblock %}
