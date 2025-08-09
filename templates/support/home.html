@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load cache cache_extras %}
 {% block title %}Support Center{% endblock %}
 {% block content %}
 <div class="container">
@@ -6,7 +7,7 @@
     
     <div class="support-grid">
         <div class="support-card">
-            <h2>📚 Help & Documentation</h2>
+            <h2>📚 Help &amp; Documentation</h2>
             <p>Find answers to common questions and learn how to use the marketplace.</p>
             <a href="{% url 'support:faq' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View FAQ</a>
         </div>
@@ -29,22 +30,19 @@
     <table>
         <thead>
             <tr>
-                <th>Ticket #</th>
-                <th>Subject</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Action</th>
+                <th>ID</th><th>Subject</th><th>Status</th><th>Created</th><th>Action</th>
             </tr>
         </thead>
         <tbody>
+            {% cache_version 'support_ticket' as ticket_ver %}
             {% for ticket in recent_tickets %}
             <tr>
+                {% cache 600 user_ticket_row ticket.id ticket.updated_at|date:"U" ticket_ver %}
                 <td>#{{ ticket.id }}</td>
                 <td>{{ ticket.subject }}</td>
-                <td>
-                    <span class="status-{{ ticket.status }}">{{ ticket.status|title }}</span>
-                </td>
+                <td><span class="status-{{ ticket.status }}">{{ ticket.status|title }}</span></td>
                 <td>{{ ticket.created_at|date:"Y-m-d" }}</td>
+                {% endcache %}
                 <td><a href="{% url 'support:ticket_detail' ticket.id %}">View</a></td>
             </tr>
             {% empty %}
@@ -62,64 +60,10 @@
         gap: 30px;
         margin-bottom: 40px;
     }
-    
     .support-card {
         background: #1a1a1a;
         padding: 30px;
         border-radius: 8px;
-        text-align: center;
-        border: 1px solid #333;
-    }
-    
-    .support-card h2 {
-        color: #4CAF50;
-        margin-bottom: 15px;
-    }
-    
-    .support-card p {
-        color: #ccc;
-        margin-bottom: 20px;
-    }
-    
-    .btn {
-        background: #4CAF50;
-        color: white;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 5px;
-        display: inline-block;
-        font-weight: bold;
-    }
-    
-    .btn:hover {
-        background: #45a049;
-    }
-    
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-    
-    th, td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #333;
-    }
-    
-    th {
-        background: #1a1a1a;
-        color: #4CAF50;
-    }
-    
-    .status-open { color: #4CAF50; }
-    .status-pending { color: #ff9800; }
-    .status-closed { color: #666; }
-    
-    .empty {
-        text-align: center;
-        padding: 40px;
-        color: #666;
     }
 </style>
 {% endblock %}

@@ -12,7 +12,7 @@
             {% for vendor in vendors %}
             {% cache_version 'vendor' as vendor_ver %}
             <tr>
-                {% cache 600 admin_vendor_cells vendor.id vendor.updated_at|default:vendor.trust_updated_at|default:vendor.created_at|date:"U" user.is_staff vendor_ver %}
+                {% cache 600 admin_vendor_cells vendor.id vendor.updated_at|default:vendor.trust_updated_at|default:vendor.created_at|date:"U" user.is_staff request.get_full_path vendor_ver %}
                 <td>{{ vendor.user.username }}</td>
                 <td>{{ vendor.trust_level }}</td>
                 <td>{{ vendor.is_approved }}</td>

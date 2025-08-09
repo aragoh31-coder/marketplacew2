@@ -12,7 +12,7 @@
             {% for withdrawal in withdrawals %}
             {% cache_version 'order' as order_ver %}
             <tr>
-                {% cache 600 admin_withdrawal_cells withdrawal.id withdrawal.updated_at|default:withdrawal.created_at|date:"U" user.is_staff order_ver %}
+                {% cache 600 admin_withdrawal_cells withdrawal.id withdrawal.updated_at|default:withdrawal.created_at|date:"U" user.is_staff request.get_full_path order_ver %}
                 <td>{{ withdrawal.wallet.user.username }}</td>
                 <td>{{ withdrawal.amount }}</td>
                 <td>{{ withdrawal.wallet.currency }}</td>

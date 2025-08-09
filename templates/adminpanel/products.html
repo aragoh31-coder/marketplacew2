@@ -12,7 +12,7 @@
             {% for product in products %}
             {% cache_version 'product' as product_ver %}
             <tr>
-                {% cache 600 admin_product_cells product.id product.updated_at|default:product.created_at|date:"U" user.is_staff product_ver %}
+                {% cache 600 admin_product_cells product.id product.updated_at|default:product.created_at|date:"U" user.is_staff request.get_full_path product_ver %}
                 <td>{{ product.title }}</td>
                 <td>{{ product.vendor.user.username }}</td>
                 <td>{{ product.price }}</td>
