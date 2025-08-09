@@ -12,11 +12,12 @@
     </div>
     
     {% if disputes %}
-    <div class="disputes-grid">
-        {% cache_version 'dispute' as dispute_ver %}
+    {% cache_version 'dispute' as dispute_ver %}
+    {% if not user.is_authenticated %}
+      {% cache 300 public_disputes_page request.get_full_path|normalize_qs dispute_ver %}
+      <div class="disputes-grid">
         {% for dispute in disputes %}
-{% cache 600 dispute_card dispute.id dispute.updated_at|date:"U" dispute_ver %}
-
+          {% cache 600 dispute_card dispute.id dispute.updated_at|date:"U" dispute_ver %}
         <div class="dispute-card">
             <div class="dispute-header">
                 <h3>Dispute #{{ dispute.id }}</h3>
@@ -40,12 +41,43 @@
             
             <div class="dispute-actions">
                 <a href="{% url 'disputes:detail' dispute.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
-{% endcache %}
-
             </div>
         </div>
+          {% endcache %}
         {% endfor %}
-    </div>
+      </div>
+      {% endcache %}
+    {% else %}
+      <div class="disputes-grid">
+        {% for dispute in disputes %}
+          {% cache 600 dispute_card dispute.id dispute.updated_at|date:"U" dispute_ver %}
+          <div class="dispute-card">
+            <div class="dispute-header">
+                <h3>Dispute #{{ dispute.id }}</h3>
+                <span class="status status-{{ dispute.status }}">{{ dispute.status|title }}</span>
+            </div>
+            <div class="dispute-info">
+                <div class="info-item">
+                    <span class="label">Order:</span>
+                    <span class="value">#{{ dispute.order.id }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Amount:</span>
+                    <span class="value">{% if dispute.order.total_btc > 0 %}₿ {{ dispute.order.total_btc|floatformat:8 }}{% else %}ɱ {{ dispute.order.total_xmr|floatformat:4 }}{% endif %}</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Created:</span>
+                    <span class="value">{{ dispute.created_at|date:"M j, Y" }}</span>
+                </div>
+            </div>
+            <div class="dispute-actions">
+                <a href="{% url 'disputes:detail' dispute.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Details</a>
+            </div>
+          </div>
+          {% endcache %}
+        {% endfor %}
+      </div>
+    {% endif %}
     {% else %}
     <div class="empty-disputes">
         <div class="empty-icon">📋</div>

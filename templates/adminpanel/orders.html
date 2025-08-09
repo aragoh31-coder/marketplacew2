@@ -11,9 +11,14 @@
         <tbody>
             {% for order in orders %}
             {% cache_version 'order' as order_ver %}
-            {% cache 600 admin_order_row order.id order.updated_at|default:order.created_at|date:"U" user.is_staff order_ver %}
-            <tr><td>{{ order.id }}</td><td>{{ order.buyer.username }}</td><td>{% if order.total_btc > 0 %}₿ {{ order.total_btc|floatformat:8 }}{% else %}ɱ {{ order.total_xmr|floatformat:4 }}{% endif %}</td><td>{{ order.status }}</td></tr>
-            {% endcache %}
+            <tr>
+                {% cache 600 admin_order_cells order.id order.updated_at|default:order.created_at|date:"U" user.is_staff request.get_full_path|normalize_qs order_ver %}
+                <td>{{ order.id }}</td>
+                <td>{{ order.buyer.username }}</td>
+                <td>{% if order.total_btc > 0 %}₿ {{ order.total_btc|floatformat:8 }}{% else %}ɱ {{ order.total_xmr|floatformat:4 }}{% endif %}</td>
+                <td>{{ order.status }}</td>
+                {% endcache %}
+            </tr>
             {% endfor %}
         </tbody>
     </table>

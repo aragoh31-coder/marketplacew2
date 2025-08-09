@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load cache %}
+{% load cache cache_extras %}
 
 {% load static %}
 {% block title %}Products - SecureMarket{% endblock %}
@@ -13,7 +13,6 @@
       {% else %} 🛍️ All Products {% endif %}
     </h1>
 
-    <!-- CSS-only filters toggle (checkbox hack) -->
     <input id="filtersToggle" type="checkbox" class="sr-only peer">
     <label for="filtersToggle" class="btn outline mt-2">Filters</label>
     <style>
@@ -52,39 +51,79 @@
     </form>
   </div>
 
-<div class="products-grid">
-    {% for product in page_obj %}
-      {% cache 600 product_card product.pk %}
-      <a class="product-card" href="{% url 'products:detail' product.pk %}">
-        <div class="thumb">
-          {% if product.image %}
-            <img src="{{ product.image.url }}" alt="{{ product.title }}">
-          {% else %}
-            <div class="placeholder">No Image</div>
-          {% endif %}
-        </div>
-        <div class="meta">
-          <h3>{{ product.title }}</h3>
-          <div class="price">{{ product.price|floatformat:2 }} {{ product.currency|default:"USD" }}</div>
-          <div class="vendor">by {{ product.vendor.display_name }}</div>
-        </div>
-      </a>
-      {% endcache %}
-    {% empty %}
-      <div class="empty">No products found.</div>
-    {% endfor %}
-  </div>
+  {% cache_version 'product' as product_ver %}
+  {% if not user.is_authenticated %}
+    {% cache 300 public_products_page request.get_full_path|normalize_qs product_ver %}
+      <div class="products-grid">
+        {% for product in page_obj %}
+          {% cache 600 product_card product.pk %}
+          <a class="product-card" href="{% url 'products:detail' product.pk %}">
+            <div class="thumb">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.title }}">
+              {% else %}
+                <div class="placeholder">No Image</div>
+              {% endif %}
+            </div>
+            <div class="meta">
+              <h3>{{ product.title }}</h3>
+              <div class="price">{{ product.price|floatformat:2 }} {{ product.currency|default:"USD" }}</div>
+              <div class="vendor">by {{ product.vendor.display_name }}</div>
+            </div>
+          </a>
+          {% endcache %}
+        {% empty %}
+          <div class="empty">No products found.</div>
+        {% endfor %}
+      </div>
 
-  {% if page_obj.has_other_pages %}
-  <div class="pagination">
-    {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}" class="btn">← Previous</a>
-    {% endif %}
-    <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
-    {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}" class="btn">Next →</a>
-    {% endif %}
-  </div>
+      {% if page_obj.has_other_pages %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="btn">← Previous</a>
+        {% endif %}
+        <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="btn">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    {% endcache %}
+  {% else %}
+      <div class="products-grid">
+        {% for product in page_obj %}
+          {% cache 600 product_card product.pk %}
+          <a class="product-card" href="{% url 'products:detail' product.pk %}">
+            <div class="thumb">
+              {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.title }}">
+              {% else %}
+                <div class="placeholder">No Image</div>
+              {% endif %}
+            </div>
+            <div class="meta">
+              <h3>{{ product.title }}</h3>
+              <div class="price">{{ product.price|floatformat:2 }} {{ product.currency|default:"USD" }}</div>
+              <div class="vendor">by {{ product.vendor.display_name }}</div>
+            </div>
+          </a>
+          {% endcache %}
+        {% empty %}
+          <div class="empty">No products found.</div>
+        {% endfor %}
+      </div>
+
+      {% if page_obj.has_other_pages %}
+      <div class="pagination">
+        {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="btn">← Previous</a>
+        {% endif %}
+        <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="btn">Next →</a>
+        {% endif %}
+      </div>
+      {% endif %}
   {% endif %}
 </div>
 {% endblock %}

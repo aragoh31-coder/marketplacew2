@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load cache %}
+{% load cache cache_extras %}
 
 
 {% block title %}Vendors - Secure Marketplace{% endblock %}
@@ -8,66 +8,133 @@
 <div class="container">
     <h1>🏪 Verified Vendors</h1>
     
-<div class="vendors-grid">
-        {% for vendor in vendors %}
-        {% cache 600 vendor_card vendor.id %}
-        <div class="vendor-card">
-            <div class="vendor-header">
-                <h3><a href="{% url 'vendors:detail' vendor.id %}">{{ vendor.vendor_name }}</a></h3>
-                {% if vendor.is_approved %}
-                    <span class="verified-badge">✓ Verified</span>
-                {% endif %}
-            </div>
-            
-            <div class="vendor-stats">
-                <div class="stat-item">
-                    <span class="label">Trust Level:</span>
-                    <span class="value trust-{{ vendor.trust_level }}">{{ vendor.trust_level }}/10</span>
+    {% cache_version 'vendor' as vendor_ver %}
+    {% if not user.is_authenticated %}
+      {% cache 300 public_vendors_page request.get_full_path|normalize_qs vendor_ver %}
+        <div class="vendors-grid">
+            {% for vendor in vendors %}
+            {% cache 600 vendor_card vendor.id %}
+            <div class="vendor-card">
+                <div class="vendor-header">
+                    <h3><a href="{% url 'vendors:detail' vendor.id %}">{{ vendor.vendor_name }}</a></h3>
+                    {% if vendor.is_approved %}
+                        <span class="verified-badge">✓ Verified</span>
+                    {% endif %}
                 </div>
-                <div class="stat-item">
-                    <span class="label">Products:</span>
-                    <span class="value">{{ vendor.products.count }}</span>
+                
+                <div class="vendor-stats">
+                    <div class="stat-item">
+                        <span class="label">Trust Level:</span>
+                        <span class="value trust-{{ vendor.trust_level }}">{{ vendor.trust_level }}/10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Products:</span>
+                        <span class="value">{{ vendor.products.count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Member Since:</span>
+                        <span class="value">{{ vendor.created_at|date:"M Y" }}</span>
+                    </div>
                 </div>
-                <div class="stat-item">
-                    <span class="label">Member Since:</span>
-                    <span class="value">{{ vendor.created_at|date:"M Y" }}</span>
+                
+                <div class="vendor-description">
+                    {{ vendor.description|truncatewords:20|default:"No description available." }}
+                </div>
+                
+                <div class="vendor-actions">
+                    <a href="{% url 'vendors:detail' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Store</a>
+                    <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Message</a>
                 </div>
             </div>
-            
-            <div class="vendor-description">
-                {{ vendor.description|truncatewords:20|default:"No description available." }}
+            {% endcache %}
+            {% empty %}
+            <div class="empty-vendors">
+                <h3>No vendors found</h3>
+                <p>There are currently no verified vendors available.</p>
             </div>
-            
-            <div class="vendor-actions">
-                <a href="{% url 'vendors:detail' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Store</a>
-                <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Message</a>
-            </div>
+            {% endfor %}
         </div>
-        {% endcache %}
-        {% empty %}
-        <div class="empty-vendors">
-            <h3>No vendors found</h3>
-            <p>There are currently no verified vendors available.</p>
+        
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="page-link">« First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+            {% endif %}
+            
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+            {% endif %}
         </div>
-        {% endfor %}
-    </div>
-    
-    {% if is_paginated %}
-    <div class="pagination">
-        {% if page_obj.has_previous %}
-            <a href="?page=1" class="page-link">« First</a>
-            <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
         {% endif %}
+      {% endcache %}
+    {% else %}
+        <div class="vendors-grid">
+            {% for vendor in vendors %}
+            {% cache 600 vendor_card vendor.id %}
+            <div class="vendor-card">
+                <div class="vendor-header">
+                    <h3><a href="{% url 'vendors:detail' vendor.id %}">{{ vendor.vendor_name }}</a></h3>
+                    {% if vendor.is_approved %}
+                        <span class="verified-badge">✓ Verified</span>
+                    {% endif %}
+                </div>
+                
+                <div class="vendor-stats">
+                    <div class="stat-item">
+                        <span class="label">Trust Level:</span>
+                        <span class="value trust-{{ vendor.trust_level }}">{{ vendor.trust_level }}/10</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Products:</span>
+                        <span class="value">{{ vendor.products.count }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Member Since:</span>
+                        <span class="value">{{ vendor.created_at|date:"M Y" }}</span>
+                    </div>
+                </div>
+                
+                <div class="vendor-description">
+                    {{ vendor.description|truncatewords:20|default:"No description available." }}
+                </div>
+                
+                <div class="vendor-actions">
+                    <a href="{% url 'vendors:detail' vendor.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">View Store</a>
+                    <a href="{% url 'messaging:compose' %}?to={{ vendor.user.username }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">Message</a>
+                </div>
+            </div>
+            {% endcache %}
+            {% empty %}
+            <div class="empty-vendors">
+                <h3>No vendors found</h3>
+                <p>There are currently no verified vendors available.</p>
+            </div>
+            {% endfor %}
+        </div>
         
-        <span class="page-current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-        
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+        {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="page-link">« First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="page-link">Previous</a>
+            {% endif %}
+            
+            <span class="page-current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="page-link">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="page-link">Last »</a>
+            {% endif %}
+        </div>
         {% endif %}
-    </div>
     {% endif %}
 </div>
 
