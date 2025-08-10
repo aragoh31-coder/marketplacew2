@@ -8,5 +8,5 @@ urlpatterns = [
     path("status/", views.status, name="status"),
     path("pow/", views.pow_challenge, name="pow"),
     path("captcha/", views.captcha, name="captcha"),
-    path("challenge/", views.challenge, name="challenge"),
+    path("challenge/", views.captcha, name="challenge"),
 ]
