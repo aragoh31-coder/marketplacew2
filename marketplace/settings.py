@@ -63,6 +63,7 @@ MIDDLEWARE = [
     "core.middleware.security.TorSecurityMiddleware",
     "apps.security.middleware.TwoFactorAuthMiddleware",
     "apps.security.middleware.TorSecurityHeadersMiddleware",
+    "core.middleware.perf_monitor.PerfMonitorMiddleware",
 ]
 
 ROOT_URLCONF = "marketplace.urls"

@@ -8,6 +8,8 @@ from django.utils.crypto import constant_time_compare
 from core.utils.security import get_session_hash
 from .tasks import autosolve_pow
 
+import logging
+perf_logger = logging.getLogger("perf")
 PREFIX = getattr(settings, "ANTIDDOS", {}).get("POW_PREFIX", "0000")
 TTL = getattr(settings, "ANTIDDOS", {}).get("TTL", 900)
 AUTO = getattr(settings, "ANTIDDOS", {}).get("AUTO_POW", True)
@@ -162,6 +164,10 @@ def captcha(request):
     user_answer = (request.POST.get("answer") or "").strip()
     if constant_time_compare(user_answer, challenge["answer"]):
         cache.set(f"antiddos:verified:{session_hash}", True, TTL)
+        try:
+            perf_logger.info("antiddos_verified ttl=%s", TTL)
+        except Exception:
+            pass
         resp = redirect("/")
         try:
             resp.set_cookie("hmac_token", "ok", max_age=TTL, samesite="Strict", path="/")
