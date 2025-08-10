@@ -24,7 +24,7 @@ def render_math_svg(text, font_size=20):
         f'role="img" aria-label="Solve this: {t}">'
         f'<rect x="0" y="0" width="{width}" height="{height}" rx="8" ry="8" '
         f'fill="none" stroke="#888" stroke-opacity="0.3" />'
-        f'<text x="{cx}" y="{cy}" fill="currentColor" '
+        f'<text x="{cx}" y="{cy}" fill="#e5e7eb" '
         f'font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace" '
         f'font-size="{fs}" text-anchor="middle">{t}</text>'
         f"</svg>"
