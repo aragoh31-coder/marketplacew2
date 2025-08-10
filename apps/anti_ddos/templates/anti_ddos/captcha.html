@@ -7,7 +7,7 @@
   <p style="opacity:.9;margin:.75rem 0 1rem">Solve this math problem:</p>
   <div id="challenge-text" style="margin-bottom:.5rem">
     {% render_math_svg challenge_text 20 %}
-    <div id="challenge-fallback" style="margin-top:.25rem;font-size:1.1rem;opacity:.95;">
+    <div id="challenge-fallback" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
       {{ challenge_text|default:"(challenge unavailable — refresh)" }}
     </div>
   </div>
