@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
+{% load svg_extras %}
 {% block title %}Security Verification{% endblock %}
 {% block content %}
 <div class="card" style="max-width:480px;margin:2rem auto;padding:1rem 1.25rem;">
   <h1>Security Verification</h1>
   <p style="opacity:.9;margin:.75rem 0 1rem">Solve this math problem:</p>
-  <pre id="challenge-text"
-       style="font-size:1.25rem;line-height:1.6;background:rgba(255,255,255,.05);
-              padding:.5rem .75rem;border-radius:.5rem;border:1px solid rgba(255,255,255,.12);">
-{{ challenge_text|default:"(challenge unavailable — refresh)" }}</pre>
+  <div id="challenge-text" style="margin-bottom:.5rem">
+    {% render_math_svg challenge_text 20 %}
+  </div>
   <!-- trace: {{ challenge_id }} -->
 
   <form method="post" action="{% url 'anti_ddos:captcha' %}" autocomplete="off">
