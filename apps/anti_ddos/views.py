@@ -141,10 +141,14 @@ def captcha(request):
             "answer": str(a + b),
         }
         cache.set(cache_key, challenge, TTL)
-        return render(request, "anti_ddos/captcha.html", {
+        resp = render(request, "anti_ddos/captcha.html", {
             "challenge_id": challenge["id"],
             "challenge_text": challenge["text"],
         })
+        resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp["Pragma"] = "no-cache"
+        resp["X-AntiDDoS-Trace"] = challenge["id"]
+        return resp
 
     challenge = cache.get(cache_key)
     if not isinstance(challenge, dict) or "answer" not in challenge or "text" not in challenge:
@@ -155,11 +159,15 @@ def captcha(request):
             "answer": str(a + b),
         }
         cache.set(cache_key, challenge, TTL)
-        return render(request, "anti_ddos/captcha.html", {
+        resp = render(request, "anti_ddos/captcha.html", {
             "challenge_id": challenge["id"],
             "challenge_text": challenge["text"],
             "error": "Challenge refreshed. Please solve the new problem.",
         })
+        resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        resp["Pragma"] = "no-cache"
+        resp["X-AntiDDoS-Trace"] = challenge["id"]
+        return resp
 
     user_answer = (request.POST.get("answer") or "").strip()
     if constant_time_compare(user_answer, challenge["answer"]):
@@ -176,11 +184,15 @@ def captcha(request):
         resp.set_cookie("antiddos_ok", "1", max_age=TTL, httponly=True, samesite="Strict", secure=True, path="/")
         return resp
 
-    return render(request, "anti_ddos/captcha.html", {
+    resp = render(request, "anti_ddos/captcha.html", {
         "challenge_id": challenge["id"],
         "challenge_text": challenge["text"],
         "error": "Incorrect answer. Try again.",
     })
+    resp["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp["Pragma"] = "no-cache"
+    resp["X-AntiDDoS-Trace"] = challenge["id"]
+    return resp
 @ensure_csrf_cookie
 @require_http_methods(["GET", "HEAD"])
 def challenge(request):
