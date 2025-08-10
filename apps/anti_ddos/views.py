@@ -196,4 +196,4 @@ def captcha(request):
 @ensure_csrf_cookie
 @require_http_methods(["GET", "HEAD"])
 def challenge(request):
-    return render(request, "anti_ddos/challenge.html")
+    return redirect("anti_ddos:captcha")
