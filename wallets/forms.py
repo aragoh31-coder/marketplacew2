@@ -1,3 +1,4 @@
+from typing import Any, Dict
 from django import forms
 from django.core.exceptions import ValidationError
 from decimal import Decimal
@@ -63,7 +64,7 @@ class WithdrawalForm(forms.Form):
         })
     )
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
         
@@ -74,7 +75,7 @@ class WithdrawalForm(forms.Form):
             if wallet.withdrawal_pin:
                 self.fields['pin'].required = True
     
-    def clean_address(self):
+    def clean_address(self) -> str:
         """Validate cryptocurrency address format"""
         address = self.cleaned_data['address']
         currency = self.data.get('currency')
@@ -88,7 +89,7 @@ class WithdrawalForm(forms.Form):
         
         return address
     
-    def clean_amount(self):
+    def clean_amount(self) -> Decimal:
         """Validate withdrawal amount"""
         amount = self.cleaned_data['amount']
         currency = self.data.get('currency')
@@ -143,11 +144,11 @@ class ConversionForm(forms.Form):
         })
     )
     
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
     
-    def clean(self):
+    def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean()
         from_currency = cleaned_data.get('from_currency')
         to_currency = cleaned_data.get('to_currency')
@@ -245,7 +246,7 @@ class SecuritySettingsForm(forms.Form):
         })
     )
     
-    def clean(self):
+    def clean(self) -> Dict[str, Any]:
         cleaned_data = super().clean()
         new_pin = cleaned_data.get('new_pin')
         confirm_pin = cleaned_data.get('confirm_pin')

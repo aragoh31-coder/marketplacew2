@@ -1,3 +1,4 @@
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6,14 +7,16 @@ from products.models import Product
 
 
 @login_required
-def cart_view(request):
+def cart_view(request: HttpRequest) -> HttpResponse:
+    """Displays the items in the user's shopping cart."""
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = cart.items.select_related('product')
     return render(request, 'orders/cart.html', {'cart_items': cart_items})
 
 
 @login_required
-def add_to_cart(request, product_id):
+def add_to_cart(request: HttpRequest, product_id: int) -> HttpResponse:
+    """Adds a product to the user's shopping cart."""
     product = get_object_or_404(Product, id=product_id, is_available=True)
     
     if product.vendor.is_on_vacation:
@@ -37,12 +40,14 @@ def add_to_cart(request, product_id):
 
 
 @login_required
-def order_list(request):
+def order_list(request: HttpRequest) -> HttpResponse:
+    """Displays a list of the user's past and present orders."""
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'orders/list.html', {'orders': orders})
 
 
 @login_required
-def order_detail(request, pk):
+def order_detail(request: HttpRequest, pk: int) -> HttpResponse:
+    """Displays the detail page for a single order."""
     order = get_object_or_404(Order, pk=pk, user=request.user)
     return render(request, 'orders/detail.html', {'order': order})

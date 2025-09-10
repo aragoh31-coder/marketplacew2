@@ -1,12 +1,13 @@
 from django import forms
-from django.contrib.auth.forms import PasswordChangeForm, AuthenticationForm
 from django.contrib.auth import password_validation
+from django.contrib.auth.forms import PasswordChangeForm
 from django.core.exceptions import ValidationError
+
 from .models import User
-import gnupg
 
 
 class UserProfileForm(forms.ModelForm):
+    """Form for updating a user's profile settings."""
     class Meta:
         model = User
         fields = ['default_currency', 'default_shipping_country']
@@ -20,6 +21,15 @@ class UserProfileForm(forms.ModelForm):
 
 
 class PGPKeyForm(forms.Form):
+    """
+    Form for handling PGP public key submissions.
+
+    - Allows users to submit a PGP public key.
+    - Validates the key's format and cryptographic properties (e.g., not expired,
+      not revoked, capable of encryption).
+    - Stores the validated key and its fingerprint in the session for verification.
+    - Allows enabling/disabling PGP-based 2FA for login.
+    """
     pgp_public_key = forms.CharField(
         widget=forms.Textarea(attrs={
             'class': 'form-control',
@@ -82,6 +92,10 @@ class PGPKeyForm(forms.Form):
 
 
 class CustomPasswordChangeForm(PasswordChangeForm):
+    """
+    A custom password change form that applies specific styling to the fields.
+    Inherits from Django's built-in PasswordChangeForm and overrides the widgets.
+    """
     old_password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
@@ -102,21 +116,13 @@ class CustomPasswordChangeForm(PasswordChangeForm):
     )
 
 
-class LoginForm(AuthenticationForm):
-    honeypot_field = forms.CharField(
-        required=False, 
-        widget=forms.HiddenInput(),
-        label=''
-    )
-    
-    def clean_honeypot_field(self):
-        honeypot = self.cleaned_data.get('honeypot_field')
-        if honeypot:
-            raise ValidationError('Bot detected')
-        return honeypot
 
 
 class DeleteAccountForm(forms.Form):
+    """
+    A form for account deletion that requires the user to type 'DELETE'
+    and enter their password to confirm the action.
+    """
     confirm_delete = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={

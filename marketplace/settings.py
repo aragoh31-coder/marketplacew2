@@ -172,10 +172,6 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-BTC_USD_RATE = 118905.27
-XMR_USD_RATE = 340.67
-BTC_EUR_RATE = 108000.00
-XMR_EUR_RATE = 310.00
 BITCOIND_RPC_URL = env('BITCOIND_RPC_URL', default="http://127.0.0.1:8332")
 BITCOIND_RPC_USER = env('BITCOIND_RPC_USER')
 BITCOIND_RPC_PASSWORD = env('BITCOIND_RPC_PASSWORD')
@@ -325,10 +321,10 @@ IMAGE_UPLOAD_SETTINGS = {
     'UPLOADS_PER_DAY': 50,
 }
 
-SECURE_UPLOAD_ROOT = Path(BASE_DIR).parent / 'secure_uploads'
+SECURE_UPLOAD_ROOT = BASE_DIR / 'secure_uploads'
 SECURE_UPLOAD_ROOT.mkdir(exist_ok=True)
 
-TEMP_UPLOAD_ROOT = Path(BASE_DIR).parent / 'temp_uploads'
+TEMP_UPLOAD_ROOT = BASE_DIR / 'temp_uploads'
 TEMP_UPLOAD_ROOT.mkdir(exist_ok=True)
 
 WALLET_SECURITY = {
@@ -371,7 +367,7 @@ ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@marketplace.local')
 
 ADMIN_SECURITY = {
     'REQUIRE_TRIPLE_AUTH': True,
-    'SECONDARY_PASSWORD': 'admin_secure_2024!',
+    'SECONDARY_PASSWORD': env('ADMIN_SECONDARY_PASSWORD'),
     'PGP_REQUIRED': True,
     'SESSION_TIMEOUT_MINUTES': 30,
     'MAX_FAILED_ATTEMPTS': 3,
@@ -385,7 +381,7 @@ try:
     from config.admin_config import ADMIN_PANEL_CONFIG, ADMIN_PGP_CONFIG
 except ImportError:
     ADMIN_PANEL_CONFIG = {
-        'SECONDARY_PASSWORD': 'admin_secure_2024!',
+        'SECONDARY_PASSWORD': env('ADMIN_SECONDARY_PASSWORD'),
         'REQUIRE_PGP_AFTER_AUTH': True,
         'MAX_FAILED_ATTEMPTS': 3,
         'LOCKOUT_DURATION': 900,  # 15 minutes

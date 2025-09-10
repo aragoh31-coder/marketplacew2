@@ -36,8 +36,6 @@ def log_user_action(request, action, details=None):
     AuditLog.objects.create(
         user=request.user,
         action=action,
-        ip_address=get_client_ip(request),
-        user_agent=request.META.get('HTTP_USER_AGENT', ''),
         details=details or {}
     )
 
@@ -168,8 +166,6 @@ def withdraw(request):
                             currency=form.cleaned_data['currency'],
                             address=form.cleaned_data['address'],
                             user_note=form.cleaned_data.get('note', ''),
-                            ip_address=get_client_ip(request),
-                            user_agent=request.META.get('HTTP_USER_AGENT', ''),
                             two_fa_verified=wallet.two_fa_enabled,
                             pin_verified=bool(wallet.withdrawal_pin)
                         )
@@ -270,7 +266,6 @@ def convert(request):
                         balance_before=from_balance_before,
                         balance_after=from_balance_before - amount,
                         reference=f"CONV-{timezone.now().timestamp()}",
-                        ip_address=get_client_ip(request),
                         metadata={
                             'rate_used': str(rate),
                             'from_balance_before': str(from_balance_before),
@@ -321,35 +316,64 @@ def convert(request):
     return render(request, 'wallets/convert.html', context)
 
 
+from .models import DepositAddress
+from .rpc_client import BitcoinRPC, MoneroRPC
+
 @login_required
 @csrf_protect
 def deposit_info(request, currency):
-    """Show deposit address and QR code"""
+    """
+    Gets or creates a persistent deposit address for the user and displays it
+    with a QR code.
+    """
     if currency not in ['btc', 'xmr']:
         messages.error(request, "Invalid currency")
         return redirect('wallets:dashboard')
-    
+
     wallet = get_object_or_404(Wallet, user=request.user)
-    
-    if currency == 'btc':
-        address = f"bc1q{request.user.id}example{timezone.now().timestamp()}"[:42]
+    address_obj = DepositAddress.objects.filter(user=request.user, currency=currency).first()
+    address = None
+    error_message = None
+
+    if address_obj:
+        address = address_obj.address
     else:
-        address = f"4{request.user.id}example{timezone.now().timestamp()}"[:95]
-    
-    qr = qrcode.QRCode(version=1, box_size=10, border=5)
-    qr.add_data(address)
-    qr.make(fit=True)
-    
-    img = qr.make_image(fill_color="black", back_color="white")
-    buffer = io.BytesIO()
-    img.save(buffer, format='PNG')
-    qr_code = base64.b64encode(buffer.getvalue()).decode()
-    
+        # No address found, generate a new one
+        if currency == 'btc':
+            rpc = BitcoinRPC()
+            result = rpc.get_new_address(label=request.user.username)
+        else: # currency == 'xmr'
+            rpc = MoneroRPC()
+            result = rpc.get_new_address()
+
+        if result.get("success"):
+            address = result["address"]
+            DepositAddress.objects.create(
+                user=request.user,
+                currency=currency,
+                address=address
+            )
+        else:
+            error_message = f"Could not generate a new {currency.upper()} address at this time. Please try again later. Error: {result.get('error')}"
+            logger.error(f"Failed to generate deposit address for {request.user.username}: {error_message}")
+            messages.error(request, error_message)
+
+    qr_code = None
+    if address:
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(address)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        buffer = io.BytesIO()
+        img.save(buffer, format='PNG')
+        qr_code = base64.b64encode(buffer.getvalue()).decode()
+
     context = {
         'currency': currency,
         'address': address,
         'qr_code': qr_code,
         'wallet': wallet,
+        'error_message': error_message,
     }
     
     return render(request, 'wallets/deposit.html', context)

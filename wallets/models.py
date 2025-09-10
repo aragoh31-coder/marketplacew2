@@ -394,3 +394,19 @@ class WalletBalanceCheck(models.Model):
         indexes = [
             models.Index(fields=['discrepancy_found', 'resolved', 'checked_at']),
         ]
+
+
+class DepositAddress(models.Model):
+    """Stores persistent deposit addresses for users."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='deposit_addresses')
+    currency = models.CharField(max_length=10, choices=WithdrawalRequest.CURRENCY_CHOICES)
+    address = models.CharField(max_length=255, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['user', 'currency']
+        verbose_name = "Deposit Address"
+        verbose_name_plural = "Deposit Addresses"
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.currency.upper()} Deposit Address"

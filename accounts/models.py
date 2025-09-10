@@ -98,13 +98,3 @@ class LoginHistory(models.Model):
         ordering = ['-login_time']
 
 
-class UserSession(PrivacyModel):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    session_key = models.CharField(max_length=40, unique=True)
-    fingerprint = models.CharField(max_length=255)
-    ip_address = models.GenericIPAddressField()
-    user_agent = models.TextField()
-    last_activity = models.DateTimeField(default=timezone.now)
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.session_key[:8]}"

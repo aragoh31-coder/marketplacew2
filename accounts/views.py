@@ -1,25 +1,29 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db import transaction
-from django.utils import timezone
-from django.db.models import Count, Q
-from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
-from apps.security.forms import SecureLoginForm, SecureRegistrationForm
-from products.models import Product
 import hashlib
-import secrets
 import logging
+import secrets
 from datetime import timedelta
+
 from dateutil import parser
-from .forms import (
-    UserProfileForm, PGPKeyForm, CustomPasswordChangeForm, DeleteAccountForm
-)
-from .models import User, LoginHistory
-from .pgp_service import PGPService
+from django import forms
+from django.contrib import messages
+from django.contrib.auth import (authenticate, get_user_model, login, logout,
+                                 update_session_auth_hash)
+from django.http import HttpRequest, HttpResponse
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.db import transaction
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+
+from apps.security.forms import SecureLoginForm, SecureRegistrationForm
 from core.utils.cache import log_event
+from products.models import Product
+
+from .forms import (CustomPasswordChangeForm, DeleteAccountForm, PGPKeyForm,
+                    UserProfileForm)
+from .models import LoginHistory, User
+from .pgp_service import PGPService
 
 User = get_user_model()
 
@@ -62,7 +66,15 @@ def home(request):
     return render(request, 'home.html', {'featured_products': featured_products})
 
 
-def register_view(request):
+def register(request: HttpRequest) -> HttpResponse:
+    """
+    Handles new user registration.
+
+    - Uses SecureRegistrationForm to validate input and prevent bots.
+    - Creates a new user account.
+    - Creates an associated wallet for the new user.
+    - Logs the registration event in the AuditLog.
+    """
     if request.method == 'POST':
         form = SecureRegistrationForm(request.POST, request=request)
         if form.is_valid():
@@ -93,53 +105,19 @@ def register_view(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
-def register(request):
-    if request.method == 'POST':
-        form = SecureRegistrationForm(request.POST, request=request)
-        if form.is_valid():
-            from django.contrib.auth.models import User
-            user = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                email=form.cleaned_data.get('email', ''),
-                password=form.cleaned_data['password1']
-            )
-            
-            from .models import UserProfile
-            UserProfile.objects.get_or_create(user=user)
-            
-            from wallets.models import Wallet
-            Wallet.objects.get_or_create(user=user)
-            
-            login(request, user)
-            
-            from wallets.models import AuditLog
-            AuditLog.objects.create(
-                user=user,
-                action='registration',
-                ip_address='privacy_protected',
-                user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
-                details={
-                    'registration_method': 'secure_form',
-                    'username': user.username,
-                    'email_provided': bool(user.email)
-                },
-                risk_score=10  # New accounts have slight risk
-            )
-            
-            messages.success(request, f'Account created for {user.username}! Welcome to the marketplace.')
-            return redirect('/')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
-    else:
-        form = SecureRegistrationForm(request=request)
-    return render(request, 'accounts/register.html', {'form': form})
 
 
-def login_view(request):
+def login_view(request: HttpRequest) -> HttpResponse:
+    """
+    Handles the user login process.
+
+    - Validates credentials using SecureLoginForm.
+    - If PGP 2FA is enabled, initiates a PGP challenge.
+    - Otherwise, logs the user in directly.
+    - Records login attempts and failures in AuditLog and LoginHistory.
+    """
     logger = logging.getLogger(__name__)
-    
+
     if request.method == 'POST':
         form = SecureLoginForm(request=request, data=request.POST)
         if form.is_valid():
@@ -319,7 +297,14 @@ def profile_settings(request):
 
 
 @login_required
-def change_password(request):
+def change_password(request: HttpRequest) -> HttpResponse:
+    """
+    Allows an authenticated user to change their password.
+
+    - Uses CustomPasswordChangeForm to validate the old and new passwords.
+    - Updates the user's password and refreshes their session hash.
+    - Logs the password change event in LoginHistory for security auditing.
+    """
     if request.method == 'POST':
         form = CustomPasswordChangeForm(request.user, request.POST)
         if form.is_valid():
@@ -328,9 +313,7 @@ def change_password(request):
             
             LoginHistory.objects.create(
                 user=user,
-                ip_hash=hashlib.sha256(
-                    request.META.get('REMOTE_ADDR', '').encode()
-                ).hexdigest(),
+                ip_hash=hashlib.sha256('privacy_protected'.encode()).hexdigest(),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
                 success=True
             )
@@ -587,10 +570,18 @@ def test_pgp_encryption(request):
         return redirect('accounts:pgp_settings')
 
 
-def pgp_challenge_view(request):
-    """Handle PGP 2FA challenge verification with enhanced session persistence"""
+def pgp_challenge_view(request: HttpRequest) -> HttpResponse:
+    """
+    Handles the PGP 2FA challenge after a user enters correct credentials.
+
+    - Retrieves the encrypted challenge from the session.
+    - Verifies that the 2FA session has not expired.
+    - On POST, checks the user's decrypted response against the stored challenge.
+    - If successful, logs the user in and clears the 2FA session data.
+    - If failed, presents the challenge again with an error message.
+    """
     logger = logging.getLogger(__name__)
-    
+
     logger.debug(f"DEBUG: pgp_challenge_view called with method: {request.method}")
     logger.debug(f"DEBUG: Session keys: {list(request.session.keys())}")
     
@@ -663,9 +654,7 @@ def pgp_challenge_view(request):
             
             LoginHistory.objects.create(
                 user=user,
-                ip_hash=hashlib.sha256(
-                    request.META.get('REMOTE_ADDR', '').encode()
-                ).hexdigest(),
+                ip_hash=hashlib.sha256('privacy_protected'.encode()).hexdigest(),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:200],
                 success=True
             )
