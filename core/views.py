@@ -32,7 +32,7 @@ def serve_secure_image(request, path):
         
         response = HttpResponse(content, content_type=content_type)
         response['X-Content-Type-Options'] = 'nosniff'
-        response['Content-Security-Policy'] = "default-src 'none'; img-src 'self';"
+        response['Content-Security-Policy'] = "default-src 'none'; img-src 'self' data:; style-src 'none'; script-src 'none'; object-src 'none'; frame-src 'none'; frame-ancestors 'none'; form-action 'none'; base-uri 'none'"
         
         return response
         

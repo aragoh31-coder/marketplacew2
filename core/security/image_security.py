@@ -367,7 +367,49 @@ class SecureImageProcessor:
     def delete_images(self, filename, thumb_filename):
         """Securely delete images"""
         if self.config['STORAGE_BACKEND'] == 'remote':
-            pass
+            try:
+                config = self.config['REMOTE_STORAGE_CONFIG']
+                
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                
+                if config.get('KEY_PATH'):
+                    ssh.connect(
+                        hostname=config['HOST'],
+                        port=config['PORT'],
+                        username=config['USERNAME'],
+                        key_filename=config['KEY_PATH']
+                    )
+                else:
+                    ssh.connect(
+                        hostname=config['HOST'],
+                        port=config['PORT'],
+                        username=config['USERNAME'],
+                        password=config.get('PASSWORD', '')
+                    )
+                
+                sftp = ssh.open_sftp()
+                remote_path = config['REMOTE_PATH']
+                
+                # Delete main image
+                try:
+                    sftp.remove(f"{remote_path}/{filename}")
+                    logger.info(f"Deleted remote image: {filename}")
+                except IOError as e:
+                    logger.warning(f"Failed to delete remote image {filename}: {str(e)}")
+                
+                # Delete thumbnail
+                try:
+                    sftp.remove(f"{remote_path}/{thumb_filename}")
+                    logger.info(f"Deleted remote thumbnail: {thumb_filename}")
+                except IOError as e:
+                    logger.warning(f"Failed to delete remote thumbnail {thumb_filename}: {str(e)}")
+                
+                sftp.close()
+                ssh.close()
+                
+            except Exception as e:
+                logger.error(f"Remote delete error: {str(e)}")
         else:
             try:
                 upload_dir = settings.SECURE_UPLOAD_ROOT / 'products'

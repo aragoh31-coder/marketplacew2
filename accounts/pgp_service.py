@@ -363,7 +363,6 @@ trust-model always
             encrypted_data = self.gpg.encrypt(
                 message, 
                 recipients=[recipient_fingerprint],
-                always_trust=True,
                 armor=True,
                 symmetric=False
             )

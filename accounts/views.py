@@ -15,6 +15,7 @@ from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 
 from apps.security.forms import SecureLoginForm, SecureRegistrationForm
 from core.utils.cache import log_event
@@ -66,6 +67,7 @@ def home(request):
     return render(request, 'home.html', {'featured_products': featured_products})
 
 
+@csrf_protect
 def register(request: HttpRequest) -> HttpResponse:
     """
     Handles new user registration.
@@ -107,6 +109,7 @@ def register(request: HttpRequest) -> HttpResponse:
 
 
 
+@csrf_protect
 def login_view(request: HttpRequest) -> HttpResponse:
     """
     Handles the user login process.
@@ -283,6 +286,7 @@ def profile(request):
 
 
 @login_required
+@csrf_protect
 def profile_settings(request):
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=request.user)
@@ -297,6 +301,7 @@ def profile_settings(request):
 
 
 @login_required
+@csrf_protect
 def change_password(request: HttpRequest) -> HttpResponse:
     """
     Allows an authenticated user to change their password.
@@ -327,6 +332,7 @@ def change_password(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@csrf_protect
 def pgp_settings(request):
     """Handle PGP key upload with verification"""
     if request.method == 'POST':
@@ -410,6 +416,7 @@ def pgp_settings(request):
 
 
 @login_required
+@csrf_protect
 def pgp_verify_key(request):
     """Verify PGP key by checking decryption capability"""
     if request.method == 'POST':
@@ -478,6 +485,7 @@ def pgp_verify_key(request):
 
 
 @login_required
+@csrf_protect
 def pgp_remove_key(request):
     """Remove PGP key from account"""
     if request.method == 'POST':
@@ -498,6 +506,7 @@ def pgp_remove_key(request):
 
 
 @login_required
+@csrf_protect
 def delete_account(request):
     if request.method == 'POST':
         form = DeleteAccountForm(request.POST)

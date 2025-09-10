@@ -65,17 +65,62 @@ def send_withdrawal_notification(withdrawal_request):
 
 def validate_crypto_address(address, currency):
     """Validate cryptocurrency address format"""
+    if not address or not isinstance(address, str):
+        return False
+    
+    # Trim whitespace and normalize
+    address = address.strip()
+    
     if currency == 'btc':
+        # More comprehensive Bitcoin address validation
         patterns = [
-            r'^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$',  # Legacy
-            r'^bc1[a-z0-9]{39,59}$',  # Bech32
-            r'^bc1[a-z0-9]{59,87}$'   # Bech32m
+            # P2PKH addresses start with 1
+            r'^1[a-km-zA-HJ-NP-Z1-9]{25,34}$',
+            # P2SH addresses start with 3
+            r'^3[a-km-zA-HJ-NP-Z1-9]{25,34}$',
+            # Bech32 addresses (native SegWit)
+            r'^bc1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{39,59}$',
+            # Bech32m addresses (Taproot)
+            r'^bc1[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{59,87}$'
         ]
-        return any(re.match(pattern, address) for pattern in patterns)
+        
+        # Try to validate using regex patterns
+        if any(re.match(pattern, address) for pattern in patterns):
+            return True
+            
+        # For additional validation, we could use the bitcoinlib library
+        try:
+            from bitcoinlib.encoding import addr_bech32_to_pubkeyhash, change_base
+            from bitcoinlib.keys import Address
+            
+            # Try to create an Address object - will raise an exception if invalid
+            Address.parse(address)
+            return True
+        except ImportError:
+            # If bitcoinlib is not available, rely on regex only
+            pass
+        except Exception:
+            # If address parsing fails, it's invalid
+            return False
+            
+        return False
     
     elif currency == 'xmr':
-        return re.match(r'^4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}$', address) is not None
+        # Standard Monero address (95 characters)
+        if re.match(r'^4[0-9AB][1-9A-HJ-NP-Za-km-z]{93}$', address):
+            return True
+            
+        # Integrated address (106 characters)
+        if re.match(r'^8[0-9AB][1-9A-HJ-NP-Za-km-z]{104}$', address):
+            return True
+            
+        # Subaddress (95 characters, starts with 8)
+        if re.match(r'^8[0-9AB][1-9A-HJ-NP-Za-km-z]{93}$', address):
+            return True
+            
+        return False
     
+    # Unsupported currency
     return False
 
 

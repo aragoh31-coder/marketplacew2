@@ -126,11 +126,14 @@ def refresh_tor_descriptors():
     try:
         logger.info("Starting Tor descriptor refresh...")
         
+        # Use fixed commands with no user input to prevent command injection
+        # Use absolute paths for binaries
         result = subprocess.run(
-            ['sudo', 'systemctl', 'reload', 'tor@default'],
+            ['/usr/bin/sudo', '/bin/systemctl', 'reload', 'tor@default'],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
+            shell=False  # Explicitly disable shell to prevent command injection
         )
         
         if result.returncode == 0:
@@ -140,10 +143,11 @@ def refresh_tor_descriptors():
             time.sleep(5)
             
             log_check = subprocess.run(
-                ['sudo', 'tail', '-10', '/var/log/tor/tor.log'],
+                ['/usr/bin/sudo', '/usr/bin/tail', '-10', '/var/log/tor/tor.log'],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
+                shell=False  # Explicitly disable shell to prevent command injection
             )
             
             if log_check.returncode == 0 and 'descriptor' in log_check.stdout.lower():
