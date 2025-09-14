@@ -4,8 +4,10 @@ import os
 import shutil
 import logging
 import re
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from django.conf import settings
+from config.security_config import SECRET_MANAGER, MEMORY_PROTECTION
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +43,17 @@ class PGPService:
         """Configure GPG for maximum compatibility"""
         try:
             config_content = """
-personal-cipher-preferences AES256 AES192 AES CAST5
-personal-digest-preferences SHA512 SHA384 SHA256 SHA224 SHA1
-personal-compress-preferences ZLIB BZIP2 ZIP Uncompressed
+personal-cipher-preferences AES256 AES192 AES
+personal-digest-preferences SHA512 SHA384 SHA256
+personal-compress-preferences ZLIB BZIP2 ZIP
 cert-digest-algo SHA256
-default-preference-list SHA512 SHA384 SHA256 SHA224 AES256 AES192 AES CAST5 ZLIB BZIP2 ZIP Uncompressed
-keyserver-options auto-key-retrieve
-trust-model always
+default-preference-list SHA512 SHA384 SHA256 AES256 AES192 AES ZLIB BZIP2 ZIP
+keyserver-options no-auto-key-retrieve
+trust-model pgp
+no-emit-version
+no-comments
+weakest-rsa 4096
+min-rsa-length 4096
 """
             config_path = os.path.join(self.temp_dir, 'gpg.conf')
             with open(config_path, 'w') as f:
@@ -181,7 +187,7 @@ trust-model always
             
             if not caps['can_encrypt'] and not caps['has_encryption_subkey']:
                 algo = key.get('algo', '')
-                if algo in ['1', '16', '18']:
+                if algo in ['1', '18']:  # RSA, ECDH only (removed ElGamal)
                     caps['can_encrypt'] = True
             
         except Exception as e:

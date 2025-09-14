@@ -123,12 +123,41 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_REFERRER_POLICY = 'same-origin'
 USE_X_FORWARDED_HOST = False
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Strict'
+SESSION_COOKIE_AGE = 1800  # 30 minutes
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_COOKIE_AGE = 3600
+CSRF_USE_SESSIONS = True
+CSRF_COOKIE_MASKED = True
+
+# HTTPS/TLS Security Settings
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') if not DEBUG else None
+SECURE_REDIRECT_EXEMPT = [r'^healthcheck/$', r'^status/$'] if not DEBUG else []
+
+# Security Headers
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+USE_X_FORWARDED_HOST = False
+
+# HSTS Settings
 SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
-SECURE_SSL_REDIRECT = False
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+
+# Additional Security Headers
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+SECURE_CROSS_ORIGIN_EMBEDDER_POLICY = 'require-corp'
 
 CELERY_BROKER_URL = env('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND')
@@ -280,12 +309,30 @@ LOGGING = {
 
 GPG_BINARY = '/usr/bin/gpg'
 
-PGP_2FA_TIMEOUT = 15  # minutes
-SESSION_SAVE_EVERY_REQUEST = False  # Don't refresh on every request for better 2FA experience
-SESSION_COOKIE_SAMESITE = 'Lax'
+PGP_2FA_TIMEOUT = 5  # Reduced to 5 minutes for security
 
-CSRF_COOKIE_AGE = 3600  # 1 hour for CSRF tokens
-CSRF_USE_SESSIONS = True  # Store CSRF in session instead of cookie
+# Enhanced password validation for enterprise security
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'user_attributes': ('username', 'first_name', 'last_name', 'email'),
+            'max_similarity': 0.7,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
 IMAGE_UPLOAD_SETTINGS = {
     'MAX_FILE_SIZE': 2 * 1024 * 1024,  # 2MB max (reduced from 5MB)
@@ -356,11 +403,15 @@ SECURITY_SETTINGS = {
     'ENABLE_RATE_LIMITING': True,
     'ENABLE_HONEYPOT_PROTECTION': True,
     'ENABLE_MATH_CAPTCHA': True,
-    'MAX_LOGIN_ATTEMPTS_PER_IP': 20,
+    'ENABLE_PRIVACY_PROTECTION': True,  # No IP logging for Tor compatibility
     'MAX_LOGIN_ATTEMPTS_PER_USER': 5,
-    'MAX_REGISTRATION_ATTEMPTS_PER_IP': 3,
-    'FORM_SUBMISSION_RATE_LIMIT': 10,
-    'SESSION_SECURITY_TIMEOUT': 3600,
+    'MAX_REGISTRATION_ATTEMPTS_PER_SESSION': 3,
+    'FORM_SUBMISSION_RATE_LIMIT': 5,
+    'SESSION_SECURITY_TIMEOUT': 1800,  # 30 minutes
+    'SESSION_ROTATION_INTERVAL': 600,  # Rotate session every 10 minutes
+    'FAILED_LOGIN_LOCKOUT_TIME': 900,  # 15 minutes
+    'ACCOUNT_LOCKOUT_THRESHOLD': 10,
+    'REQUIRE_SECURE_TRANSPORT': not DEBUG,
 }
 
 ADMIN_EMAIL = env('ADMIN_EMAIL', default='admin@marketplace.local')
@@ -369,12 +420,15 @@ ADMIN_SECURITY = {
     'REQUIRE_TRIPLE_AUTH': True,
     'SECONDARY_PASSWORD': env('ADMIN_SECONDARY_PASSWORD'),
     'PGP_REQUIRED': True,
-    'SESSION_TIMEOUT_MINUTES': 30,
+    'SESSION_TIMEOUT_MINUTES': 15,  # Reduced for higher security
     'MAX_FAILED_ATTEMPTS': 3,
-    'LOCKOUT_DURATION_MINUTES': 15,
-    'CHALLENGE_TIMEOUT_MINUTES': 5,
+    'LOCKOUT_DURATION_MINUTES': 30,  # Increased lockout time
+    'CHALLENGE_TIMEOUT_MINUTES': 3,  # Reduced challenge timeout
     'LOG_ALL_ACTIONS': True,
-    'REQUIRE_IP_CONSISTENCY': True,
+    'REQUIRE_IP_CONSISTENCY': False,  # Disabled for Tor compatibility
+    'REQUIRE_HARDWARE_TOKEN': False,  # Can be enabled when hardware tokens are deployed
+    'FORCE_SESSION_REFRESH': True,
+    'AUTO_LOGOUT_INACTIVE': True,
 }
 
 try:

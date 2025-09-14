@@ -4,28 +4,28 @@ services:
   db:
     image: postgres:15
     environment:
-      POSTGRES_DB: marketplace
-      POSTGRES_USER: marketplace_user
-      POSTGRES_PASSWORD: marketplace_pass
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U marketplace_user -d marketplace"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 30s
       timeout: 10s
       retries: 3
 
   redis:
     image: redis:7-alpine
-    command: redis-server --requirepass redis_pass
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "redis_pass", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -35,20 +35,22 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DJANGO_SECRET_KEY=your-very-secure-secret-key-change-this-in-production
-      - DEBUG=False
-      - DATABASE_URL=postgres://marketplace_user:marketplace_pass@db:5432/marketplace
-      - REDIS_URL=redis://:redis_pass@redis:6379/1
-      - CELERY_BROKER_URL=redis://:redis_pass@redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://:redis_pass@redis:6379/0
-      - ALLOWED_HOSTS=localhost,127.0.0.1,[::1],*.onion,web,uw3va4m7ryfl26bfdywucyw2bxorelmzc3g46d7sbmgbycvynz4ylxid.onion,fcmxauihkxovvkjgaysocxpapwmqkxxqvd5m6xaqbwuzohklunjpaead.onion,ifx3c72qzfkriijkr3sljmqnagtbtaw3ynvqzr5sxv72rum4ob3cvbqd.onion,tor-onion-app-tunnel-3chypxi5.devinapps.com,onion-docker-app-tunnel-x7gdxre6.devinapps.com,riq4r5i25vevgiej6hbk52jbacwxo7ttdzbcztt4wpyj54yvxgnzg7id.onion,riq4r5i25vevgiej6hbk52jbacwxo7ttdzbcztt4wpyj54yvxgnzg7id.onion
-      - BITCOIND_RPC_URL=http://127.0.0.1:8332
-      - BITCOIND_RPC_USER=bitcoin_user
-      - BITCOIND_RPC_PASSWORD=bitcoin_pass
-      - MONERO_WALLET_RPC_PORT=18088
-      - MONERO_DAEMON_RPC_PORT=18081
-      - ADMIN_EMAIL=admin@marketplace.local
-      - ENCRYPTION_KEY=fernet_key_change_this_in_production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - BITCOIND_RPC_URL=${BITCOIND_RPC_URL}
+      - BITCOIND_RPC_USER=${BITCOIND_RPC_USER}
+      - BITCOIND_RPC_PASSWORD=${BITCOIND_RPC_PASSWORD}
+      - MONERO_WALLET_RPC_PORT=${MONERO_WALLET_RPC_PORT}
+      - MONERO_DAEMON_RPC_PORT=${MONERO_DAEMON_RPC_PORT}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - MASTER_PASSWORD=${MASTER_PASSWORD}
+      - MASTER_SALT=${MASTER_SALT}
+      - ADMIN_SECONDARY_PASSWORD=${ADMIN_SECONDARY_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -66,20 +68,22 @@ services:
   celery:
     build: .
     environment:
-      - DJANGO_SECRET_KEY=your-very-secure-secret-key-change-this-in-production
-      - DEBUG=False
-      - DATABASE_URL=postgres://marketplace_user:marketplace_pass@db:5432/marketplace
-      - REDIS_URL=redis://:redis_pass@redis:6379/1
-      - CELERY_BROKER_URL=redis://:redis_pass@redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://:redis_pass@redis:6379/0
-      - ALLOWED_HOSTS=localhost,127.0.0.1,[::1],*.onion,web
-      - BITCOIND_RPC_URL=http://127.0.0.1:8332
-      - BITCOIND_RPC_USER=bitcoin_user
-      - BITCOIND_RPC_PASSWORD=bitcoin_pass
-      - MONERO_WALLET_RPC_PORT=18088
-      - MONERO_DAEMON_RPC_PORT=18081
-      - ADMIN_EMAIL=admin@marketplace.local
-      - ENCRYPTION_KEY=fernet_key_change_this_in_production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - BITCOIND_RPC_URL=${BITCOIND_RPC_URL}
+      - BITCOIND_RPC_USER=${BITCOIND_RPC_USER}
+      - BITCOIND_RPC_PASSWORD=${BITCOIND_RPC_PASSWORD}
+      - MONERO_WALLET_RPC_PORT=${MONERO_WALLET_RPC_PORT}
+      - MONERO_DAEMON_RPC_PORT=${MONERO_DAEMON_RPC_PORT}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - MASTER_PASSWORD=${MASTER_PASSWORD}
+      - MASTER_SALT=${MASTER_SALT}
+      - ADMIN_SECONDARY_PASSWORD=${ADMIN_SECONDARY_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
@@ -94,20 +98,22 @@ services:
   celery-beat:
     build: .
     environment:
-      - DJANGO_SECRET_KEY=your-very-secure-secret-key-change-this-in-production
-      - DEBUG=False
-      - DATABASE_URL=postgres://marketplace_user:marketplace_pass@db:5432/marketplace
-      - REDIS_URL=redis://:redis_pass@redis:6379/1
-      - CELERY_BROKER_URL=redis://:redis_pass@redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://:redis_pass@redis:6379/0
-      - ALLOWED_HOSTS=localhost,127.0.0.1,[::1],*.onion,web
-      - BITCOIND_RPC_URL=http://127.0.0.1:8332
-      - BITCOIND_RPC_USER=bitcoin_user
-      - BITCOIND_RPC_PASSWORD=bitcoin_pass
-      - MONERO_WALLET_RPC_PORT=18088
-      - MONERO_DAEMON_RPC_PORT=18081
-      - ADMIN_EMAIL=admin@marketplace.local
-      - ENCRYPTION_KEY=fernet_key_change_this_in_production
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DEBUG=${DEBUG:-False}
+      - DATABASE_URL=postgres://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - BITCOIND_RPC_URL=${BITCOIND_RPC_URL}
+      - BITCOIND_RPC_USER=${BITCOIND_RPC_USER}
+      - BITCOIND_RPC_PASSWORD=${BITCOIND_RPC_PASSWORD}
+      - MONERO_WALLET_RPC_PORT=${MONERO_WALLET_RPC_PORT}
+      - MONERO_DAEMON_RPC_PORT=${MONERO_DAEMON_RPC_PORT}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - MASTER_PASSWORD=${MASTER_PASSWORD}
+      - MASTER_SALT=${MASTER_SALT}
+      - ADMIN_SECONDARY_PASSWORD=${ADMIN_SECONDARY_PASSWORD}
     depends_on:
       db:
         condition: service_healthy
