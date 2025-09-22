@@ -21,17 +21,24 @@
             </div>
             
             <div class="current-key-actions">
-                <form method="post" action="{% url 'accounts:pgp_remove' %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="button" onclick="confirmRemoval(this)" class="btn btn-danger">
+                {% if not confirm_remove %}
+                <form method="get" action="{% url 'accounts:pgp_settings' %}" style="display:inline;">
+                    <input type="hidden" name="confirm_remove" value="1">
+                    <button type="submit" class="btn btn-danger">
                         Remove Key
                     </button>
-                    <div class="confirm-removal" style="display:none;">
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'accounts:pgp_remove' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <div class="confirm-removal">
+                        <p class="warning-text">⚠️ Are you sure? Enter password to confirm:</p>
                         <input type="password" name="password" placeholder="Enter password to confirm" required>
                         <button type="submit" class="btn btn-danger">Confirm Removal</button>
-                        <button type="button" onclick="cancelRemoval(this)" class="btn btn-secondary">Cancel</button>
+                        <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-secondary">Cancel</a>
                     </div>
                 </form>
+                {% endif %}
             </div>
         </div>
         {% endif %}
@@ -318,17 +325,4 @@ gpg --armor --export your-email@example.com</pre>
     }
 </style>
 
-<script>
-function confirmRemoval(btn) {
-    btn.style.display = 'none';
-    btn.nextElementSibling.style.display = 'block';
-}
-
-function cancelRemoval(btn) {
-    const confirmDiv = btn.parentElement;
-    confirmDiv.style.display = 'none';
-    confirmDiv.previousElementSibling.style.display = 'inline-block';
-    confirmDiv.querySelector('input[type="password"]').value = '';
-}
-</script>
 {% endblock %}

@@ -194,7 +194,7 @@ class SecurityHeadersMiddleware:
             "frame-ancestors 'none'; "
             "form-action 'self'; "
             "base-uri 'self'; "
-            "manifest-src 'self'")
+            "manifest-src 'self'; "
             "img-src 'self' data:; "
             "font-src 'self'; "
             "connect-src 'none'; "

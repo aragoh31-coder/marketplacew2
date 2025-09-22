@@ -425,10 +425,14 @@ class CryptographicSigner:
         """Verify HMAC signature"""
         try:
             # For HMAC verification, we need to compute expected signature
-            # In production, the key would be stored securely
             if not key:
-                # This is a simplified approach - in production, retrieve the key used for signing
-                return True  # Placeholder - implement proper HMAC key management
+                # Retrieve key from secure storage
+                from django.conf import settings
+                from config.security_config import SECRET_MANAGER
+                key = SECRET_MANAGER.get_secret('HMAC_SIGNING_KEY')
+                if not key:
+                    logger.error("HMAC signing key not configured")
+                    return False
             
             expected_signature = hmac.new(
                 key.encode(),

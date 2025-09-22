@@ -63,9 +63,9 @@
             
             <div class="pgp-message-container">
                 <textarea id="encrypted-message" class="pgp-textarea" readonly>{{ encrypted_message }}</textarea>
-                <button onclick="copyMessage()" class="btn btn-secondary">
-                    📋 Copy Message
-                </button>
+                <p class="help-text" style="margin-top: 10px;">
+                    📋 Select and copy the encrypted message above manually
+                </p>
             </div>
         </div>
         
@@ -382,28 +382,4 @@ Enter only the verification code above.</pre>
     }
 </style>
 
-<script>
-function copyMessage() {
-    const textarea = document.getElementById('encrypted-message');
-    textarea.select();
-    document.execCommand('copy');
-    
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    btn.style.background = '#4CAF50';
-    
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '';
-    }, 2000);
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const input = document.querySelector('.verify-input');
-    if (input && !input.value) {
-        input.focus();
-    }
-});
-</script>
 {% endblock %}

@@ -43,8 +43,10 @@ class AdvancedProductSearch:
         if cleaned_query:
             # Create search vector for full-text search
             search_vector = SearchVector(
-                'name', weight='A',
-                'description', weight='B', 
+                'name', weight='A'
+            ) + SearchVector(
+                'description', weight='B'
+            ) + SearchVector(
                 'category__name', weight='C'
             )
             

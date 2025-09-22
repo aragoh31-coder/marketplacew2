@@ -359,9 +359,41 @@ class TwoFactorAuth(PrivacyModel):
     
     def verify_pgp_challenge(self, response):
         """Verify PGP challenge response"""
-        # This would verify the PGP-signed challenge
-        # Implementation depends on PGP service
-        return True  # Placeholder
+        import gnupg
+        from django.conf import settings
+        import hashlib
+        
+        if not self.pgp_public_key:
+            return False
+        
+        try:
+            gpg = gnupg.GPG(gnupghome=settings.GPG_HOME_DIR)
+            
+            # Import user's public key
+            import_result = gpg.import_keys(self.pgp_public_key)
+            if not import_result.count:
+                return False
+            
+            # Verify the response is properly signed
+            verified = gpg.verify(response)
+            if not verified:
+                return False
+            
+            # Extract and verify challenge code
+            decrypted = gpg.decrypt(response)
+            if not decrypted.ok:
+                return False
+            
+            # Check if decrypted message matches our challenge
+            expected_hash = hashlib.sha256(
+                f"{self.user.username}:{self.last_login}".encode()
+            ).hexdigest()[:16]
+            
+            return expected_hash in str(decrypted)
+            
+        except Exception as e:
+            logger.error(f"PGP verification error: {e}")
+            return False
 
 
 class ReferralSystem(PrivacyModel):

@@ -27,9 +27,12 @@
             
             <div class="pgp-message-container">
                 <textarea id="encrypted-challenge" class="pgp-textarea" readonly>{{ encrypted_challenge }}</textarea>
-                <button onclick="copyChallenge()" class="btn btn-secondary">
-                    📋 Copy Encrypted Challenge
-                </button>
+                <form method="post" action="{% url 'accounts:download_challenge' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="copy" class="btn btn-secondary">
+                        📋 Copy Encrypted Challenge (Manual)
+                    </button>
+                </form>
             </div>
         </div>
         
@@ -63,12 +66,15 @@
         <!-- Quick Actions -->
         <div class="quick-actions">
             <h3>Quick Actions</h3>
-            <button onclick="saveToFile()" class="btn btn-secondary">
-                💾 Save Challenge to File
-            </button>
-            <button onclick="refreshPage()" class="btn btn-secondary">
+            <form method="post" action="{% url 'accounts:download_challenge' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" name="action" value="download" class="btn btn-secondary">
+                    💾 Save Challenge to File
+                </button>
+            </form>
+            <a href="{% url 'accounts:pgp_challenge' %}" class="btn btn-secondary">
                 🔄 Refresh Page
-            </button>
+            </a>
         </div>
         
         <div class="help-section">
@@ -398,94 +404,4 @@ gpg --decrypt challenge.asc
     }
 </style>
 
-<script>
-// Auto-save input to sessionStorage
-const inputField = document.getElementById('decrypted-response');
-const savedValue = sessionStorage.getItem('pgp_2fa_response');
-
-if (savedValue && inputField.value === '') {
-    inputField.value = savedValue;
-}
-
-inputField.addEventListener('input', function() {
-    sessionStorage.setItem('pgp_2fa_response', this.value);
-});
-
-// Clear saved value on successful submit
-document.getElementById('challenge-form').addEventListener('submit', function() {
-    sessionStorage.removeItem('pgp_2fa_response');
-});
-
-// Copy challenge function
-function copyChallenge() {
-    const textarea = document.getElementById('encrypted-challenge');
-    textarea.select();
-    document.execCommand('copy');
-    
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    btn.style.background = '#4CAF50';
-    
-    setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '';
-    }, 2000);
-}
-
-// Save to file function
-function saveToFile() {
-    const challenge = document.getElementById('encrypted-challenge').value;
-    const blob = new Blob([challenge], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'pgp_challenge.asc';
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
-
-// Refresh page function
-function refreshPage() {
-    window.location.reload();
-}
-
-// Timer countdown
-let timeRemaining = {{ time_remaining|default:15 }} * 60; // Convert to seconds
-const timerElement = document.getElementById('timer');
-
-function updateTimer() {
-    const minutes = Math.floor(timeRemaining / 60);
-    const seconds = timeRemaining % 60;
-    
-    timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    
-    if (timeRemaining <= 300) { // 5 minutes
-        timerElement.classList.add('warning');
-    }
-    if (timeRemaining <= 60) { // 1 minute
-        timerElement.classList.remove('warning');
-        timerElement.classList.add('danger');
-    }
-    
-    if (timeRemaining <= 0) {
-        timerElement.textContent = 'Session expired';
-        inputField.disabled = true;
-        document.querySelector('button[type="submit"]').disabled = true;
-    } else {
-        timeRemaining--;
-    }
-}
-
-// Update timer every second
-setInterval(updateTimer, 1000);
-
-// Prevent page unload if there's input
-window.addEventListener('beforeunload', function(e) {
-    if (inputField.value && inputField.value.length > 0) {
-        e.preventDefault();
-        e.returnValue = '';
-    }
-});
-</script>
 {% endblock %}
