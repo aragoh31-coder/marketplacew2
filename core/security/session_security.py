@@ -69,7 +69,8 @@ class SecureSessionManager:
         try:
             # Decrypt session data
             session_data_str = SECRET_MANAGER.decrypt_sensitive_data(encrypted_data)
-            session_data = eval(session_data_str)  # In production, use json.loads with proper validation
+            import json
+            session_data = json.loads(session_data_str)
         except Exception as e:
             logger.error(f"Failed to decrypt session data: {e}")
             return False, "Session data corrupted"
