@@ -305,27 +305,27 @@
                     {% csrf_token %}
                     <div class="action-buttons">
                         {% if user.is_active %}
-                            <button type="submit" name="action" value="ban" class="btn btn-danger" onclick="return confirm('Ban this user?')">
+                            <button type="submit" name="action" value="ban" class="btn btn-danger">
                                 🚫 Ban User
                             </button>
                         {% else %}
-                            <button type="submit" name="action" value="unban" class="btn btn-success" onclick="return confirm('Unban this user?')">
+                            <button type="submit" name="action" value="unban" class="btn btn-success">
                                 ✅ Unban User
                             </button>
                         {% endif %}
                         
                         {% if security_info.pgp_enabled or security_info.two_factor_enabled %}
-                            <button type="submit" name="action" value="reset_2fa" class="btn btn-warning" onclick="return confirm('Reset 2FA for this user?')">
+                            <button type="submit" name="action" value="reset_2fa" class="btn btn-warning">
                                 🔄 Reset 2FA
                             </button>
                         {% endif %}
                         
                         {% if not user.is_staff %}
-                            <button type="submit" name="action" value="make_staff" class="btn btn-info" onclick="return confirm('Grant staff privileges to this user?')">
+                            <button type="submit" name="action" value="make_staff" class="btn btn-info">
                                 👑 Make Staff
                             </button>
                         {% else %}
-                            <button type="submit" name="action" value="remove_staff" class="btn btn-secondary" onclick="return confirm('Remove staff privileges from this user?')">
+                            <button type="submit" name="action" value="remove_staff" class="btn btn-secondary">
                                 👤 Remove Staff
                             </button>
                         {% endif %}

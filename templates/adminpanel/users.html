@@ -85,8 +85,7 @@
                                 <form method="post" action="{% url 'adminpanel:user_action' user.username %}" style="display: inline;">
                                     {% csrf_token %}
                                     <input type="hidden" name="action" value="ban">
-                                    <button type="submit" class="btn btn-sm btn-danger" 
-                                            onclick="return confirm('Ban user {{ user.username }}?')">
+                                    <button type="submit" class="btn btn-sm btn-danger">
                                         🚫 Ban
                                     </button>
                                 </form>

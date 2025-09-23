@@ -140,9 +140,12 @@
             <a href="{% url 'accounts:pgp_settings' %}" class="btn btn-primary">
                 Back to PGP Settings
             </a>
-            <button onclick="window.print()" class="btn btn-secondary">
-                Print Results
-            </button>
+            <form method="post" action="{% url 'accounts:download_pgp_test' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary">
+                    Download Results
+                </button>
+            </form>
         </div>
     </div>
 </div>
