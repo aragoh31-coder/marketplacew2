@@ -10,12 +10,10 @@ from django.contrib.auth import (authenticate, get_user_model, login, logout,
                                  update_session_auth_hash)
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.db import transaction
-from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 
 from apps.security.forms import SecureLoginForm, SecureRegistrationForm
 from core.utils.cache import log_event

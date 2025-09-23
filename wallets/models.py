@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.utils import timezone
@@ -10,9 +9,8 @@ import json
 import secrets
 import logging
 from django.core.cache import cache
-from config.security_config import SECRET_MANAGER, MEMORY_PROTECTION
+from config.security_config import SECRET_MANAGER
 from core.security.encryption import FIELD_ENCRYPTION
-import threading
 from contextlib import contextmanager
 
 logger = logging.getLogger('wallets.security')

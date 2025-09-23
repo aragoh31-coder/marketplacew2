@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from core.base_models import PrivacyModel
-from config.security_config import SECRET_MANAGER
 import hashlib
 import gnupg
 from datetime import timedelta
@@ -222,7 +221,7 @@ class MirrorSite(PrivacyModel):
             else:
                 self.is_healthy = False
             
-        except Exception as e:
+        except Exception:
             self.is_healthy = False
             
         self.save()

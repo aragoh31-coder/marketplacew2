@@ -3,12 +3,9 @@ import hmac
 import secrets
 import time
 import json
-from decimal import Decimal
 from typing import Dict, Any, Optional
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, padding, ed25519
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from django.conf import settings
 from config.security_config import SECRET_MANAGER
 import logging
 
@@ -427,7 +424,6 @@ class CryptographicSigner:
             # For HMAC verification, we need to compute expected signature
             if not key:
                 # Retrieve key from secure storage
-                from django.conf import settings
                 from config.security_config import SECRET_MANAGER
                 key = SECRET_MANAGER.get_secret('HMAC_SIGNING_KEY')
                 if not key:

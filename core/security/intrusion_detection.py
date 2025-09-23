@@ -2,8 +2,8 @@ import time
 import hashlib
 import json
 import re
-from collections import defaultdict, deque
-from datetime import datetime, timedelta
+from collections import defaultdict
+from datetime import datetime
 from django.core.cache import cache
 from django.conf import settings
 from django.core.mail import send_mail
@@ -452,7 +452,7 @@ This is an automated alert from the Intrusion Detection System.
     
     def get_security_dashboard_data(self):
         """Get security dashboard data for monitoring"""
-        current_time = time.time()
+        time.time()
         
         # Get recent alerts
         alert_keys = cache.keys("security_alert:*")

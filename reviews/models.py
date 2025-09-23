@@ -3,10 +3,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from core.base_models import PrivacyModel
-from decimal import Decimal
 import hashlib
 import uuid
-from datetime import timedelta
 
 User = get_user_model()
 

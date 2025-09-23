@@ -1,17 +1,11 @@
 import os
-import hashlib
 import secrets
-import struct
-from PIL import Image, ImageFilter, ImageOps
-from PIL.ExifTags import TAGS
+from PIL import Image, ImageFilter
 from io import BytesIO
-import re
-from pathlib import Path
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from datetime import datetime, timedelta
+from datetime import datetime
 from config.security_config import SECRET_MANAGER, MEMORY_PROTECTION
-from core.security.validators import SECURE_VALIDATOR
 import logging
 
 logger = logging.getLogger(__name__)

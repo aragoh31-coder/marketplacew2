@@ -2,7 +2,6 @@ import time
 import hashlib
 from django.core.cache import cache
 from django.http import HttpResponse
-from django.conf import settings
 from functools import wraps
 import logging
 

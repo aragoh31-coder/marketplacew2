@@ -4,10 +4,8 @@ import os
 import shutil
 import logging
 import re
-import secrets
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.conf import settings
-from config.security_config import SECRET_MANAGER, MEMORY_PROTECTION
 
 logger = logging.getLogger(__name__)
 

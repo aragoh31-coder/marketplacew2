@@ -2,12 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Sum, Count, Q, Avg, F
+from django.db.models import Sum, Count, Q, Avg
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 from django.core.paginator import Paginator
-from django.core.cache import cache
 from django_ratelimit.decorators import ratelimit
 
 from .models import Vendor, SubVendor, SubVendorActivityLog
@@ -23,8 +22,7 @@ def get_client_ip(request):
         ip = request.META.get('REMOTE_ADDR')
     return ip
 from products.models import Product
-from orders.models import Order, OrderItem
-from adminpanel.utils import ChartGenerator
+from orders.models import Order
 from django.contrib.auth import get_user_model
 
 User = get_user_model()

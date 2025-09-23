@@ -6,8 +6,6 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
-from django.core.cache import cache
-from django.http import JsonResponse, HttpResponseForbidden
 from decimal import Decimal
 import pyotp
 import qrcode
@@ -19,12 +17,10 @@ from .models import (
     Wallet, WithdrawalRequest, Transaction, ConversionRate, AuditLog
 )
 from .forms import (
-    WithdrawalForm, ConversionForm, TwoFactorForm, 
-    WithdrawalPinForm, SecuritySettingsForm
+    WithdrawalForm, ConversionForm, SecuritySettingsForm
 )
 from .utils import (
-    check_rate_limit, send_withdrawal_notification,
-    validate_crypto_address, get_client_ip
+    check_rate_limit, send_withdrawal_notification
 )
 from adminpanel.models import SecurityAlert
 

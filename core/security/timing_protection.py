@@ -1,7 +1,6 @@
 import time
 import secrets
 import hashlib
-import hmac
 from typing import Any, Callable
 from functools import wraps
 from config.security_config import SECRET_MANAGER
@@ -71,7 +70,7 @@ class TimingAttackProtection:
                 
                 try:
                     result = func(*args, **kwargs)
-                except Exception as e:
+                except Exception:
                     # Even on exceptions, maintain timing
                     self._wait_for_target_time(start_time, target_time)
                     raise
@@ -155,7 +154,7 @@ class TimingAttackProtection:
             # Always perform a password hashing operation for timing consistency
             if not stored_password_hash:
                 # If no stored hash, still perform expensive operation
-                dummy_hash = SECRET_MANAGER.hash_password("dummy_password_for_timing")
+                SECRET_MANAGER.hash_password("dummy_password_for_timing")
                 self._wait_for_target_time(start_time, 0.5)  # Minimum 500ms for password ops
                 return False
             

@@ -6,7 +6,6 @@ def log_event(event_type, data):
     import logging
     import json
     from datetime import datetime
-    from django.conf import settings
     
     logger = logging.getLogger('security.audit')
     

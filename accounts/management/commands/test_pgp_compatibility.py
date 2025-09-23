@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from accounts.pgp_service import PGPService
 import gnupg
-import os
 
 class Command(BaseCommand):
     help = 'Test PGP compatibility with various key types'

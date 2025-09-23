@@ -1,10 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
 from django.contrib import messages
-from decimal import Decimal
 from .models import (
     Wallet, WithdrawalRequest, Transaction, 
     ConversionRate, AuditLog, WalletBalanceCheck

@@ -5,8 +5,6 @@ from core.base_models import PrivacyModel
 from config.security_config import SECRET_MANAGER
 from decimal import Decimal
 import uuid
-import hashlib
-from datetime import timedelta
 
 User = get_user_model()
 

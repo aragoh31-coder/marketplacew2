@@ -2,10 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model  
 from django.utils import timezone
 from core.base_models import PrivacyModel
-from config.security_config import SECRET_MANAGER
 from decimal import Decimal
 import uuid
-import json
 from datetime import timedelta
 
 User = get_user_model()

@@ -2,7 +2,6 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from core.base_models import PrivacyModel
 from products.models import Product
-from vendors.models import Vendor
 import uuid
 
 User = get_user_model()

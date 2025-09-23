@@ -1,17 +1,13 @@
 import time
 import hashlib
-import json
 import re
-from django.http import HttpResponseForbidden, JsonResponse, HttpResponse
+from django.http import HttpResponseForbidden
 from django.core.cache import cache
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 from django.shortcuts import render, redirect
-from django.urls import reverse
-from django.contrib.auth.models import AnonymousUser
 from django.contrib import messages
 from django.utils import timezone
-from datetime import timedelta
 import logging
 
 logger = logging.getLogger('wallet.security')

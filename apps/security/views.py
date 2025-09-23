@@ -3,8 +3,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
-from django.core.cache import cache
-from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from wallets.models import AuditLog
 import random

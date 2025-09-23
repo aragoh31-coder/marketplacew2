@@ -1,10 +1,6 @@
 from django.http import HttpResponse, Http404
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import cache_control
 from django.conf import settings
-import os
-import mimetypes
-from pathlib import Path
 
 @cache_control(max_age=3600)  # Cache for 1 hour
 def serve_secure_image(request, path):

@@ -1,8 +1,7 @@
 from django.contrib.postgres.search import (
     SearchVector, SearchQuery, SearchRank, TrigramSimilarity
 )
-from django.db.models import Q, F, Value, FloatField
-from django.db.models.functions import Coalesce
+from django.db.models import Q
 from django.core.cache import cache
 from django.utils import timezone
 from products.models import Product
@@ -210,7 +209,6 @@ class AdvancedProductSearch:
             return cached
         
         # Calculate trending based on recent orders (fuzzy)
-        from orders.models import OrderItem
         from django.db.models import Count
         
         # Get products ordered in last 7 days

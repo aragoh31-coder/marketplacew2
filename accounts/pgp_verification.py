@@ -1,5 +1,4 @@
 import secrets
-import json
 from django.utils import timezone
 from django.contrib import messages
 from django.shortcuts import render, redirect

@@ -4,11 +4,11 @@ from django.utils import timezone
 from decimal import Decimal
 import random
 import secrets
-from vendors.models import Vendor, VendorRating
+from vendors.models import Vendor
 from products.models import Product, Category
-from wallets.models import Wallet, Transaction
+from wallets.models import Wallet
 from orders.models import Order, OrderItem, Cart
-from messaging.models import Message, MessageThread
+from messaging.models import Message
 
 User = get_user_model()
 

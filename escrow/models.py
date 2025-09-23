@@ -2,11 +2,9 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from core.base_models import PrivacyModel
-from decimal import Decimal
 import uuid
 from datetime import timedelta
 import hashlib
-import json
 
 User = get_user_model()
 

@@ -2,7 +2,6 @@ from celery import shared_task
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from django.db.models import Sum, Count, Q
 from datetime import timedelta
 from decimal import Decimal
@@ -499,7 +498,6 @@ def monitor_wallet_security():
 @shared_task
 def cleanup_expired_sessions():
     """Clean up expired security sessions and cache entries"""
-    from django.core.cache import cache
     from django.contrib.sessions.models import Session
     
     expired_sessions = Session.objects.filter(expire_date__lt=timezone.now())

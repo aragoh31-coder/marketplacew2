@@ -2,33 +2,26 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from django.db.models import Sum, Count, Avg, Q
+from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 from django.core.cache import cache
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
 import secrets
-import json
 import hashlib
-import pyotp
 import time
 from accounts.models import User
-from accounts.pgp_service import PGPService
 from vendors.models import Vendor
 from products.models import Product
 from orders.models import Order
 from disputes.models import Dispute
-from wallets.models import Wallet, Transaction, WithdrawalRequest, AuditLog
-from messaging.models import Message
-from .models import AdminLog, AdminProfile, AdminAction, SecurityAlert
+from wallets.models import Transaction, WithdrawalRequest, AuditLog
+from .models import AdminLog
 from .forms import SecondaryAuthForm, AdminPGPChallengeForm, AdminLoginForm, AdminTripleAuthForm
-from .security import AdminSecurityManager, TripleAuthenticator
-from .decorators import require_2fa, require_triple_auth, log_admin_action, admin_required
-from apps.security.models import SecurityEvent, SecurityAuditLog
+from .decorators import require_triple_auth, log_admin_action, admin_required
+from apps.security.models import SecurityAuditLog
 from apps.security.forms import TripleAuthForm
 from django.conf import settings
 
@@ -1045,7 +1038,6 @@ def withdrawal_detail(request, withdrawal_id):
 def withdrawal_approve(request, withdrawal_id):
     """Approve a withdrawal request"""
     from wallets.models import WithdrawalRequest, AuditLog
-    from django.views.decorators.http import require_POST
     
     if request.method != 'POST':
         return redirect('adminpanel:withdrawal_detail', withdrawal_id=withdrawal_id)
@@ -1251,7 +1243,7 @@ def admin_wallet_overview(request):
         return redirect('adminpanel:login')
     
     from wallets.models import Wallet, WithdrawalRequest, Transaction, WalletBalanceCheck
-    from django.db.models import Sum, Count
+    from django.db.models import Sum
     
     total_wallets = Wallet.objects.count()
     total_btc = Wallet.objects.aggregate(Sum('balance_btc'))['balance_btc__sum'] or 0
@@ -1323,11 +1315,11 @@ def image_settings(request):
     from django.conf import settings
     
     if request.method == 'POST':
-        storage_backend = request.POST.get('storage_backend', 'local')
+        request.POST.get('storage_backend', 'local')
         jpeg_quality = int(request.POST.get('jpeg_quality', 85))
         thumbnail_quality = int(request.POST.get('thumbnail_quality', 75))
-        uploads_per_hour = int(request.POST.get('uploads_per_hour', 10))
-        uploads_per_day = int(request.POST.get('uploads_per_day', 50))
+        int(request.POST.get('uploads_per_hour', 10))
+        int(request.POST.get('uploads_per_day', 50))
         
         if not 50 <= jpeg_quality <= 95:
             jpeg_quality = 85

@@ -1,6 +1,5 @@
 from django import forms
 from django.utils import timezone
-from datetime import datetime, timedelta
 from .models import Vendor, SubVendor
 from django.contrib.auth import get_user_model
 from products.models import Product

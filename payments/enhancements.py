@@ -1,14 +1,11 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.conf import settings
 from core.base_models import PrivacyModel
-from config.security_config import SECRET_MANAGER
 from decimal import Decimal
 import uuid
 import hashlib
 import secrets
-import requests
 from datetime import timedelta
 
 User = get_user_model()

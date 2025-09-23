@@ -2,7 +2,6 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from unittest.mock import patch, Mock
-from decimal import Decimal
 
 from wallets.models import Wallet, DepositAddress
 from wallets.views import deposit_info

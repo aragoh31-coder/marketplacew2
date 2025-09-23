@@ -3,8 +3,6 @@ import time
 import secrets
 from django.core.cache import cache
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import timedelta
 
 
 class AdminSecurityManager:

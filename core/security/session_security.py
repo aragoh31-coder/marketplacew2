@@ -7,10 +7,8 @@ from django.core.cache import cache
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth import logout
-from django.utils import timezone
 from django.utils.deprecation import MiddlewareMixin
-from config.security_config import SECRET_MANAGER, MEMORY_PROTECTION
-from datetime import timedelta
+from config.security_config import SECRET_MANAGER
 
 logger = logging.getLogger('session.security')
 

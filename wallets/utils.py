@@ -90,7 +90,6 @@ def validate_crypto_address(address, currency):
             
         # For additional validation, we could use the bitcoinlib library
         try:
-            from bitcoinlib.encoding import addr_bech32_to_pubkeyhash, change_base
             from bitcoinlib.keys import Address
             
             # Try to create an Address object - will raise an exception if invalid

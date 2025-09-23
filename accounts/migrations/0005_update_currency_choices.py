@@ -11,7 +11,6 @@ def migrate_currency_choices(apps, schema_editor):
 
 def reverse_migrate_currency_choices(apps, schema_editor):
     """Reverse migration - no action needed as we can't restore original values"""
-    pass
 
 
 class Migration(migrations.Migration):
