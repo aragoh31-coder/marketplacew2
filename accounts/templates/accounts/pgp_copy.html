@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="copy-container">
+        <h1>📋 {{ title }}</h1>
+        
+        <div class="info-box">
+            <p>Select all text below and copy it manually (Ctrl+C or Cmd+C):</p>
+        </div>
+        
+        <div class="content-section">
+            <textarea class="copy-textarea" readonly rows="20" cols="80">{{ content }}</textarea>
+        </div>
+        
+        <div class="instructions">
+            <h3>How to Copy:</h3>
+            <ol>
+                <li>Click inside the text area above</li>
+                <li>Press Ctrl+A (or Cmd+A on Mac) to select all</li>
+                <li>Press Ctrl+C (or Cmd+C on Mac) to copy</li>
+                <li>Paste into your PGP application</li>
+            </ol>
+        </div>
+        
+        <div class="actions">
+            <a href="{{ return_url }}" class="btn btn-primary">← Back</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .copy-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+        background: rgba(26, 26, 26, 0.95);
+        border-radius: 12px;
+    }
+    
+    .info-box {
+        background: rgba(42, 42, 42, 0.8);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .copy-textarea {
+        width: 100%;
+        padding: 15px;
+        background: #0a0a0a;
+        border: 1px solid #444;
+        color: #4CAF50;
+        font-family: monospace;
+        font-size: 12px;
+        border-radius: 8px;
+        resize: vertical;
+    }
+    
+    .copy-textarea:focus {
+        outline: none;
+        border-color: #4CAF50;
+    }
+    
+    .instructions {
+        margin-top: 20px;
+        padding: 15px;
+        background: #1a1a1a;
+        border-radius: 8px;
+    }
+    
+    .instructions h3 {
+        color: #4CAF50;
+        margin-bottom: 10px;
+    }
+    
+    .instructions ol {
+        margin-left: 20px;
+        color: #ccc;
+    }
+    
+    .instructions li {
+        margin-bottom: 5px;
+    }
+    
+    .actions {
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        background: linear-gradient(135deg, #45a049, #3d8b40);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

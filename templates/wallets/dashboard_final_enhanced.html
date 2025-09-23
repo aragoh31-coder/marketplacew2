@@ -288,38 +288,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Pure JavaScript for form validation (no external dependencies)
-document.addEventListener('DOMContentLoaded', function() {
-    const fromCurrency = document.getElementById('from_currency');
-    const toCurrency = document.getElementById('to_currency');
-    
-    if (fromCurrency && toCurrency) {
-        fromCurrency.addEventListener('change', function() {
-            if (this.value === 'btc') {
-                toCurrency.value = 'xmr';
-            } else {
-                toCurrency.value = 'btc';
-            }
-        });
-        
-        toCurrency.addEventListener('change', function() {
-            if (this.value === 'btc') {
-                fromCurrency.value = 'xmr';
-            } else {
-                fromCurrency.value = 'btc';
-            }
-        });
-    }
-    
-    // Form submission timing check
-    const forms = document.querySelectorAll('form');
-    forms.forEach(function(form) {
-        const timestamp = form.querySelector('input[name="form_timestamp"]');
-        if (timestamp) {
-            timestamp.value = Date.now() / 1000;
-        }
-    });
-});
-</script>
+<!-- JavaScript removed for Tor compatibility -->
+<!-- Currency swap logic handled server-side -->
 {% endblock %}

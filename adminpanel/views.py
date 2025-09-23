@@ -771,6 +771,23 @@ def admin_user_action(request, username):
     user = get_object_or_404(User, username=username)
     action = request.POST.get('action')
     
+    # Handle GET request - show confirmation page
+    if request.method == 'GET':
+        action = request.GET.get('action')
+        if action in ['ban', 'unban', 'reset_2fa', 'make_staff', 'remove_staff']:
+            return render(request, 'adminpanel/confirm_action.html', {
+                'user': user,
+                'action': action,
+                'action_text': {
+                    'ban': 'Ban User',
+                    'unban': 'Unban User',
+                    'reset_2fa': 'Reset 2FA',
+                    'make_staff': 'Grant Staff Privileges',
+                    'remove_staff': 'Remove Staff Privileges'
+                }.get(action, action)
+            })
+    
+    # Handle POST request - perform action after confirmation
     if request.method == 'POST':
         if action == 'ban':
             user.is_active = False
@@ -1152,6 +1169,12 @@ def admin_withdrawal_detail(request, withdrawal_id):
     if request.method == 'POST':
         action = request.POST.get('action')
         admin_notes = request.POST.get('admin_notes', '')
+        confirmation = request.POST.get('confirmation', '')
+        
+        # Require confirmation
+        if confirmation.upper() != 'CONFIRM':
+            messages.error(request, 'Please type CONFIRM to proceed with this action.')
+            return redirect('adminpanel:withdrawal_detail', withdrawal_id=withdrawal_id)
         
         if action == 'approve':
             withdrawal.status = 'approved'

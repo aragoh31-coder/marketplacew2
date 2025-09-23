@@ -82,21 +82,13 @@
                                 👁️ View
                             </a>
                             {% if user.is_active %}
-                                <form method="post" action="{% url 'adminpanel:user_action' user.username %}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="ban">
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        🚫 Ban
-                                    </button>
-                                </form>
+                                <a href="{% url 'adminpanel:user_action' user.username %}?action=ban" class="btn btn-sm btn-danger">
+                                    🚫 Ban
+                                </a>
                             {% else %}
-                                <form method="post" action="{% url 'adminpanel:user_action' user.username %}" style="display: inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="unban">
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        ✅ Unban
-                                    </button>
-                                </form>
+                                <a href="{% url 'adminpanel:user_action' user.username %}?action=unban" class="btn btn-sm btn-success">
+                                    ✅ Unban
+                                </a>
                             {% endif %}
                         </div>
                     </td>

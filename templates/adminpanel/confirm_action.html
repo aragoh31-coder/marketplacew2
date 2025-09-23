@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm Action - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="confirm-container">
+        <h1>⚠️ Confirm Action</h1>
+        
+        <div class="warning-box">
+            <h2>Are you sure you want to {{ action_text|lower }}?</h2>
+            
+            <div class="user-info">
+                <h3>User Details:</h3>
+                <table class="info-table">
+                    <tr>
+                        <td>Username:</td>
+                        <td><strong>{{ user.username }}</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Email:</td>
+                        <td>{{ user.email|default:"Not provided" }}</td>
+                    </tr>
+                    <tr>
+                        <td>Status:</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="status-active">✓ Active</span>
+                            {% else %}
+                                <span class="status-banned">✗ Banned</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Staff:</td>
+                        <td>
+                            {% if user.is_staff %}
+                                <span class="status-active">✓ Yes</span>
+                            {% else %}
+                                <span class="status-inactive">✗ No</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="action-description">
+                {% if action == 'ban' %}
+                    <p class="warning-text">
+                        This will prevent the user from logging in and accessing the platform.
+                        All active sessions will be terminated.
+                    </p>
+                {% elif action == 'unban' %}
+                    <p class="info-text">
+                        This will restore the user's access to the platform.
+                        They will be able to log in again.
+                    </p>
+                {% elif action == 'reset_2fa' %}
+                    <p class="warning-text">
+                        This will remove all two-factor authentication settings for this user.
+                        They will need to set up 2FA again.
+                    </p>
+                {% elif action == 'make_staff' %}
+                    <p class="warning-text">
+                        This will grant administrative privileges to this user.
+                        They will have access to admin functions.
+                    </p>
+                {% elif action == 'remove_staff' %}
+                    <p class="warning-text">
+                        This will revoke administrative privileges from this user.
+                        They will lose access to admin functions.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <form method="post" action="{% url 'adminpanel:user_action' user.username %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="{{ action }}">
+                
+                <button type="submit" class="btn btn-danger">
+                    ✓ Confirm {{ action_text }}
+                </button>
+                
+                <a href="{% url 'adminpanel:user_detail' user.username %}" class="btn btn-secondary">
+                    ✗ Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .confirm-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        background: rgba(26, 26, 26, 0.95);
+        border-radius: 12px;
+        border: 2px solid #ff6b6b;
+    }
+    
+    .warning-box {
+        background: rgba(255, 107, 107, 0.1);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+    
+    .warning-box h2 {
+        color: #ff6b6b;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    
+    .user-info {
+        background: rgba(42, 42, 42, 0.8);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    
+    .user-info h3 {
+        color: #ccc;
+        margin-bottom: 15px;
+        font-size: 16px;
+    }
+    
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .info-table td {
+        padding: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        color: #ccc;
+    }
+    
+    .info-table td:first-child {
+        width: 30%;
+        color: #999;
+    }
+    
+    .status-active {
+        color: #4CAF50;
+        font-weight: bold;
+    }
+    
+    .status-banned {
+        color: #ff6b6b;
+        font-weight: bold;
+    }
+    
+    .status-inactive {
+        color: #999;
+    }
+    
+    .action-description {
+        margin-top: 20px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+    }
+    
+    .warning-text {
+        color: #ff9800;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .info-text {
+        color: #4CAF50;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+    }
+    
+    .action-buttons {
+        text-align: center;
+    }
+    
+    .action-buttons form {
+        display: inline-block;
+    }
+    
+    .btn {
+        padding: 12px 24px;
+        margin: 0 10px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ff5252);
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #ff5252, #ff3838);
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: rgba(108, 117, 125, 0.8);
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background: rgba(108, 117, 125, 1);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}

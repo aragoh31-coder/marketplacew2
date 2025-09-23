@@ -73,6 +73,13 @@
                             <textarea name="admin_notes" id="admin_notes" class="form-control" rows="3" placeholder="Add notes about this decision..."></textarea>
                         </div>
                         
+                        {% if not confirm_action %}
+                        <div class="form-group">
+                            <label>⚠️ Type "CONFIRM" to proceed with action:</label>
+                            <input type="text" name="confirmation" class="form-control" placeholder="Type CONFIRM" required>
+                        </div>
+                        {% endif %}
+                        
                         <div class="btn-group" role="group">
                             <button type="submit" name="action" value="approve" class="btn btn-success">
                                 Approve Withdrawal

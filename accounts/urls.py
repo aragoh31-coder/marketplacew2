@@ -18,4 +18,6 @@ urlpatterns = [
     path('profile/login-history/', views.login_history_view, name='login_history'),
     path('pgp-challenge/', views.pgp_challenge_view, name='pgp_challenge'),
     path('test-pgp/', views.test_pgp_encryption, name='test_pgp'),
+    path('pgp-challenge/download/', views.download_pgp_challenge, name='download_challenge'),
+    path('test-pgp/download/', views.download_pgp_test_results, name='download_pgp_test'),
 ]

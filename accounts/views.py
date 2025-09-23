@@ -687,3 +687,59 @@ def pgp_challenge_view(request: HttpRequest) -> HttpResponse:
         'challenge_format': 'MARKETPLACE-2FA:XXXXXXXXXXXXX',
         'time_remaining': time_remaining
     })
+
+
+@login_required
+def download_pgp_challenge(request):
+    """Download PGP challenge as a file or show as plaintext for copying"""
+    encrypted_challenge = request.session.get('pgp_2fa_encrypted_challenge')
+    
+    if not encrypted_challenge:
+        messages.error(request, 'No PGP challenge found in session')
+        return redirect('accounts:pgp_challenge')
+    
+    action = request.POST.get('action', 'download')
+    
+    if action == 'download':
+        # Serve as downloadable file
+        response = HttpResponse(encrypted_challenge, content_type='text/plain')
+        response['Content-Disposition'] = 'attachment; filename="pgp_challenge.asc"'
+        return response
+    elif action == 'copy':
+        # Show in a copyable format
+        return render(request, 'accounts/pgp_copy.html', {
+            'content': encrypted_challenge,
+            'title': 'PGP Challenge',
+            'return_url': request.META.get('HTTP_REFERER', '/accounts/pgp-challenge/')
+        })
+    
+    return redirect('accounts:pgp_challenge')
+
+
+@login_required
+def download_pgp_test_results(request):
+    """Download PGP test results as a file"""
+    # Get test results from session if available
+    test_results = request.session.get('pgp_test_results', {})
+    
+    if not test_results:
+        messages.error(request, 'No test results found')
+        return redirect('accounts:test_pgp')
+    
+    # Format results as text
+    results_text = f"""PGP Test Results
+================
+Date: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}
+User: {request.user.username}
+
+Encryption Test: {'✓ Passed' if test_results.get('encryption_success') else '✗ Failed'}
+Decryption Test: {'✓ Passed' if test_results.get('decryption_success') else '✗ Failed'}
+Signature Test: {'✓ Passed' if test_results.get('signature_success') else '✗ Failed'}
+
+Details:
+{test_results.get('details', 'No additional details available')}
+"""
+    
+    response = HttpResponse(results_text, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="pgp_test_results.txt"'
+    return response

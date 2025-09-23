@@ -148,41 +148,6 @@
     </div>
 </div>
 
-<script>
-// Countdown timer (works without external JavaScript dependencies)
-document.addEventListener('DOMContentLoaded', function() {
-    var retryAfter = {{ retry_after|default:60 }};
-    var timerElement = document.getElementById('retryTimer');
-    
-    function updateTimer() {
-        if (retryAfter > 0) {
-            var minutes = Math.floor(retryAfter / 60);
-            var seconds = retryAfter % 60;
-            
-            if (minutes > 0) {
-                timerElement.textContent = 'Please wait ' + minutes + ' minute' + (minutes > 1 ? 's' : '') + 
-                                         ' and ' + seconds + ' second' + (seconds !== 1 ? 's' : '') + ' before trying again';
-            } else {
-                timerElement.textContent = 'Please wait ' + seconds + ' second' + (seconds !== 1 ? 's' : '') + ' before trying again';
-            }
-            
-            retryAfter--;
-            setTimeout(updateTimer, 1000);
-        } else {
-            timerElement.innerHTML = '<strong style="color: #28a745;">✅ You can try again now!</strong>';
-            
-            // Add refresh button
-            var refreshBtn = document.createElement('a');
-            refreshBtn.href = window.location.href;
-            refreshBtn.className = 'btn';
-            refreshBtn.style.marginTop = '1rem';
-            refreshBtn.textContent = '🔄 Refresh Page';
-            timerElement.appendChild(document.createElement('br'));
-            timerElement.appendChild(refreshBtn);
-        }
-    }
-    
-    updateTimer();
-});
-</script>
+<!-- Timer removed for no-JavaScript compliance -->
+<!-- Rate limit expires after {{ retry_after|default:60 }} seconds -->
 {% endblock %}
