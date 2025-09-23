@@ -13,30 +13,53 @@
         margin: 20px 0;
     }
     .form-group {
-        margin-bottom: 15px;
+        margin-bottom: 1.5rem;
     }
     .form-control {
         width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 0.5rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+        min-height: 44px; /* Touch-friendly size */
+        background: rgba(15, 23, 42, 0.4);
+        color: var(--text-primary);
+        transition: var(--transition);
+    }
+    .form-control:focus {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+        border-color: var(--primary);
     }
     .btn {
-        background: #007bff;
-        color: white;
-        padding: 10px 20px;
+        background: var(--primary);
+        color: var(--bg-primary);
+        padding: 1rem 2rem;
         border: none;
-        border-radius: 4px;
+        border-radius: 0.5rem;
         cursor: pointer;
+        font-size: 16px;
+        min-height: 48px;
+        font-weight: 600;
+        transition: var(--transition);
+        width: 100%;
     }
     .btn:hover {
-        background: #0056b3;
+        background: var(--primary-dim);
+        transform: translateY(-2px);
+        box-shadow: var(--glow);
+    }
+    @media (min-width: 768px) {
+        .btn {
+            width: auto;
+            min-width: 200px;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="card login-card">
     <h2>🔐 Secure Login</h2>
     
     <div class="security-notice">
@@ -57,7 +80,7 @@
         {% endif %}
         
         <!-- Username field -->
-        <div class="form-group">
+        <div class="form-group form-floating">
             <label for="{{ form.username.id_for_label }}">Username:</label>
             {{ form.username }}
             {% if form.username.errors %}
@@ -70,7 +93,7 @@
         </div>
         
         <!-- Password field -->
-        <div class="form-group">
+        <div class="form-group form-floating">
             <label for="{{ form.password.id_for_label }}">Password:</label>
             {{ form.password }}
             {% if form.password.errors %}

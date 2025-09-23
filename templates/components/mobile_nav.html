@@ -1,0 +1,574 @@
+<!-- Mobile-Friendly Navigation Component -->
+<!-- Include this in base.html for responsive navigation -->
+
+<style>
+    /* Mobile Navigation Styles */
+    .mobile-nav-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: rgba(10, 15, 27, 0.95);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    }
+    
+    .mobile-nav-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .mobile-nav-brand {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .mobile-nav-brand:hover {
+        color: var(--primary-dim);
+    }
+    
+    /* Hamburger Menu Button */
+    .mobile-nav-toggle {
+        display: none;
+        background: none;
+        border: none;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+        position: relative;
+        padding: 0;
+    }
+    
+    .hamburger-box {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        position: relative;
+    }
+    
+    .hamburger-inner {
+        display: block;
+        top: 50%;
+        margin-top: -2px;
+    }
+    
+    .hamburger-inner,
+    .hamburger-inner::before,
+    .hamburger-inner::after {
+        width: 24px;
+        height: 2px;
+        background-color: var(--text-primary);
+        border-radius: 2px;
+        position: absolute;
+        transition: transform 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0),
+                    background-color 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0),
+                    opacity 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+    }
+    
+    .hamburger-inner::before,
+    .hamburger-inner::after {
+        content: "";
+        display: block;
+    }
+    
+    .hamburger-inner::before {
+        top: -8px;
+    }
+    
+    .hamburger-inner::after {
+        bottom: -8px;
+    }
+    
+    /* Mobile Menu Active State */
+    .mobile-nav-active .hamburger-inner {
+        transform: rotate(45deg);
+    }
+    
+    .mobile-nav-active .hamburger-inner::before {
+        top: 0;
+        opacity: 0;
+    }
+    
+    .mobile-nav-active .hamburger-inner::after {
+        bottom: 0;
+        transform: rotate(-90deg);
+    }
+    
+    /* Desktop Navigation */
+    .desktop-nav-links {
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .nav-link-item {
+        position: relative;
+    }
+    
+    .nav-link {
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        transition: var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .nav-link:hover {
+        color: var(--primary);
+        background: rgba(0, 255, 136, 0.1);
+    }
+    
+    .nav-link.active {
+        color: var(--primary);
+        background: rgba(0, 255, 136, 0.15);
+    }
+    
+    .nav-badge {
+        background: var(--danger);
+        color: white;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.4rem;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+    }
+    
+    /* Mobile Menu Overlay */
+    .mobile-menu-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .mobile-menu-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+    
+    /* Mobile Side Menu */
+    .mobile-side-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100%;
+        background: var(--bg-secondary);
+        z-index: 10000;
+        transition: right 0.3s cubic-bezier(0.77, 0.2, 0.05, 1.0);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .mobile-side-menu.active {
+        right: 0;
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .mobile-menu-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-menu-close {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: var(--transition);
+    }
+    
+    .mobile-menu-close:hover {
+        color: var(--primary);
+        transform: rotate(90deg);
+    }
+    
+    .mobile-menu-links {
+        list-style: none;
+        padding: 1rem 0;
+        margin: 0;
+    }
+    
+    .mobile-menu-link {
+        display: block;
+        padding: 1rem 1.5rem;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: var(--transition);
+        border-left: 3px solid transparent;
+        position: relative;
+    }
+    
+    .mobile-menu-link:hover {
+        background: rgba(0, 255, 136, 0.05);
+        border-left-color: var(--primary);
+        color: var(--primary);
+        padding-left: 2rem;
+    }
+    
+    .mobile-menu-link.active {
+        background: rgba(0, 255, 136, 0.1);
+        border-left-color: var(--primary);
+        color: var(--primary);
+    }
+    
+    .mobile-menu-separator {
+        height: 1px;
+        background: var(--border);
+        margin: 1rem 0;
+    }
+    
+    .mobile-menu-user {
+        padding: 1.5rem;
+        background: rgba(0, 255, 136, 0.05);
+        border-top: 1px solid var(--border);
+    }
+    
+    .mobile-user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .mobile-user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: var(--bg-primary);
+    }
+    
+    .mobile-user-details {
+        flex: 1;
+    }
+    
+    .mobile-user-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+    }
+    
+    .mobile-user-role {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+    
+    /* Responsive Breakpoints */
+    @media (max-width: 991px) {
+        .mobile-nav-toggle {
+            display: block;
+        }
+        
+        .desktop-nav-links {
+            display: none;
+        }
+        
+        /* Adjust main content padding for fixed nav */
+        body {
+            padding-top: 60px;
+        }
+    }
+    
+    @media (min-width: 992px) {
+        .mobile-side-menu,
+        .mobile-menu-overlay {
+            display: none !important;
+        }
+    }
+    
+    /* Bottom Mobile Navigation Bar */
+    .mobile-bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border);
+        z-index: 9000;
+        padding: 0.5rem 0;
+        padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    }
+    
+    .mobile-bottom-nav-items {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .mobile-bottom-nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.5rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: var(--transition);
+        position: relative;
+    }
+    
+    .mobile-bottom-nav-item:hover,
+    .mobile-bottom-nav-item.active {
+        color: var(--primary);
+    }
+    
+    .mobile-bottom-nav-icon {
+        font-size: 1.25rem;
+    }
+    
+    .mobile-bottom-nav-label {
+        font-size: 0.75rem;
+    }
+    
+    .mobile-bottom-nav-badge {
+        position: absolute;
+        top: 0.25rem;
+        right: calc(50% - 1rem);
+        background: var(--danger);
+        color: white;
+        font-size: 0.6rem;
+        padding: 0.1rem 0.3rem;
+        border-radius: 10px;
+        min-width: 16px;
+        text-align: center;
+    }
+    
+    @media (max-width: 767px) {
+        .mobile-bottom-nav {
+            display: block;
+        }
+        
+        body {
+            padding-bottom: 70px;
+        }
+    }
+    
+    /* Accessibility */
+    .nav-skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        padding: 8px;
+        text-decoration: none;
+        z-index: 10001;
+    }
+    
+    .nav-skip-link:focus {
+        top: 0;
+    }
+    
+    /* Touch feedback */
+    @media (hover: none) {
+        .nav-link:active,
+        .mobile-menu-link:active,
+        .mobile-bottom-nav-item:active {
+            opacity: 0.7;
+        }
+    }
+    
+    /* Smooth transitions */
+    * {
+        -webkit-tap-highlight-color: transparent;
+    }
+</style>
+
+<nav class="mobile-nav-wrapper">
+    <div class="mobile-nav-container">
+        <a href="/" class="mobile-nav-brand">
+            🛡️ Marketplace
+        </a>
+        
+        <!-- Desktop Navigation -->
+        <ul class="desktop-nav-links">
+            <li class="nav-link-item">
+                <a href="{% url 'products:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+                    📦 Products
+                </a>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-link-item">
+                <a href="{% url 'orders:cart' %}" class="nav-link {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                    🛒 Cart
+                    {% if cart_count %}
+                    <span class="nav-badge">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-link-item">
+                <a href="{% url 'wallets:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    💰 Wallet
+                </a>
+            </li>
+            <li class="nav-link-item">
+                <a href="{% url 'messaging:list' %}" class="nav-link {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+                    ✉️ Messages
+                    {% if unread_messages %}
+                    <span class="nav-badge">{{ unread_messages }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            <li class="nav-link-item">
+                <a href="{% url 'accounts:profile' %}" class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+                    👤 Profile
+                </a>
+            </li>
+            {% else %}
+            <li class="nav-link-item">
+                <a href="{% url 'accounts:login' %}" class="nav-link">
+                    🔐 Login
+                </a>
+            </li>
+            <li class="nav-link-item">
+                <a href="{% url 'accounts:register' %}" class="nav-link">
+                    📝 Register
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-nav-toggle" aria-label="Toggle navigation">
+            <span class="hamburger-box">
+                <span class="hamburger-inner"></span>
+            </span>
+        </button>
+    </div>
+</nav>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu-overlay"></div>
+
+<!-- Mobile Side Menu -->
+<div class="mobile-side-menu">
+    <div class="mobile-menu-header">
+        <span class="mobile-nav-brand">🛡️ Menu</span>
+        <button class="mobile-menu-close" aria-label="Close menu">✕</button>
+    </div>
+    
+    {% if user.is_authenticated %}
+    <div class="mobile-menu-user">
+        <div class="mobile-user-info">
+            <div class="mobile-user-avatar">
+                {{ user.username|first|upper }}
+            </div>
+            <div class="mobile-user-details">
+                <div class="mobile-user-name">{{ user.username }}</div>
+                <div class="mobile-user-role">
+                    {% if user.is_staff %}Admin{% elif user.vendor %}Vendor{% else %}Buyer{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <ul class="mobile-menu-links">
+        <li><a href="{% url 'products:list' %}" class="mobile-menu-link">📦 Products</a></li>
+        {% if user.is_authenticated %}
+        <li><a href="{% url 'orders:cart' %}" class="mobile-menu-link">
+            🛒 Cart
+            {% if cart_count %}<span class="nav-badge">{{ cart_count }}</span>{% endif %}
+        </a></li>
+        <li><a href="{% url 'orders:list' %}" class="mobile-menu-link">📋 Orders</a></li>
+        <li><a href="{% url 'wallets:dashboard' %}" class="mobile-menu-link">💰 Wallet</a></li>
+        <li><a href="{% url 'messaging:list' %}" class="mobile-menu-link">
+            ✉️ Messages
+            {% if unread_messages %}<span class="nav-badge">{{ unread_messages }}</span>{% endif %}
+        </a></li>
+        <li class="mobile-menu-separator"></li>
+        <li><a href="{% url 'accounts:profile' %}" class="mobile-menu-link">👤 Profile</a></li>
+        <li><a href="{% url 'accounts:settings' %}" class="mobile-menu-link">⚙️ Settings</a></li>
+        {% if user.is_staff %}
+        <li class="mobile-menu-separator"></li>
+        <li><a href="{% url 'adminpanel:dashboard' %}" class="mobile-menu-link">🔧 Admin Panel</a></li>
+        {% endif %}
+        {% if user.vendor %}
+        <li class="mobile-menu-separator"></li>
+        <li><a href="{% url 'vendors:dashboard' %}" class="mobile-menu-link">🏪 Vendor Dashboard</a></li>
+        {% endif %}
+        <li class="mobile-menu-separator"></li>
+        <li><a href="{% url 'accounts:logout' %}" class="mobile-menu-link">🚪 Logout</a></li>
+        {% else %}
+        <li><a href="{% url 'accounts:login' %}" class="mobile-menu-link">🔐 Login</a></li>
+        <li><a href="{% url 'accounts:register' %}" class="mobile-menu-link">📝 Register</a></li>
+        {% endif %}
+    </ul>
+</div>
+
+<!-- Bottom Mobile Navigation -->
+<nav class="mobile-bottom-nav">
+    <div class="mobile-bottom-nav-items">
+        <a href="{% url 'products:list' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+            <span class="mobile-bottom-nav-icon">📦</span>
+            <span class="mobile-bottom-nav-label">Shop</span>
+        </a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'orders:cart' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+            <span class="mobile-bottom-nav-icon">🛒</span>
+            <span class="mobile-bottom-nav-label">Cart</span>
+            {% if cart_count %}
+            <span class="mobile-bottom-nav-badge">{{ cart_count }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'wallets:dashboard' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <span class="mobile-bottom-nav-icon">💰</span>
+            <span class="mobile-bottom-nav-label">Wallet</span>
+        </a>
+        <a href="{% url 'messaging:list' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'list' %}active{% endif %}">
+            <span class="mobile-bottom-nav-icon">✉️</span>
+            <span class="mobile-bottom-nav-label">Messages</span>
+            {% if unread_messages %}
+            <span class="mobile-bottom-nav-badge">{{ unread_messages }}</span>
+            {% endif %}
+        </a>
+        <a href="{% url 'accounts:profile' %}" class="mobile-bottom-nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+            <span class="mobile-bottom-nav-icon">👤</span>
+            <span class="mobile-bottom-nav-label">Profile</span>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="mobile-bottom-nav-item">
+            <span class="mobile-bottom-nav-icon">🔐</span>
+            <span class="mobile-bottom-nav-label">Login</span>
+        </a>
+        {% endif %}
+    </div>
+</nav>

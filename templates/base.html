@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0f1b">
     <title>{% block title %}Secure Marketplace{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/responsive.css">
     <style>
         /* Premium Theme Variables */
         :root {
@@ -73,6 +77,69 @@
         /* Mobile Navigation Checkbox (hidden) */
         .mobile-nav-checkbox {
             display: none;
+        }
+        
+        /* Mobile Menu Toggle Button */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .mobile-menu-toggle:hover {
+            color: var(--primary);
+        }
+        
+        /* Hamburger Icon */
+        .hamburger {
+            display: block;
+            width: 24px;
+            height: 20px;
+            position: relative;
+        }
+        
+        .hamburger span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: currentColor;
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+        
+        .hamburger span:nth-child(1) { top: 0; }
+        .hamburger span:nth-child(2) { top: 9px; }
+        .hamburger span:nth-child(3) { bottom: 0; }
+        
+        /* Mobile Navigation Styles */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .mobile-nav-checkbox:checked ~ .nav .nav-links {
+                transform: translateX(0);
+            }
+            
+            .mobile-nav-checkbox:checked ~ .nav .mobile-menu-toggle .hamburger span:nth-child(1) {
+                transform: rotate(45deg);
+                top: 9px;
+            }
+            
+            .mobile-nav-checkbox:checked ~ .nav .mobile-menu-toggle .hamburger span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .mobile-nav-checkbox:checked ~ .nav .mobile-menu-toggle .hamburger span:nth-child(3) {
+                transform: rotate(-45deg);
+                bottom: 9px;
+            }
         }
         
         /* Glassmorphism Header */

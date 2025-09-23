@@ -36,8 +36,8 @@
         </form>
     </div>
 
-    <div class="users-table-container">
-        <table class="users-table">
+    <div class="users-table-container table-responsive">
+        <table class="users-table table table-stack">
             <thead>
                 <tr>
                     <th>Username</th>
@@ -52,20 +52,20 @@
             <tbody>
                 {% for user in page_obj %}
                 <tr class="user-row {% if not user.is_active %}inactive-user{% endif %}">
-                    <td>
+                    <td data-label="Username">
                         <a href="{% url 'adminpanel:user_detail' user.username %}" class="user-link">
                             {{ user.username }}
                             {% if user.is_staff %}<span class="staff-badge">STAFF</span>{% endif %}
                             {% if user.is_superuser %}<span class="admin-badge">ADMIN</span>{% endif %}
                         </a>
                     </td>
-                    <td>{{ user.email|default:"No email" }}</td>
-                    <td>
+                    <td data-label="Email">{{ user.email|default:"No email" }}</td>
+                    <td data-label="Status">
                         <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
                             {% if user.is_active %}Active{% else %}Inactive{% endif %}
                         </span>
                     </td>
-                    <td>
+                    <td data-label="Vendor">
                         {% if user.vendor %}
                             <span class="vendor-badge">
                                 {% if user.vendor.is_approved %}✅ Approved{% else %}⏳ Pending{% endif %}
@@ -74,9 +74,9 @@
                             <span class="no-vendor">Regular User</span>
                         {% endif %}
                     </td>
-                    <td>{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</td>
-                    <td>{{ user.date_joined|date:"M d, Y" }}</td>
-                    <td class="actions-cell">
+                    <td data-label="Last Login">{{ user.last_login|date:"M d, Y H:i"|default:"Never" }}</td>
+                    <td data-label="Joined">{{ user.date_joined|date:"M d, Y" }}</td>
+                    <td data-label="Actions" class="actions-cell">
                         <div class="action-buttons">
                             <a href="{% url 'adminpanel:user_detail' user.username %}" class="btn btn-sm btn-info">
                                 👁️ View

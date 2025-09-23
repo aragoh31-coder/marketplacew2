@@ -2,7 +2,7 @@
 {% block title %}Products{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Gift Cards</h1>
+    <h1 class="page-title">Gift Cards</h1>
     
     <!-- Mobile Search/Filter -->
     <div class="mobile-search">
@@ -37,15 +37,16 @@
         </form>
     </div>
     
-    <!-- Mobile Product Cards -->
-    <div class="product-grid">
+    <!-- Responsive Product Grid -->
+    <div class="product-grid card-grid">
         {% for product in page_obj %}
-        <div class="product-card">
+        <div class="product-card card">
             {% if product.thumbnail_url %}
-            <div class="product-image">
+            <div class="product-image-wrapper">
                 <img src="{{ product.thumbnail_url }}" 
                      alt="{{ product.name }}" 
                      loading="lazy"
+                     class="img-fluid product-image"
                      onerror="this.style.display='none'">
             </div>
             {% endif %}
@@ -98,6 +99,8 @@
                 <form method="post" action="{% url 'orders:add_to_cart' product.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="honeypot_field" class="honeypot">
+                    <div class="form-row">
+                        <div class="col-12 col-sm-6">
                     <button type="submit" class="btn btn-primary">
                         Add to Cart
                     </button>
