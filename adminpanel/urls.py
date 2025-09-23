@@ -39,7 +39,7 @@ urlpatterns = [
     path('logs/', system_logs, name='logs'),
     path('maintenance/', trigger_maintenance, name='maintenance'),
     path('image-settings/', image_settings, name='image_settings'),
-    path('withdrawal/<int:withdrawal_id>/', admin_withdrawal_detail, name='withdrawal_detail'),
+    path('withdrawal/<int:withdrawal_id>/', admin_withdrawal_detail, name='admin_withdrawal_detail'),
     path('security-logs/', admin_security_logs, name='security_logs'),
     path('wallet-overview/', admin_wallet_overview, name='wallet_overview'),
     

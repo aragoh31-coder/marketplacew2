@@ -94,8 +94,8 @@
             {% endif %}
             
             <div class="mt-3">
-                <a href="{% url 'adminpanel:withdrawals_list' %}" class="btn btn-secondary">Back to Withdrawals</a>
-                <a href="{% url 'adminpanel:admin_user_detail' withdrawal.user.id %}" class="btn btn-info">View User</a>
+                <a href="{% url 'adminpanel:withdrawals' %}" class="btn btn-secondary">Back to Withdrawals</a>
+                <a href="{% url 'adminpanel:user_detail' withdrawal.user.username %}" class="btn btn-info">View User</a>
             </div>
         </div>
     </div>
