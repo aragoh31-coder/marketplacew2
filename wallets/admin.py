@@ -339,9 +339,9 @@ class ConversionRateAdmin(admin.ModelAdmin):
 class AuditLogAdmin(admin.ModelAdmin):
     list_display = [
         'user', 'action', 'risk_score_display',
-        'flagged_display', 'created_at'
+        'risk_level_display', 'created_at'
     ]
-    list_filter = ['action', 'flagged', 'created_at']
+    list_filter = ['action', 'risk_level', 'created_at']
     search_fields = ['user__username']
     readonly_fields = ['created_at']
     
@@ -350,7 +350,7 @@ class AuditLogAdmin(admin.ModelAdmin):
             'fields': ('user', 'action', 'details')
         }),
         ('Security Assessment', {
-            'fields': ('risk_score', 'flagged')
+            'fields': ('risk_score', 'risk_level')
         }),
         ('Timestamp', {
             'fields': ('created_at',)
@@ -371,11 +371,19 @@ class AuditLogAdmin(admin.ModelAdmin):
         )
     risk_score_display.short_description = "Risk Score"
     
-    def flagged_display(self, obj):
-        if obj.flagged:
-            return format_html('<span style="color: #dc3545; font-weight: bold;">🚩 FLAGGED</span>')
-        return format_html('<span style="color: #28a745;">✓ Normal</span>')
-    flagged_display.short_description = "Status"
+    def risk_level_display(self, obj):
+        colors = {
+            'LOW': '#28a745',
+            'MEDIUM': '#ffa500',
+            'HIGH': '#dc3545',
+            'CRITICAL': '#dc3545'
+        }
+        color = colors.get(obj.risk_level, '#28a745')
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color, obj.get_risk_level_display()
+        )
+    risk_level_display.short_description = "Risk Level"
 
 
 @admin.register(WalletBalanceCheck)
